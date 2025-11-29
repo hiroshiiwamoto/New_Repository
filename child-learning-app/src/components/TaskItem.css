@@ -1,0 +1,166 @@
+.task-item {
+  background: white;
+  border-radius: 15px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.task-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.task-item.completed {
+  opacity: 0.7;
+}
+
+.task-item.completed .task-title {
+  text-decoration: line-through;
+  color: #999;
+}
+
+.task-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 1;
+}
+
+.task-checkbox {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  accent-color: #667eea;
+}
+
+.task-info {
+  flex: 1;
+}
+
+.task-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.subject-emoji {
+  font-size: 1.3rem;
+}
+
+.task-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.subject-badge,
+.difficulty-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.subject-badge {
+  background: #e0e7ff;
+  color: #667eea;
+}
+
+.difficulty-badge {
+  color: white;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 5px 10px;
+  transition: transform 0.2s ease;
+  opacity: 0.6;
+}
+
+.delete-btn:hover {
+  transform: scale(1.2);
+  opacity: 1;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .task-item {
+    padding: 15px;
+    border-radius: 12px;
+  }
+
+  .task-content {
+    gap: 12px;
+  }
+
+  .task-checkbox {
+    width: 20px;
+    height: 20px;
+  }
+
+  .task-title {
+    font-size: 1rem;
+  }
+
+  .subject-emoji {
+    font-size: 1.2rem;
+  }
+
+  .subject-badge,
+  .difficulty-badge {
+    padding: 3px 10px;
+    font-size: 0.8rem;
+  }
+
+  .delete-btn {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .task-item {
+    padding: 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .task-content {
+    width: 100%;
+  }
+
+  .task-title {
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+  }
+
+  .subject-emoji {
+    font-size: 1.1rem;
+  }
+
+  .task-meta {
+    gap: 6px;
+  }
+
+  .subject-badge,
+  .difficulty-badge {
+    padding: 2px 8px;
+    font-size: 0.75rem;
+  }
+
+  .delete-btn {
+    align-self: flex-end;
+    margin-top: -5px;
+  }
+}

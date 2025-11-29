@@ -1,0 +1,62 @@
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.empty-state {
+  background: white;
+  border-radius: 20px;
+  padding: 40px 20px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.empty-state p:first-child {
+  font-size: 1.5rem;
+  color: #667eea;
+  margin-bottom: 10px;
+}
+
+.empty-state p:last-child {
+  font-size: 1.1rem;
+  color: #666;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .task-list {
+    gap: 12px;
+  }
+
+  .empty-state {
+    padding: 30px 15px;
+    border-radius: 15px;
+  }
+
+  .empty-state p:first-child {
+    font-size: 1.3rem;
+  }
+
+  .empty-state p:last-child {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .task-list {
+    gap: 10px;
+  }
+
+  .empty-state {
+    padding: 25px 10px;
+  }
+
+  .empty-state p:first-child {
+    font-size: 1.2rem;
+  }
+
+  .empty-state p:last-child {
+    font-size: 0.9rem;
+  }
+}
