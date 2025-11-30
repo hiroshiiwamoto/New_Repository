@@ -4,24 +4,37 @@ import TaskForm from './components/TaskForm'
 import TaskList from './components/TaskList'
 import Dashboard from './components/Dashboard'
 import WeeklyCalendar from './components/WeeklyCalendar'
+import SubjectView from './components/SubjectView'
 
 function App() {
   const [tasks, setTasks] = useState([])
   const [filter, setFilter] = useState('all') // all, active, completed
-  const [view, setView] = useState('list') // list, calendar
+  const [view, setView] = useState('subject') // subject, calendar, list
+  const [targetSchools, setTargetSchools] = useState([
+    { name: '開成中学校', deviation: 71, priority: 1 },
+    { name: '筑波大学附属駒場中学校', deviation: 78, priority: 1 },
+  ])
 
   // Load tasks from localStorage on mount
   useEffect(() => {
-    const savedTasks = localStorage.getItem('learningTasks')
+    const savedTasks = localStorage.getItem('sapixTasks')
     if (savedTasks) {
       setTasks(JSON.parse(savedTasks))
+    }
+    const savedSchools = localStorage.getItem('targetSchools')
+    if (savedSchools) {
+      setTargetSchools(JSON.parse(savedSchools))
     }
   }, [])
 
   // Save tasks to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('learningTasks', JSON.stringify(tasks))
+    localStorage.setItem('sapixTasks', JSON.stringify(tasks))
   }, [tasks])
+
+  useEffect(() => {
+    localStorage.setItem('targetSchools', JSON.stringify(targetSchools))
+  }, [targetSchools])
 
   const addTask = (task) => {
     const newTask = {
@@ -50,23 +63,29 @@ function App() {
   })
 
   return (
-    <div className="app">
+    <div className="app sapix-theme">
       <header className="app-header">
-        <h1>📚 子供の学習アプリ</h1>
-        <p>がんばって学習しよう！</p>
+        <div className="header-content">
+          <h1>📘 SAPIX 中学受験 学習管理</h1>
+          <div className="target-schools">
+            {targetSchools.filter(s => s.priority === 1).map((school, idx) => (
+              <span key={idx} className="target-badge">{school.name}</span>
+            ))}
+          </div>
+        </div>
       </header>
 
-      <Dashboard tasks={tasks} />
+      <Dashboard tasks={tasks} targetSchools={targetSchools} />
 
       <div className="container">
         <TaskForm onAddTask={addTask} />
 
         <div className="view-switcher">
           <button
-            className={view === 'list' ? 'active' : ''}
-            onClick={() => setView('list')}
+            className={view === 'subject' ? 'active' : ''}
+            onClick={() => setView('subject')}
           >
-            📋 リスト
+            📚 科目別
           </button>
           <button
             className={view === 'calendar' ? 'active' : ''}
@@ -74,9 +93,21 @@ function App() {
           >
             📅 カレンダー
           </button>
+          <button
+            className={view === 'list' ? 'active' : ''}
+            onClick={() => setView('list')}
+          >
+            📋 リスト
+          </button>
         </div>
 
-        {view === 'calendar' ? (
+        {view === 'subject' ? (
+          <SubjectView
+            tasks={tasks}
+            onToggleTask={toggleTask}
+            onDeleteTask={deleteTask}
+          />
+        ) : view === 'calendar' ? (
           <WeeklyCalendar
             tasks={tasks}
             onToggleTask={toggleTask}
