@@ -66,6 +66,12 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask }) {
     setCurrentMonth(initialDate)
   }
 
+  function goToToday() {
+    const today = new Date()
+    setCurrentWeekStart(getWeekStart(today))
+    setCurrentMonth(today)
+  }
+
   // ビュー切り替え時に日付を同期
   function switchToMonthView() {
     // 週間表示の日付から月を取得
@@ -107,7 +113,7 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask }) {
     const filtered = tasks.filter(task => task.dueDate === dateStr)
 
     // デバッグ用ログ
-    if (dateStr === '2025-02-03' || dateStr === '2025-02-04') {
+    if (dateStr === '2026-02-03' || dateStr === '2026-02-04') {
       console.log('🔍 Debug for date:', dateStr)
       console.log('Total tasks:', tasks.length)
       console.log('Tasks with dueDate:', tasks.filter(t => t.dueDate).length)
@@ -142,6 +148,7 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask }) {
               <h2>📅 {days[0].getMonth() + 1}月 週間カレンダー</h2>
               <div className="calendar-controls">
                 <button onClick={goToFirstTask} className="today-btn">📌 最初</button>
+                <button onClick={goToToday} className="today-btn">📆 今日</button>
                 <button onClick={switchToMonthView} className="view-mode-btn">
                   月間表示
                 </button>
@@ -152,6 +159,7 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask }) {
               <h2>📅 {currentMonth.getFullYear()}年 {currentMonth.getMonth() + 1}月</h2>
               <div className="calendar-controls">
                 <button onClick={goToFirstTask} className="today-btn">📌 最初</button>
+                <button onClick={goToToday} className="today-btn">📆 今日</button>
                 <button onClick={switchToWeekView} className="view-mode-btn">
                   週間表示
                 </button>

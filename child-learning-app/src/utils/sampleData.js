@@ -6,7 +6,7 @@ export const generateSAPIXSchedule = () => {
 
   // 日付ヘルパー関数
   const getDate = (month, day) => {
-    return `2025-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    return `2026-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   };
 
   // 1月（新4年準備期間）のスケジュール
