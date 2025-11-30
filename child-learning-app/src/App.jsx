@@ -11,7 +11,7 @@ import { generateSAPIXSchedule } from './utils/sampleData'
 function App() {
   const [tasks, setTasks] = useState([])
   const [filter, setFilter] = useState('all') // all, active, completed
-  const [view, setView] = useState('subject') // subject, calendar, list
+  const [view, setView] = useState('calendar') // subject, calendar, list
   const [targetSchools, setTargetSchools] = useState([
     { name: '開成中学校', deviation: 71, priority: 1 },
     { name: '筑波大学附属駒場中学校', deviation: 78, priority: 1 },
