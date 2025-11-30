@@ -1,56 +1,62 @@
 import './Dashboard.css'
 
 function Dashboard({ tasks }) {
-  const totalTasks = tasks.length
-  const completedTasks = tasks.filter(task => task.completed).length
-  const activeTasks = totalTasks - completedTasks
-  const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+  const subjects = ['国語', '算数', '理科', '社会']
 
-  const getProgressEmoji = (percentage) => {
-    if (percentage === 100) return '🌟'
-    if (percentage >= 75) return '🎉'
-    if (percentage >= 50) return '💪'
-    if (percentage >= 25) return '📚'
-    return '🚀'
+  const subjectEmojis = {
+    '国語': '📖',
+    '算数': '🔢',
+    '理科': '🔬',
+    '社会': '🌍',
   }
 
-  const getEncouragementMessage = (percentage) => {
-    if (percentage === 100) return 'すごい！全部できたね！'
-    if (percentage >= 75) return 'もう少しでゴール！がんばって！'
-    if (percentage >= 50) return '半分以上できたね！すごいよ！'
-    if (percentage >= 25) return 'いい調子！続けよう！'
-    return 'さあ、がんばろう！'
+  const subjectColors = {
+    '国語': '#8b5cf6',
+    '算数': '#3b82f6',
+    '理科': '#10b981',
+    '社会': '#f59e0b',
+  }
+
+  const getSubjectProgress = (subject) => {
+    const subjectTasks = tasks.filter(task => task.subject === subject)
+    const completed = subjectTasks.filter(task => task.completed).length
+    const total = subjectTasks.length
+    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0
+    return { completed, total, percentage }
   }
 
   return (
     <div className="dashboard">
-      <div className="stats-container">
-        <div className="stat-card total">
-          <div className="stat-number">{totalTasks}</div>
-          <div className="stat-label">全タスク</div>
-        </div>
-        <div className="stat-card active">
-          <div className="stat-number">{activeTasks}</div>
-          <div className="stat-label">未完了</div>
-        </div>
-        <div className="stat-card completed">
-          <div className="stat-number">{completedTasks}</div>
-          <div className="stat-label">完了</div>
-        </div>
-      </div>
-
-      <div className="progress-section">
-        <div className="progress-header">
-          <span className="progress-emoji">{getProgressEmoji(progress)}</span>
-          <span className="progress-text">{progress}%</span>
-        </div>
-        <div className="progress-bar">
-          <div
-            className="progress-fill"
-            style={{ width: `${progress}%` }}
-          ></div>
-        </div>
-        <p className="encouragement">{getEncouragementMessage(progress)}</p>
+      <h3 className="dashboard-title">📊 科目別達成率</h3>
+      <div className="subject-progress-grid">
+        {subjects.map(subject => {
+          const { completed, total, percentage } = getSubjectProgress(subject)
+          return (
+            <div key={subject} className="subject-progress-card">
+              <div className="subject-header">
+                <span className="subject-emoji">{subjectEmojis[subject]}</span>
+                <span className="subject-name">{subject}</span>
+              </div>
+              <div className="progress-info">
+                <div className="progress-percentage" style={{ color: subjectColors[subject] }}>
+                  {percentage}%
+                </div>
+                <div className="progress-count">
+                  {completed} / {total}
+                </div>
+              </div>
+              <div className="progress-bar">
+                <div
+                  className="progress-fill"
+                  style={{
+                    width: `${percentage}%`,
+                    background: subjectColors[subject]
+                  }}
+                ></div>
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
