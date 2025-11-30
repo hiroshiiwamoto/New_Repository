@@ -96,9 +96,6 @@ function App() {
         {/* 2. 科目別達成率 */}
         <Dashboard tasks={tasks} targetSchools={targetSchools} />
 
-        {/* 3. タスク追加フォーム */}
-        <TaskForm onAddTask={addTask} />
-
         {tasks.length === 0 && (
           <div className="sample-schedule-prompt">
             <p>📅 サンプルスケジュールを読み込んで、すぐに使い始められます！</p>
@@ -108,7 +105,7 @@ function App() {
           </div>
         )}
 
-        {/* 4. ビュー切り替え */}
+        {/* 3. ビュー切り替え */}
         <div className="view-switcher">
           <button
             className={view === 'subject' ? 'active' : ''}
@@ -172,6 +169,9 @@ function App() {
             />
           </>
         )}
+
+        {/* 4. タスク追加フォーム（一番下） */}
+        <TaskForm onAddTask={addTask} />
       </div>
     </div>
   )
