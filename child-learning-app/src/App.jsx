@@ -5,6 +5,7 @@ import TaskList from './components/TaskList'
 import Dashboard from './components/Dashboard'
 import WeeklyCalendar from './components/WeeklyCalendar'
 import SubjectView from './components/SubjectView'
+import { generateSAPIXSchedule } from './utils/sampleData'
 
 function App() {
   const [tasks, setTasks] = useState([])
@@ -56,6 +57,14 @@ function App() {
     setTasks(tasks.filter(task => task.id !== id))
   }
 
+  const loadSampleSchedule = () => {
+    if (window.confirm('SAPIX新四年生の1月～3月のサンプルスケジュール（80タスク以上）を読み込みますか？\n既存のタスクは削除されます。')) {
+      const sampleTasks = generateSAPIXSchedule()
+      setTasks(sampleTasks)
+      alert(`✅ ${sampleTasks.length}個のタスクを読み込みました！`)
+    }
+  }
+
   const filteredTasks = tasks.filter(task => {
     if (filter === 'active') return !task.completed
     if (filter === 'completed') return task.completed
@@ -79,6 +88,15 @@ function App() {
 
       <div className="container">
         <TaskForm onAddTask={addTask} />
+
+        {tasks.length === 0 && (
+          <div className="sample-schedule-prompt">
+            <p>📅 サンプルスケジュールを読み込んで、すぐに使い始められます！</p>
+            <button onClick={loadSampleSchedule} className="load-sample-btn">
+              🎓 SAPIX新四年生スケジュールを読み込む（1月～3月）
+            </button>
+          </div>
+        )}
 
         <div className="view-switcher">
           <button

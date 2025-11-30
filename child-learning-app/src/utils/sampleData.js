@@ -1,7 +1,6 @@
-// SAPIX新四年生 1月～3月 学習スケジュール自動入力スクリプト
-// ブラウザのコンソールで実行してください
+// SAPIX新四年生 1月～3月 学習スケジュールデータ
 
-const generateSAPIXSchedule = () => {
+export const generateSAPIXSchedule = () => {
   const tasks = [];
   let taskId = Date.now();
 
@@ -127,23 +126,3 @@ const generateSAPIXSchedule = () => {
 
   return tasks;
 };
-
-// LocalStorageに保存
-const saveTasks = () => {
-  const tasks = generateSAPIXSchedule();
-  localStorage.setItem('sapixTasks', JSON.stringify(tasks));
-  console.log(`✅ ${tasks.length}個のタスクを保存しました！`);
-  console.log('🔄 ページをリロードしてください。');
-
-  // タスクの内訳を表示
-  const breakdown = {
-    '国語': tasks.filter(t => t.subject === '国語').length,
-    '算数': tasks.filter(t => t.subject === '算数').length,
-    '理科': tasks.filter(t => t.subject === '理科').length,
-    '社会': tasks.filter(t => t.subject === '社会').length,
-  };
-  console.log('📊 科目別タスク数:', breakdown);
-};
-
-// 実行
-saveTasks();

@@ -51,6 +51,40 @@
   margin: 0 auto;
 }
 
+.sample-schedule-prompt {
+  background: white;
+  border-radius: 15px;
+  padding: 30px;
+  text-align: center;
+  margin: 20px 0;
+  box-shadow: 0 8px 24px rgba(30, 64, 175, 0.15);
+}
+
+.sample-schedule-prompt p {
+  color: #1e40af;
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.load-sample-btn {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 16px 32px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+}
+
+.load-sample-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(30, 64, 175, 0.4);
+}
+
 .view-switcher {
   display: flex;
   gap: 10px;
