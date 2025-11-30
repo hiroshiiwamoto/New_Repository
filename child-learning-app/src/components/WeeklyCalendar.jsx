@@ -68,6 +68,19 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask }) {
     setCurrentMonth(new Date())
   }
 
+  // ビュー切り替え時に日付を同期
+  function switchToMonthView() {
+    // 週間表示の日付から月を取得
+    setCurrentMonth(new Date(currentWeekStart))
+    setViewMode('month')
+  }
+
+  function switchToWeekView() {
+    // 月間表示の日付から週の開始日を取得
+    setCurrentWeekStart(getWeekStart(currentMonth))
+    setViewMode('week')
+  }
+
   const weekDays = ['日', '月', '火', '水', '木', '金', '土']
   const days = Array.from({ length: 7 }, (_, i) => addDays(currentWeekStart, i))
 
@@ -131,7 +144,7 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask }) {
               <h2>📅 {days[0].getMonth() + 1}月 週間カレンダー</h2>
               <div className="calendar-controls">
                 <button onClick={thisWeek} className="today-btn">今週</button>
-                <button onClick={() => setViewMode('month')} className="view-mode-btn">
+                <button onClick={switchToMonthView} className="view-mode-btn">
                   月間表示
                 </button>
               </div>
@@ -141,7 +154,7 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask }) {
               <h2>📅 {currentMonth.getFullYear()}年 {currentMonth.getMonth() + 1}月</h2>
               <div className="calendar-controls">
                 <button onClick={thisMonth} className="today-btn">今月</button>
-                <button onClick={() => setViewMode('week')} className="view-mode-btn">
+                <button onClick={switchToWeekView} className="view-mode-btn">
                   週間表示
                 </button>
               </div>
