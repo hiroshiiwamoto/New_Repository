@@ -60,12 +60,10 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask }) {
     setCurrentMonth(newMonth)
   }
 
-  function thisWeek() {
-    setCurrentWeekStart(getWeekStart(new Date()))
-  }
-
-  function thisMonth() {
-    setCurrentMonth(new Date())
+  function goToFirstTask() {
+    const initialDate = getInitialDate()
+    setCurrentWeekStart(getWeekStart(initialDate))
+    setCurrentMonth(initialDate)
   }
 
   // ビュー切り替え時に日付を同期
@@ -143,7 +141,7 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask }) {
             <>
               <h2>📅 {days[0].getMonth() + 1}月 週間カレンダー</h2>
               <div className="calendar-controls">
-                <button onClick={thisWeek} className="today-btn">今週</button>
+                <button onClick={goToFirstTask} className="today-btn">📌 最初</button>
                 <button onClick={switchToMonthView} className="view-mode-btn">
                   月間表示
                 </button>
@@ -153,7 +151,7 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask }) {
             <>
               <h2>📅 {currentMonth.getFullYear()}年 {currentMonth.getMonth() + 1}月</h2>
               <div className="calendar-controls">
-                <button onClick={thisMonth} className="today-btn">今月</button>
+                <button onClick={goToFirstTask} className="today-btn">📌 最初</button>
                 <button onClick={switchToWeekView} className="view-mode-btn">
                   週間表示
                 </button>
