@@ -147,7 +147,6 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask }) {
             <>
               <h2>📅 {days[0].getMonth() + 1}月 週間カレンダー</h2>
               <div className="calendar-controls">
-                <button onClick={goToFirstTask} className="today-btn">📌 最初</button>
                 <button onClick={goToToday} className="today-btn">📆 今日</button>
                 <button onClick={switchToMonthView} className="view-mode-btn">
                   月間表示
@@ -158,7 +157,6 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask }) {
             <>
               <h2>📅 {currentMonth.getFullYear()}年 {currentMonth.getMonth() + 1}月</h2>
               <div className="calendar-controls">
-                <button onClick={goToFirstTask} className="today-btn">📌 最初</button>
                 <button onClick={goToToday} className="today-btn">📆 今日</button>
                 <button onClick={switchToWeekView} className="view-mode-btn">
                   週間表示
