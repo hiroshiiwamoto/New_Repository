@@ -5,6 +5,7 @@ function TaskForm({ onAddTask }) {
   const [title, setTitle] = useState('')
   const [subject, setSubject] = useState('国語')
   const [difficulty, setDifficulty] = useState('medium')
+  const [dueDate, setDueDate] = useState('')
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -13,8 +14,10 @@ function TaskForm({ onAddTask }) {
         title: title.trim(),
         subject,
         difficulty,
+        dueDate: dueDate || null,
       })
       setTitle('')
+      setDueDate('')
     }
   }
 
@@ -68,6 +71,16 @@ function TaskForm({ onAddTask }) {
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="dueDate">📅 いつやる？（任意）</label>
+        <input
+          type="date"
+          id="dueDate"
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+        />
       </div>
 
       <button type="submit" className="submit-btn">

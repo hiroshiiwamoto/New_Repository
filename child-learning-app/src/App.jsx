@@ -3,10 +3,12 @@ import './App.css'
 import TaskForm from './components/TaskForm'
 import TaskList from './components/TaskList'
 import Dashboard from './components/Dashboard'
+import WeeklyCalendar from './components/WeeklyCalendar'
 
 function App() {
   const [tasks, setTasks] = useState([])
   const [filter, setFilter] = useState('all') // all, active, completed
+  const [view, setView] = useState('list') // list, calendar
 
   // Load tasks from localStorage on mount
   useEffect(() => {
@@ -59,32 +61,57 @@ function App() {
       <div className="container">
         <TaskForm onAddTask={addTask} />
 
-        <div className="filter-buttons">
+        <div className="view-switcher">
           <button
-            className={filter === 'all' ? 'active' : ''}
-            onClick={() => setFilter('all')}
+            className={view === 'list' ? 'active' : ''}
+            onClick={() => setView('list')}
           >
-            すべて
+            📋 リスト
           </button>
           <button
-            className={filter === 'active' ? 'active' : ''}
-            onClick={() => setFilter('active')}
+            className={view === 'calendar' ? 'active' : ''}
+            onClick={() => setView('calendar')}
           >
-            未完了
-          </button>
-          <button
-            className={filter === 'completed' ? 'active' : ''}
-            onClick={() => setFilter('completed')}
-          >
-            完了
+            📅 カレンダー
           </button>
         </div>
 
-        <TaskList
-          tasks={filteredTasks}
-          onToggleTask={toggleTask}
-          onDeleteTask={deleteTask}
-        />
+        {view === 'calendar' ? (
+          <WeeklyCalendar
+            tasks={tasks}
+            onToggleTask={toggleTask}
+            onDeleteTask={deleteTask}
+          />
+        ) : (
+          <>
+            <div className="filter-buttons">
+              <button
+                className={filter === 'all' ? 'active' : ''}
+                onClick={() => setFilter('all')}
+              >
+                すべて
+              </button>
+              <button
+                className={filter === 'active' ? 'active' : ''}
+                onClick={() => setFilter('active')}
+              >
+                未完了
+              </button>
+              <button
+                className={filter === 'completed' ? 'active' : ''}
+                onClick={() => setFilter('completed')}
+              >
+                完了
+              </button>
+            </div>
+
+            <TaskList
+              tasks={filteredTasks}
+              onToggleTask={toggleTask}
+              onDeleteTask={deleteTask}
+            />
+          </>
+        )}
       </div>
     </div>
   )
