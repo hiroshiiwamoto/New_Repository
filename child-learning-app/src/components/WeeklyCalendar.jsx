@@ -2,9 +2,22 @@ import { useState } from 'react'
 import './WeeklyCalendar.css'
 
 function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask }) {
-  const [currentWeekStart, setCurrentWeekStart] = useState(getWeekStart(new Date()))
+  // サンプルデータが2025年2月なので、初期表示を2月に設定
+  const getInitialDate = () => {
+    if (tasks.length > 0) {
+      const tasksWithDates = tasks.filter(t => t.dueDate)
+      if (tasksWithDates.length > 0) {
+        // 最初のタスクの日付を使用
+        const firstDate = new Date(tasksWithDates[0].dueDate)
+        return firstDate
+      }
+    }
+    return new Date()
+  }
+
+  const [currentWeekStart, setCurrentWeekStart] = useState(getWeekStart(getInitialDate()))
   const [viewMode, setViewMode] = useState('week') // 'week' or 'month'
-  const [currentMonth, setCurrentMonth] = useState(new Date())
+  const [currentMonth, setCurrentMonth] = useState(getInitialDate())
 
   function getWeekStart(date) {
     const d = new Date(date)
@@ -80,7 +93,18 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask }) {
 
   function getTasksForDate(date) {
     const dateStr = formatDate(date)
-    return tasks.filter(task => task.dueDate === dateStr)
+    const filtered = tasks.filter(task => task.dueDate === dateStr)
+
+    // デバッグ用ログ
+    if (dateStr === '2025-02-03' || dateStr === '2025-02-04') {
+      console.log('🔍 Debug for date:', dateStr)
+      console.log('Total tasks:', tasks.length)
+      console.log('Tasks with dueDate:', tasks.filter(t => t.dueDate).length)
+      console.log('Sample task dueDates:', tasks.slice(0, 5).map(t => t.dueDate))
+      console.log('Filtered tasks:', filtered.length)
+    }
+
+    return filtered
   }
 
   const subjectEmojis = {
