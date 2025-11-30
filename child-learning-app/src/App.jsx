@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import './App.css'
+import TodayAndWeekView from './components/TodayAndWeekView'
+import Dashboard from './components/Dashboard'
 import TaskForm from './components/TaskForm'
 import TaskList from './components/TaskList'
-import Dashboard from './components/Dashboard'
 import WeeklyCalendar from './components/WeeklyCalendar'
 import SubjectView from './components/SubjectView'
 import { generateSAPIXSchedule } from './utils/sampleData'
@@ -84,9 +85,18 @@ function App() {
         </div>
       </header>
 
-      <Dashboard tasks={tasks} targetSchools={targetSchools} />
-
       <div className="container">
+        {/* 1. 今日と今週のタスク（最優先） */}
+        <TodayAndWeekView
+          tasks={tasks}
+          onToggleTask={toggleTask}
+          onDeleteTask={deleteTask}
+        />
+
+        {/* 2. 科目別達成率 */}
+        <Dashboard tasks={tasks} targetSchools={targetSchools} />
+
+        {/* 3. タスク追加フォーム */}
         <TaskForm onAddTask={addTask} />
 
         {tasks.length === 0 && (
@@ -98,6 +108,7 @@ function App() {
           </div>
         )}
 
+        {/* 4. ビュー切り替え */}
         <div className="view-switcher">
           <button
             className={view === 'subject' ? 'active' : ''}
