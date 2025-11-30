@@ -3,6 +3,8 @@ import './WeeklyCalendar.css'
 
 function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask }) {
   const [currentWeekStart, setCurrentWeekStart] = useState(getWeekStart(new Date()))
+  const [viewMode, setViewMode] = useState('week') // 'week' or 'month'
+  const [currentMonth, setCurrentMonth] = useState(new Date())
 
   function getWeekStart(date) {
     const d = new Date(date)
@@ -11,8 +13,12 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask }) {
     return new Date(d.setDate(diff))
   }
 
+  // ローカル時間を使用した日付フォーマット（タイムゾーンの問題を修正）
   function formatDate(date) {
-    return date.toISOString().split('T')[0]
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
   }
 
   function addDays(date, days) {
@@ -29,12 +35,48 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask }) {
     setCurrentWeekStart(addDays(currentWeekStart, 7))
   }
 
+  function previousMonth() {
+    const newMonth = new Date(currentMonth)
+    newMonth.setMonth(newMonth.getMonth() - 1)
+    setCurrentMonth(newMonth)
+  }
+
+  function nextMonth() {
+    const newMonth = new Date(currentMonth)
+    newMonth.setMonth(newMonth.getMonth() + 1)
+    setCurrentMonth(newMonth)
+  }
+
   function thisWeek() {
     setCurrentWeekStart(getWeekStart(new Date()))
   }
 
+  function thisMonth() {
+    setCurrentMonth(new Date())
+  }
+
   const weekDays = ['日', '月', '火', '水', '木', '金', '土']
   const days = Array.from({ length: 7 }, (_, i) => addDays(currentWeekStart, i))
+
+  // 月間カレンダーの日付を取得
+  function getMonthDays() {
+    const year = currentMonth.getFullYear()
+    const month = currentMonth.getMonth()
+    const firstDay = new Date(year, month, 1)
+    const lastDay = new Date(year, month + 1, 0)
+    const startDay = new Date(firstDay)
+    startDay.setDate(startDay.getDate() - startDay.getDay())
+
+    const monthDays = []
+    let currentDay = new Date(startDay)
+
+    while (monthDays.length < 42) { // 6週間分
+      monthDays.push(new Date(currentDay))
+      currentDay.setDate(currentDay.getDate() + 1)
+    }
+
+    return monthDays
+  }
 
   function getTasksForDate(date) {
     const dateStr = formatDate(date)
@@ -46,10 +88,6 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask }) {
     '算数': '🔢',
     '理科': '🔬',
     '社会': '🌍',
-    '英語': '🔤',
-    '音楽': '🎵',
-    '体育': '⚽',
-    'その他': '📝',
   }
 
   const today = formatDate(new Date())
@@ -57,60 +95,138 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask }) {
   return (
     <div className="weekly-calendar">
       <div className="calendar-header">
-        <button onClick={previousWeek} className="nav-btn">◀</button>
+        <button
+          onClick={viewMode === 'week' ? previousWeek : previousMonth}
+          className="nav-btn"
+        >
+          ◀
+        </button>
         <div className="calendar-title">
-          <h2>📅 週間カレンダー</h2>
-          <button onClick={thisWeek} className="today-btn">今週</button>
+          {viewMode === 'week' ? (
+            <>
+              <h2>📅 {days[0].getMonth() + 1}月 週間カレンダー</h2>
+              <div className="calendar-controls">
+                <button onClick={thisWeek} className="today-btn">今週</button>
+                <button onClick={() => setViewMode('month')} className="view-mode-btn">
+                  月間表示
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <h2>📅 {currentMonth.getFullYear()}年 {currentMonth.getMonth() + 1}月</h2>
+              <div className="calendar-controls">
+                <button onClick={thisMonth} className="today-btn">今月</button>
+                <button onClick={() => setViewMode('week')} className="view-mode-btn">
+                  週間表示
+                </button>
+              </div>
+            </>
+          )}
         </div>
-        <button onClick={nextWeek} className="nav-btn">▶</button>
+        <button
+          onClick={viewMode === 'week' ? nextWeek : nextMonth}
+          className="nav-btn"
+        >
+          ▶
+        </button>
       </div>
 
-      <div className="calendar-grid">
-        {days.map((day, index) => {
-          const dateStr = formatDate(day)
-          const dayTasks = getTasksForDate(day)
-          const isToday = dateStr === today
+      {viewMode === 'week' ? (
+        // 週間ビュー
+        <div className="calendar-grid weekly-grid">
+          {days.map((day, index) => {
+            const dateStr = formatDate(day)
+            const dayTasks = getTasksForDate(day)
+            const isToday = dateStr === today
 
-          return (
-            <div key={index} className={`calendar-day ${isToday ? 'today' : ''}`}>
-              <div className="day-header">
-                <div className="day-name">{weekDays[index]}</div>
-                <div className="day-date">{day.getDate()}</div>
-              </div>
+            return (
+              <div key={index} className={`calendar-day ${isToday ? 'today' : ''}`}>
+                <div className="day-header">
+                  <div className="day-name">{weekDays[index]}</div>
+                  <div className="day-date">
+                    {day.getMonth() + 1}/{day.getDate()}
+                  </div>
+                </div>
 
-              <div className="day-tasks">
-                {dayTasks.length === 0 ? (
-                  <div className="no-tasks">予定なし</div>
-                ) : (
-                  dayTasks.map(task => (
-                    <div
-                      key={task.id}
-                      className={`calendar-task ${task.completed ? 'completed' : ''}`}
-                    >
-                      <div className="task-header">
-                        <input
-                          type="checkbox"
-                          checked={task.completed}
-                          onChange={() => onToggleTask(task.id)}
-                          className="task-checkbox-small"
-                        />
-                        <span className="task-emoji">{subjectEmojis[task.subject]}</span>
-                      </div>
-                      <div className="task-title-small">{task.title}</div>
-                      <button
-                        className="delete-btn-small"
-                        onClick={() => onDeleteTask(task.id)}
+                <div className="day-tasks">
+                  {dayTasks.length === 0 ? (
+                    <div className="no-tasks">予定なし</div>
+                  ) : (
+                    dayTasks.map(task => (
+                      <div
+                        key={task.id}
+                        className={`calendar-task ${task.completed ? 'completed' : ''}`}
                       >
-                        ×
-                      </button>
-                    </div>
-                  ))
-                )}
+                        <div className="task-header">
+                          <input
+                            type="checkbox"
+                            checked={task.completed}
+                            onChange={() => onToggleTask(task.id)}
+                            className="task-checkbox-small"
+                          />
+                          <span className="task-emoji">{subjectEmojis[task.subject]}</span>
+                        </div>
+                        <div className="task-title-small">{task.title}</div>
+                        <button
+                          className="delete-btn-small"
+                          onClick={() => onDeleteTask(task.id)}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
-            </div>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
+      ) : (
+        // 月間ビュー
+        <div className="calendar-grid monthly-grid">
+          <div className="month-weekdays">
+            {weekDays.map((day, i) => (
+              <div key={i} className="weekday-header">{day}</div>
+            ))}
+          </div>
+          <div className="month-days">
+            {getMonthDays().map((day, index) => {
+              const dateStr = formatDate(day)
+              const dayTasks = getTasksForDate(day)
+              const isToday = dateStr === today
+              const isCurrentMonth = day.getMonth() === currentMonth.getMonth()
+
+              return (
+                <div
+                  key={index}
+                  className={`month-day ${isToday ? 'today' : ''} ${!isCurrentMonth ? 'other-month' : ''}`}
+                >
+                  <div className="month-day-date">{day.getDate()}</div>
+                  <div className="month-day-tasks">
+                    {dayTasks.length > 0 && (
+                      <div className="task-indicators">
+                        {dayTasks.slice(0, 3).map(task => (
+                          <div
+                            key={task.id}
+                            className={`task-dot ${task.completed ? 'completed' : ''}`}
+                            title={task.title}
+                          >
+                            {subjectEmojis[task.subject]}
+                          </div>
+                        ))}
+                        {dayTasks.length > 3 && (
+                          <div className="more-tasks">+{dayTasks.length - 3}</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="unscheduled-tasks">
         <h3>📝 日付未設定のタスク</h3>
