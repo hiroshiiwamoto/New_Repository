@@ -212,3 +212,80 @@
     font-size: 0.85rem;
   }
 }
+
+/* Edit View Styles */
+.edit-view {
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  margin-bottom: 20px;
+}
+
+.edit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 3px solid #e5e7eb;
+}
+
+.edit-header h2 {
+  font-size: 1.8rem;
+  color: #1e40af;
+  margin: 0;
+}
+
+.back-btn {
+  background: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+  background: #4b5563;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .edit-view {
+    padding: 20px;
+  }
+
+  .edit-header h2 {
+    font-size: 1.4rem;
+  }
+
+  .back-btn {
+    padding: 10px 18px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .edit-view {
+    padding: 15px;
+  }
+
+  .edit-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+
+  .edit-header h2 {
+    font-size: 1.2rem;
+  }
+
+  .back-btn {
+    align-self: stretch;
+    text-align: center;
+  }
+}

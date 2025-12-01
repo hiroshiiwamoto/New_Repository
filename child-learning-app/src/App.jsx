@@ -11,7 +11,8 @@ import { generateSAPIXSchedule } from './utils/sampleData'
 function App() {
   const [tasks, setTasks] = useState([])
   const [filter, setFilter] = useState('all') // all, active, completed
-  const [view, setView] = useState('calendar') // subject, calendar, list
+  const [view, setView] = useState('calendar') // subject, calendar, list, edit
+  const [previousView, setPreviousView] = useState('calendar') // Store previous view for returning after edit
   const [editingTask, setEditingTask] = useState(null)
   const [targetSchools, setTargetSchools] = useState([
     { name: '開成中学校', deviation: 71, priority: 1 },
@@ -74,6 +75,8 @@ function App() {
       task.id === id ? { ...task, ...updates } : task
     ))
     setEditingTask(null)
+    // Return to previous view after updating
+    setView(previousView)
   }
 
   const toggleTask = (id) => {
@@ -87,12 +90,18 @@ function App() {
   }
 
   const handleEditTask = (task) => {
-    console.log('🔧 Edit button clicked - switching to list view')
-    console.log('Task:', task.title)
-    // Switch to list view for editing
-    setView('list')
+    console.log('✏️ Editing task:', task.title)
+    // Save current view to return to later
+    setPreviousView(view)
+    // Switch to edit view
+    setView('edit')
     setEditingTask(task)
-    // Scrolling is handled by useEffect
+  }
+
+  const handleCancelEdit = () => {
+    setEditingTask(null)
+    // Return to previous view
+    setView(previousView)
   }
 
   const loadSampleSchedule = () => {
@@ -123,28 +132,46 @@ function App() {
       </header>
 
       <div className="container">
-        {/* 1. 今日と今週のタスク（最優先） */}
-        <TodayAndWeekView
-          tasks={tasks}
-          onToggleTask={toggleTask}
-          onDeleteTask={deleteTask}
-          onEditTask={handleEditTask}
-        />
-
-        {/* 2. 科目別達成率 */}
-        <Dashboard tasks={tasks} targetSchools={targetSchools} />
-
-        {tasks.length === 0 && (
-          <div className="sample-schedule-prompt">
-            <p>📅 サンプルスケジュールを読み込んで、すぐに使い始められます！</p>
-            <button onClick={loadSampleSchedule} className="load-sample-btn">
-              🎓 SAPIX新四年生スケジュールを読み込む（1月～3月）
-            </button>
+        {/* Edit view - show only the form */}
+        {view === 'edit' ? (
+          <div className="edit-view">
+            <div className="edit-header">
+              <h2>✏️ タスク編集</h2>
+              <button onClick={handleCancelEdit} className="back-btn">
+                ← 戻る
+              </button>
+            </div>
+            <TaskForm
+              onAddTask={addTask}
+              onUpdateTask={updateTask}
+              editingTask={editingTask}
+              onCancelEdit={handleCancelEdit}
+            />
           </div>
-        )}
+        ) : (
+          <>
+            {/* 1. 今日と今週のタスク（最優先） */}
+            <TodayAndWeekView
+              tasks={tasks}
+              onToggleTask={toggleTask}
+              onDeleteTask={deleteTask}
+              onEditTask={handleEditTask}
+            />
 
-        {/* 3. ビュー切り替え */}
-        <div className="view-switcher">
+            {/* 2. 科目別達成率 */}
+            <Dashboard tasks={tasks} targetSchools={targetSchools} />
+
+            {tasks.length === 0 && (
+              <div className="sample-schedule-prompt">
+                <p>📅 サンプルスケジュールを読み込んで、すぐに使い始められます！</p>
+                <button onClick={loadSampleSchedule} className="load-sample-btn">
+                  🎓 SAPIX新四年生スケジュールを読み込む（1月～3月）
+                </button>
+              </div>
+            )}
+
+            {/* 3. ビュー切り替え */}
+            <div className="view-switcher">
           <button
             className={view === 'subject' ? 'active' : ''}
             onClick={() => setView('subject')}
@@ -209,15 +236,17 @@ function App() {
           </>
         )}
 
-        {/* 4. タスク追加フォーム（一番下） */}
-        <div ref={taskFormRef}>
-          <TaskForm
-            onAddTask={addTask}
-            onUpdateTask={updateTask}
-            editingTask={editingTask}
-            onCancelEdit={() => setEditingTask(null)}
-          />
-        </div>
+        {/* 4. タスク追加フォーム（一番下） - only show when not in edit view */}
+        {view !== 'edit' && (
+          <div ref={taskFormRef}>
+            <TaskForm
+              onAddTask={addTask}
+              onUpdateTask={updateTask}
+              editingTask={editingTask}
+              onCancelEdit={handleCancelEdit}
+            />
+          </div>
+        )}
       </div>
     </div>
   )
