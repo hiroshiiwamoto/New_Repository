@@ -59,7 +59,12 @@ function UnitDashboard({ tasks, onEditTask }) {
 
   const getRelatedTasks = (unitId) => {
     if (!tasks) return []
-    return tasks.filter(task => task.unitId === unitId)
+    const relatedTasks = tasks.filter(task => task.unitId === unitId)
+    // デバッグログ: 関連タスクの確認
+    if (relatedTasks.length > 0) {
+      console.log(`Unit ${unitId} has ${relatedTasks.length} related tasks:`, relatedTasks.map(t => t.title))
+    }
+    return relatedTasks
   }
 
   const getDaysSinceText = (days) => {
@@ -269,7 +274,10 @@ function UnitDashboard({ tasks, onEditTask }) {
                       {onEditTask && (
                         <button
                           className="edit-task-btn"
-                          onClick={() => onEditTask(task)}
+                          onClick={() => {
+                            console.log('Edit button clicked for task:', task.title, task)
+                            onEditTask(task)
+                          }}
                           title="編集"
                         >
                           ✏️
