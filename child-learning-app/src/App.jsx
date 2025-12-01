@@ -5,12 +5,13 @@ import TaskForm from './components/TaskForm'
 import TaskList from './components/TaskList'
 import WeeklyCalendar from './components/WeeklyCalendar'
 import UnitDashboard from './components/UnitDashboard'
+import Analytics from './components/Analytics'
 import { generateSAPIXSchedule } from './utils/sampleData'
 
 function App() {
   const [tasks, setTasks] = useState([])
   const [filter, setFilter] = useState('all') // all, active, completed
-  const [view, setView] = useState('calendar') // subject, calendar, list, edit
+  const [view, setView] = useState('calendar') // subject, calendar, list, analytics, edit
   const [previousView, setPreviousView] = useState('calendar') // Store previous view for returning after edit
   const [editingTask, setEditingTask] = useState(null)
   const [targetSchools, setTargetSchools] = useState([
@@ -175,6 +176,12 @@ function App() {
             📊 ダッシュボード
           </button>
           <button
+            className={view === 'analytics' ? 'active' : ''}
+            onClick={() => setView('analytics')}
+          >
+            📈 分析
+          </button>
+          <button
             className={view === 'calendar' ? 'active' : ''}
             onClick={() => setView('calendar')}
           >
@@ -193,6 +200,8 @@ function App() {
             tasks={tasks}
             onEditTask={handleEditTask}
           />
+        ) : view === 'analytics' ? (
+          <Analytics tasks={tasks} />
         ) : view === 'calendar' ? (
           <WeeklyCalendar
             tasks={tasks}
