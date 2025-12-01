@@ -1,0 +1,470 @@
+.unit-dashboard {
+  padding: 20px 0;
+}
+
+/* ヘッダー */
+.dashboard-header {
+  background: white;
+  border-radius: 16px;
+  padding: 25px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.grade-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.grade-selector label {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 1rem;
+}
+
+.grade-btn {
+  padding: 10px 20px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  background: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #64748b;
+}
+
+.grade-btn:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.grade-btn.active {
+  border-color: #3b82f6;
+  background: #3b82f6;
+  color: white;
+}
+
+.subject-selector {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.subject-btn {
+  padding: 15px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.subject-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.subject-emoji {
+  font-size: 1.3rem;
+}
+
+/* 進捗サマリー */
+.progress-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.summary-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.summary-label {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.summary-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+/* 単元グリッド */
+.units-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.unit-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  position: relative;
+}
+
+.unit-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.unit-card.unstudied {
+  background: #fafafa;
+  border-color: #e2e8f0;
+}
+
+.unit-card.needs-review {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.unit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.unit-title {
+  flex: 1;
+}
+
+.unit-name {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 5px;
+}
+
+.unit-category {
+  display: inline-block;
+  font-size: 0.75rem;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.unit-badge {
+  background: #3b82f6;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* 単元統計 */
+.unit-stats {
+  margin-bottom: 15px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.stat-value {
+  font-size: 0.9rem;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.stat-value.mastery {
+  color: #f59e0b;
+  font-size: 1rem;
+}
+
+.unit-unstudied {
+  text-align: center;
+  padding: 20px;
+  color: #94a3b8;
+  font-size: 0.95rem;
+}
+
+.review-alert {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: center;
+  margin-top: 10px;
+}
+
+/* ボタン */
+.add-session-btn {
+  width: 100%;
+  padding: 12px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+}
+
+.add-session-btn:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+/* 学習記録フォーム */
+.session-form {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 2px solid #e2e8f0;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 8px;
+}
+
+.form-group input[type="number"] {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: all 0.2s ease;
+}
+
+.form-group textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.mastery-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.mastery-btn {
+  flex: 1;
+  padding: 8px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.mastery-btn:hover {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.mastery-btn.active {
+  border-color: #f59e0b;
+  background: #f59e0b;
+  color: white;
+}
+
+.save-session-btn {
+  width: 100%;
+  padding: 12px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+}
+
+.save-session-btn:hover {
+  background: #059669;
+}
+
+/* 学習履歴 */
+.session-history {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 2px solid #f1f5f9;
+}
+
+.history-header {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 10px;
+}
+
+.session-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+}
+
+.session-date {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.session-mastery {
+  color: #f59e0b;
+  font-size: 0.8rem;
+}
+
+.session-duration {
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+.more-sessions {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  margin-top: 8px;
+}
+
+/* モバイル対応 */
+@media (max-width: 1024px) {
+  .subject-selector {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .progress-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .units-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-header {
+    padding: 20px;
+  }
+
+  .grade-selector {
+    flex-wrap: wrap;
+  }
+
+  .grade-btn {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+  }
+
+  .subject-btn {
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+
+  .summary-value {
+    font-size: 1.6rem;
+  }
+
+  .unit-name {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-header {
+    padding: 15px;
+  }
+
+  .grade-selector {
+    gap: 8px;
+  }
+
+  .grade-btn {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+
+  .subject-selector {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .progress-summary {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .summary-card {
+    padding: 15px;
+  }
+
+  .summary-value {
+    font-size: 1.4rem;
+  }
+
+  .mastery-buttons {
+    flex-direction: column;
+  }
+}

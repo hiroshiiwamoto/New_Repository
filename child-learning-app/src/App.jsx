@@ -5,7 +5,7 @@ import Dashboard from './components/Dashboard'
 import TaskForm from './components/TaskForm'
 import TaskList from './components/TaskList'
 import WeeklyCalendar from './components/WeeklyCalendar'
-import SubjectView from './components/SubjectView'
+import UnitDashboard from './components/UnitDashboard'
 import { generateSAPIXSchedule } from './utils/sampleData'
 
 function App() {
@@ -111,7 +111,7 @@ function App() {
             className={view === 'subject' ? 'active' : ''}
             onClick={() => setView('subject')}
           >
-            📚 科目別
+            📊 ダッシュボード
           </button>
           <button
             className={view === 'calendar' ? 'active' : ''}
@@ -128,11 +128,7 @@ function App() {
         </div>
 
         {view === 'subject' ? (
-          <SubjectView
-            tasks={tasks}
-            onToggleTask={toggleTask}
-            onDeleteTask={deleteTask}
-          />
+          <UnitDashboard />
         ) : view === 'calendar' ? (
           <WeeklyCalendar
             tasks={tasks}
