@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './WeeklyCalendar.css'
 
-function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask }) {
+function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
   // サンプルデータが2025年2月なので、初期表示を2月に設定
   const getInitialDate = () => {
     if (tasks.length > 0) {
@@ -208,7 +208,13 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask }) {
                           />
                           <span className="task-emoji">{subjectEmojis[task.subject]}</span>
                         </div>
-                        <div className="task-title-small">{task.title}</div>
+                        <div
+                          className="task-title-small clickable"
+                          onClick={() => onEditTask && onEditTask(task)}
+                          title="クリックして編集"
+                        >
+                          {task.title}
+                        </div>
                         <button
                           className="delete-btn-small"
                           onClick={() => onDeleteTask(task.id)}
@@ -250,8 +256,9 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask }) {
                         {dayTasks.slice(0, 3).map(task => (
                           <div
                             key={task.id}
-                            className={`task-dot ${task.completed ? 'completed' : ''}`}
-                            title={task.title}
+                            className={`task-dot ${task.completed ? 'completed' : ''} clickable`}
+                            title={`${task.title} (クリックして編集)`}
+                            onClick={() => onEditTask && onEditTask(task)}
                           >
                             {subjectEmojis[task.subject]}
                           </div>
@@ -281,7 +288,13 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask }) {
                 className="task-checkbox-small"
               />
               <span className="task-emoji">{subjectEmojis[task.subject]}</span>
-              <span className="task-title-small">{task.title}</span>
+              <span
+                className="task-title-small clickable"
+                onClick={() => onEditTask && onEditTask(task)}
+                title="クリックして編集"
+              >
+                {task.title}
+              </span>
               <button
                 className="delete-btn-small"
                 onClick={() => onDeleteTask(task.id)}

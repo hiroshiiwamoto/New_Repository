@@ -298,6 +298,16 @@
   word-break: break-word;
 }
 
+.task-title-small.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.task-title-small.clickable:hover {
+  color: #3b82f6;
+  font-weight: 600;
+}
+
 .delete-btn-small {
   position: absolute;
   top: 4px;

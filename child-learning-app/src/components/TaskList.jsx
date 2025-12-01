@@ -1,7 +1,7 @@
 import TaskItem from './TaskItem'
 import './TaskList.css'
 
-function TaskList({ tasks, onToggleTask, onDeleteTask }) {
+function TaskList({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
   if (tasks.length === 0) {
     return (
       <div className="empty-state">
@@ -19,6 +19,7 @@ function TaskList({ tasks, onToggleTask, onDeleteTask }) {
           task={task}
           onToggle={onToggleTask}
           onDelete={onDeleteTask}
+          onEdit={onEditTask}
         />
       ))}
     </div>

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './TodayAndWeekView.css'
 
-function TodayAndWeekView({ tasks, onToggleTask, onDeleteTask }) {
+function TodayAndWeekView({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
   const [expandedSection, setExpandedSection] = useState('today') // 'today' or 'week'
 
   // 日付フォーマット関数
@@ -98,13 +98,24 @@ function TodayAndWeekView({ tasks, onToggleTask, onDeleteTask }) {
                       <span className="task-type">{task.taskType}</span>
                     </div>
                   </div>
-                  <button
-                    className="delete-btn"
-                    onClick={() => onDeleteTask(task.id)}
-                    title="削除"
-                  >
-                    ×
-                  </button>
+                  <div className="task-actions">
+                    {onEditTask && (
+                      <button
+                        className="edit-btn"
+                        onClick={() => onEditTask(task)}
+                        title="編集"
+                      >
+                        ✏️
+                      </button>
+                    )}
+                    <button
+                      className="delete-btn"
+                      onClick={() => onDeleteTask(task.id)}
+                      title="削除"
+                    >
+                      ×
+                    </button>
+                  </div>
                 </div>
               ))
             )}
@@ -157,13 +168,24 @@ function TodayAndWeekView({ tasks, onToggleTask, onDeleteTask }) {
                       <span className="task-type">{task.taskType}</span>
                     </div>
                   </div>
-                  <button
-                    className="delete-btn"
-                    onClick={() => onDeleteTask(task.id)}
-                    title="削除"
-                  >
-                    ×
-                  </button>
+                  <div className="task-actions">
+                    {onEditTask && (
+                      <button
+                        className="edit-btn"
+                        onClick={() => onEditTask(task)}
+                        title="編集"
+                      >
+                        ✏️
+                      </button>
+                    )}
+                    <button
+                      className="delete-btn"
+                      onClick={() => onDeleteTask(task.id)}
+                      title="削除"
+                    >
+                      ×
+                    </button>
+                  </div>
                 </div>
               ))
             )}

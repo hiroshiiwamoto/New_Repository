@@ -1,6 +1,6 @@
 import './TaskItem.css'
 
-function TaskItem({ task, onToggle, onDelete }) {
+function TaskItem({ task, onToggle, onDelete, onEdit }) {
   const subjectEmojis = {
     '国語': '📖',
     '算数': '🔢',
@@ -49,13 +49,24 @@ function TaskItem({ task, onToggle, onDelete }) {
           </div>
         </div>
       </div>
-      <button
-        className="delete-btn"
-        onClick={() => onDelete(task.id)}
-        aria-label="削除"
-      >
-        🗑️
-      </button>
+      <div className="task-actions">
+        {onEdit && (
+          <button
+            className="edit-btn"
+            onClick={() => onEdit(task)}
+            aria-label="編集"
+          >
+            ✏️
+          </button>
+        )}
+        <button
+          className="delete-btn"
+          onClick={() => onDelete(task.id)}
+          aria-label="削除"
+        >
+          🗑️
+        </button>
+      </div>
     </div>
   )
 }

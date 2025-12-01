@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './App.css'
 import TodayAndWeekView from './components/TodayAndWeekView'
 import Dashboard from './components/Dashboard'
@@ -17,6 +17,7 @@ function App() {
     { name: '開成中学校', deviation: 71, priority: 1 },
     { name: '筑波大学附属駒場中学校', deviation: 78, priority: 1 },
   ])
+  const taskFormRef = useRef(null)
 
   // Load tasks from localStorage on mount
   useEffect(() => {
@@ -67,6 +68,16 @@ function App() {
     setTasks(tasks.filter(task => task.id !== id))
   }
 
+  const handleEditTask = (task) => {
+    setEditingTask(task)
+    // Scroll to form after a short delay to ensure state updates
+    setTimeout(() => {
+      if (taskFormRef.current) {
+        taskFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }, 100)
+  }
+
   const loadSampleSchedule = () => {
     if (window.confirm('SAPIX新四年生の1月～3月のサンプルスケジュール（80タスク以上）を読み込みますか？\n既存のタスクは削除されます。')) {
       const sampleTasks = generateSAPIXSchedule()
@@ -100,7 +111,7 @@ function App() {
           tasks={tasks}
           onToggleTask={toggleTask}
           onDeleteTask={deleteTask}
-          onEditTask={setEditingTask}
+          onEditTask={handleEditTask}
         />
 
         {/* 2. 科目別達成率 */}
@@ -140,14 +151,14 @@ function App() {
         {view === 'subject' ? (
           <UnitDashboard
             tasks={tasks}
-            onEditTask={setEditingTask}
+            onEditTask={handleEditTask}
           />
         ) : view === 'calendar' ? (
           <WeeklyCalendar
             tasks={tasks}
             onToggleTask={toggleTask}
             onDeleteTask={deleteTask}
-            onEditTask={setEditingTask}
+            onEditTask={handleEditTask}
           />
         ) : (
           <>
@@ -176,18 +187,20 @@ function App() {
               tasks={filteredTasks}
               onToggleTask={toggleTask}
               onDeleteTask={deleteTask}
-              onEditTask={setEditingTask}
+              onEditTask={handleEditTask}
             />
           </>
         )}
 
         {/* 4. タスク追加フォーム（一番下） */}
-        <TaskForm
-          onAddTask={addTask}
-          onUpdateTask={updateTask}
-          editingTask={editingTask}
-          onCancelEdit={() => setEditingTask(null)}
-        />
+        <div ref={taskFormRef}>
+          <TaskForm
+            onAddTask={addTask}
+            onUpdateTask={updateTask}
+            editingTask={editingTask}
+            onCancelEdit={() => setEditingTask(null)}
+          />
+        </div>
       </div>
     </div>
   )

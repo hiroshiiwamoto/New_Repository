@@ -180,10 +180,37 @@
   font-weight: 500;
 }
 
-.delete-btn {
+.task-actions {
   position: absolute;
   top: 12px;
   right: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.edit-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  opacity: 0.7;
+}
+
+.edit-btn:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.delete-btn {
   background: #ef4444;
   color: white;
   border: none;
@@ -241,6 +268,12 @@
     font-size: 0.85rem;
   }
 
+  .edit-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 0.9rem;
+  }
+
   .delete-btn {
     width: 28px;
     height: 28px;
@@ -270,8 +303,21 @@
     width: 100%;
   }
 
-  .delete-btn {
+  .task-actions {
     top: 10px;
     right: 10px;
+    gap: 6px;
+  }
+
+  .edit-btn {
+    width: 26px;
+    height: 26px;
+    font-size: 0.85rem;
+  }
+
+  .delete-btn {
+    width: 26px;
+    height: 26px;
+    font-size: 1.2rem;
   }
 }
