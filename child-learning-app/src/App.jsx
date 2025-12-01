@@ -43,11 +43,17 @@ function App() {
   // Scroll to form when editing task
   useEffect(() => {
     if (editingTask && view === 'list' && taskFormRef.current) {
-      // Wait for view switch and DOM update
+      // Wait longer for view switch and DOM update on mobile
       const timer = setTimeout(() => {
-        taskFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        // Use auto behavior for better mobile compatibility
+        taskFormRef.current.scrollIntoView({ behavior: 'auto', block: 'center' })
         console.log('✅ Scrolled to form for task:', editingTask.title)
-      }, 500)
+        // Force scroll if needed
+        window.scrollTo({
+          top: taskFormRef.current.offsetTop - 100,
+          behavior: 'smooth'
+        })
+      }, 800)
       return () => clearTimeout(timer)
     }
   }, [editingTask, view])
