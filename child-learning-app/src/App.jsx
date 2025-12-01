@@ -69,15 +69,18 @@ function App() {
   }
 
   const handleEditTask = (task) => {
-    setEditingTask(task)
-    // Switch to list view for editing
+    console.log('🔧 Edit button clicked - switching to list view')
+    console.log('Task:', task.title)
+    // Switch to list view for editing first
     setView('list')
-    // Scroll to form after a short delay to ensure state updates
+    setEditingTask(task)
+    // Scroll to form after a longer delay to ensure view switch and state updates
     setTimeout(() => {
+      console.log('📋 Scrolling to form...')
       if (taskFormRef.current) {
         taskFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }
-    }, 100)
+    }, 300)
   }
 
   const loadSampleSchedule = () => {
