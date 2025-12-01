@@ -70,6 +70,8 @@ function App() {
 
   const handleEditTask = (task) => {
     setEditingTask(task)
+    // Switch to list view for editing
+    setView('list')
     // Scroll to form after a short delay to ensure state updates
     setTimeout(() => {
       if (taskFormRef.current) {
