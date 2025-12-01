@@ -40,6 +40,18 @@ function App() {
     localStorage.setItem('targetSchools', JSON.stringify(targetSchools))
   }, [targetSchools])
 
+  // Scroll to form when editing task
+  useEffect(() => {
+    if (editingTask && view === 'list' && taskFormRef.current) {
+      // Wait for view switch and DOM update
+      const timer = setTimeout(() => {
+        taskFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        console.log('✅ Scrolled to form for task:', editingTask.title)
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [editingTask, view])
+
   const addTask = (task) => {
     const newTask = {
       id: Date.now(),
@@ -71,16 +83,10 @@ function App() {
   const handleEditTask = (task) => {
     console.log('🔧 Edit button clicked - switching to list view')
     console.log('Task:', task.title)
-    // Switch to list view for editing first
+    // Switch to list view for editing
     setView('list')
     setEditingTask(task)
-    // Scroll to form after a longer delay to ensure view switch and state updates
-    setTimeout(() => {
-      console.log('📋 Scrolling to form...')
-      if (taskFormRef.current) {
-        taskFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }
-    }, 300)
+    // Scrolling is handled by useEffect
   }
 
   const loadSampleSchedule = () => {
