@@ -1,35 +1,71 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './TaskForm.css'
+import { unitsDatabase, grades } from '../utils/unitsDatabase'
 
-function TaskForm({ onAddTask }) {
+function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit }) {
   const [title, setTitle] = useState('')
   const [subject, setSubject] = useState('算数')
-  const [unit, setUnit] = useState('')
+  const [grade, setGrade] = useState('4年生')
+  const [unitId, setUnitId] = useState('')
   const [taskType, setTaskType] = useState('daily')
   const [priority, setPriority] = useState('B')
   const [dueDate, setDueDate] = useState('')
 
+  // 編集モードの場合、フォームに値を設定
+  useEffect(() => {
+    if (editingTask) {
+      setTitle(editingTask.title || '')
+      setSubject(editingTask.subject || '算数')
+      setGrade(editingTask.grade || '4年生')
+      setUnitId(editingTask.unitId || '')
+      setTaskType(editingTask.taskType || 'daily')
+      setPriority(editingTask.priority || 'B')
+      setDueDate(editingTask.dueDate || '')
+    }
+  }, [editingTask])
+
   const handleSubmit = (e) => {
     e.preventDefault()
     if (title.trim()) {
-      onAddTask({
+      const taskData = {
         title: title.trim(),
         subject,
-        unit,
+        grade,
+        unitId,
+        unit: getUnitName(unitId),
         taskType,
         priority,
         dueDate: dueDate || null,
-      })
+      }
+
+      if (editingTask) {
+        onUpdateTask(editingTask.id, taskData)
+      } else {
+        onAddTask(taskData)
+      }
+
+      // フォームをリセット
       setTitle('')
-      setUnit('')
+      setUnitId('')
+      if (editingTask && onCancelEdit) {
+        onCancelEdit()
+      }
     }
   }
 
-  const subjects = {
-    '国語': ['漢字', '語彙', '読解', '記述', '知識'],
-    '算数': ['計算', '図形', '文章題', '特殊算', '規則性', '場合の数'],
-    '理科': ['物理', '化学', '生物', '地学', '実験・観察'],
-    '社会': ['地理', '歴史', '公民', '時事問題']
+  const getUnitName = (unitId) => {
+    if (!unitId) return ''
+    const units = unitsDatabase[subject]?.[grade] || []
+    const unit = units.find(u => u.id === unitId)
+    return unit ? unit.name : ''
+  }
+
+  const handleCancel = () => {
+    setTitle('')
+    setUnitId('')
+    if (onCancelEdit) {
+      onCancelEdit()
+    }
   }
 
   const taskTypes = [
@@ -46,37 +82,58 @@ function TaskForm({ onAddTask }) {
     { value: 'C', label: 'C (通常)', color: '#3b82f6' },
   ]
 
+  const subjects = ['国語', '算数', '理科', '社会']
+  const currentUnits = unitsDatabase[subject]?.[grade] || []
+
   return (
     <form className="task-form sapix-form" onSubmit={handleSubmit}>
-      <h2>✏️ 学習タスクを追加</h2>
+      <h2>{editingTask ? '✏️ タスクを編集' : '✏️ 学習タスクを追加'}</h2>
 
       <div className="form-row">
-        <div className="form-group half">
+        <div className="form-group third">
           <label htmlFor="subject">科目</label>
           <select
             id="subject"
             value={subject}
             onChange={(e) => {
               setSubject(e.target.value)
-              setUnit('')
+              setUnitId('')
             }}
           >
-            {Object.keys(subjects).map(s => (
+            {subjects.map(s => (
               <option key={s} value={s}>{s}</option>
             ))}
           </select>
         </div>
 
-        <div className="form-group half">
+        <div className="form-group third">
+          <label htmlFor="grade">学年</label>
+          <select
+            id="grade"
+            value={grade}
+            onChange={(e) => {
+              setGrade(e.target.value)
+              setUnitId('')
+            }}
+          >
+            {grades.map(g => (
+              <option key={g} value={g}>{g}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="form-group third">
           <label htmlFor="unit">単元</label>
           <select
             id="unit"
-            value={unit}
-            onChange={(e) => setUnit(e.target.value)}
+            value={unitId}
+            onChange={(e) => setUnitId(e.target.value)}
           >
             <option value="">選択してください</option>
-            {subjects[subject].map(u => (
-              <option key={u} value={u}>{u}</option>
+            {currentUnits.map(u => (
+              <option key={u.id} value={u.id}>
+                {u.name} ({u.category})
+              </option>
             ))}
           </select>
         </div>
@@ -143,9 +200,16 @@ function TaskForm({ onAddTask }) {
         </div>
       </div>
 
-      <button type="submit" className="submit-btn sapix-btn">
-        ➕ タスクを追加
-      </button>
+      <div className="form-actions">
+        <button type="submit" className="submit-btn sapix-btn">
+          {editingTask ? '✓ 更新' : '➕ タスクを追加'}
+        </button>
+        {editingTask && (
+          <button type="button" className="cancel-btn" onClick={handleCancel}>
+            ✕ キャンセル
+          </button>
+        )}
+      </div>
     </form>
   )
 }

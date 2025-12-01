@@ -9,7 +9,7 @@ import {
   deleteStudySession,
 } from '../utils/studySessions'
 
-function UnitDashboard() {
+function UnitDashboard({ tasks, onEditTask }) {
   const [selectedGrade, setSelectedGrade] = useState('4年生')
   const [selectedSubject, setSelectedSubject] = useState('算数')
   const [showSessionForm, setShowSessionForm] = useState(null) // unitId or null
@@ -55,6 +55,11 @@ function UnitDashboard() {
 
   const getMasteryStars = (level) => {
     return '★'.repeat(level) + '☆'.repeat(5 - level)
+  }
+
+  const getRelatedTasks = (unitId) => {
+    if (!tasks) return []
+    return tasks.filter(task => task.unitId === unitId)
   }
 
   const getDaysSinceText = (days) => {
@@ -245,6 +250,35 @@ function UnitDashboard() {
                   ))}
                   {sessions.length > 3 && (
                     <div className="more-sessions">他 {sessions.length - 3}件</div>
+                  )}
+                </div>
+              )}
+
+              {/* 関連タスク */}
+              {!isExpanded && getRelatedTasks(unit.id).length > 0 && (
+                <div className="related-tasks">
+                  <div className="related-header">📋 関連タスク ({getRelatedTasks(unit.id).length}件)</div>
+                  {getRelatedTasks(unit.id).slice(0, 2).map((task) => (
+                    <div key={task.id} className="related-task-item">
+                      <div className="related-task-info">
+                        <span className={`task-status ${task.completed ? 'completed' : ''}`}>
+                          {task.completed ? '✓' : '○'}
+                        </span>
+                        <span className="related-task-title">{task.title}</span>
+                      </div>
+                      {onEditTask && (
+                        <button
+                          className="edit-task-btn"
+                          onClick={() => onEditTask(task)}
+                          title="編集"
+                        >
+                          ✏️
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  {getRelatedTasks(unit.id).length > 2 && (
+                    <div className="more-tasks-link">他 {getRelatedTasks(unit.id).length - 2}件</div>
                   )}
                 </div>
               )}

@@ -12,6 +12,7 @@ function App() {
   const [tasks, setTasks] = useState([])
   const [filter, setFilter] = useState('all') // all, active, completed
   const [view, setView] = useState('calendar') // subject, calendar, list
+  const [editingTask, setEditingTask] = useState(null)
   const [targetSchools, setTargetSchools] = useState([
     { name: '開成中学校', deviation: 71, priority: 1 },
     { name: '筑波大学附属駒場中学校', deviation: 78, priority: 1 },
@@ -46,6 +47,14 @@ function App() {
       createdAt: new Date().toISOString(),
     }
     setTasks([...tasks, newTask])
+    setEditingTask(null)
+  }
+
+  const updateTask = (id, updates) => {
+    setTasks(tasks.map(task =>
+      task.id === id ? { ...task, ...updates } : task
+    ))
+    setEditingTask(null)
   }
 
   const toggleTask = (id) => {
@@ -91,6 +100,7 @@ function App() {
           tasks={tasks}
           onToggleTask={toggleTask}
           onDeleteTask={deleteTask}
+          onEditTask={setEditingTask}
         />
 
         {/* 2. 科目別達成率 */}
@@ -128,12 +138,16 @@ function App() {
         </div>
 
         {view === 'subject' ? (
-          <UnitDashboard />
+          <UnitDashboard
+            tasks={tasks}
+            onEditTask={setEditingTask}
+          />
         ) : view === 'calendar' ? (
           <WeeklyCalendar
             tasks={tasks}
             onToggleTask={toggleTask}
             onDeleteTask={deleteTask}
+            onEditTask={setEditingTask}
           />
         ) : (
           <>
@@ -162,12 +176,18 @@ function App() {
               tasks={filteredTasks}
               onToggleTask={toggleTask}
               onDeleteTask={deleteTask}
+              onEditTask={setEditingTask}
             />
           </>
         )}
 
         {/* 4. タスク追加フォーム（一番下） */}
-        <TaskForm onAddTask={addTask} />
+        <TaskForm
+          onAddTask={addTask}
+          onUpdateTask={updateTask}
+          editingTask={editingTask}
+          onCancelEdit={() => setEditingTask(null)}
+        />
       </div>
     </div>
   )

@@ -29,6 +29,14 @@
   margin-bottom: 0;
 }
 
+.form-group.third {
+  margin-bottom: 0;
+}
+
+.form-row:has(.third) {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
 .form-group label {
   display: block;
   margin-bottom: 8px;
@@ -125,6 +133,32 @@
 .submit-btn.sapix-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(30, 64, 175, 0.4);
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.form-actions .submit-btn {
+  flex: 1;
+}
+
+.cancel-btn {
+  padding: 16px 24px;
+  background: #94a3b8;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancel-btn:hover {
+  background: #64748b;
+  transform: translateY(-2px);
 }
 
 /* Mobile responsiveness */
