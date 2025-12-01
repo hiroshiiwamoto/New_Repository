@@ -235,6 +235,8 @@ function App() {
             />
           </>
         )}
+          </>
+        )}
 
         {/* 4. タスク追加フォーム（一番下） - only show when not in edit view */}
         {view !== 'edit' && (
