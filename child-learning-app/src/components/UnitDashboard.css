@@ -77,6 +77,92 @@
   font-size: 1.3rem;
 }
 
+/* 科目別達成率 */
+.subject-achievement {
+  background: white;
+  border-radius: 16px;
+  padding: 25px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.achievement-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.achievement-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+}
+
+.achievement-card {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.2s ease;
+  border: 2px solid #e2e8f0;
+}
+
+.achievement-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.achievement-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.achievement-emoji {
+  font-size: 1.3rem;
+}
+
+.achievement-name {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #1e293b;
+}
+
+.achievement-info {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.achievement-percentage {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.achievement-count {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.achievement-bar {
+  background: #e2e8f0;
+  border-radius: 8px;
+  height: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.achievement-fill {
+  height: 100%;
+  border-radius: 8px;
+  transition: width 0.5s ease;
+}
+
 /* 進捗サマリー */
 .progress-summary {
   display: grid;
@@ -487,6 +573,10 @@
     grid-template-columns: repeat(2, 1fr);
   }
 
+  .achievement-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .progress-summary {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -550,6 +640,28 @@
   .subject-selector {
     grid-template-columns: 1fr;
     gap: 10px;
+  }
+
+  .subject-achievement {
+    padding: 15px;
+  }
+
+  .achievement-title {
+    font-size: 1rem;
+    margin-bottom: 15px;
+  }
+
+  .achievement-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .achievement-card {
+    padding: 15px;
+  }
+
+  .achievement-percentage {
+    font-size: 1.5rem;
   }
 
   .progress-summary {

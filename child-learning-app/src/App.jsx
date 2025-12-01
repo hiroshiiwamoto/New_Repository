@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import './App.css'
 import TodayAndWeekView from './components/TodayAndWeekView'
-import Dashboard from './components/Dashboard'
 import TaskForm from './components/TaskForm'
 import TaskList from './components/TaskList'
 import WeeklyCalendar from './components/WeeklyCalendar'
@@ -158,9 +157,6 @@ function App() {
               onEditTask={handleEditTask}
             />
 
-            {/* 2. 科目別達成率 */}
-            <Dashboard tasks={tasks} targetSchools={targetSchools} />
-
             {tasks.length === 0 && (
               <div className="sample-schedule-prompt">
                 <p>📅 サンプルスケジュールを読み込んで、すぐに使い始められます！</p>
@@ -170,7 +166,7 @@ function App() {
               </div>
             )}
 
-            {/* 3. ビュー切り替え */}
+            {/* 2. ビュー切り替え */}
             <div className="view-switcher">
           <button
             className={view === 'subject' ? 'active' : ''}
@@ -238,7 +234,7 @@ function App() {
           </>
         )}
 
-        {/* 4. タスク追加フォーム（一番下） - only show when not in edit view */}
+        {/* 3. タスク追加フォーム（一番下） - only show when not in edit view */}
         {view !== 'edit' && (
           <div ref={taskFormRef}>
             <TaskForm
