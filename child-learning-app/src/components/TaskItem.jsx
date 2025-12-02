@@ -72,6 +72,24 @@ function TaskItem({ task, onToggle, onDelete, onEdit }) {
           </div>
         </div>
       </div>
+      <div className="task-actions">
+        {onEdit && (
+          <button
+            className="edit-btn"
+            onClick={() => onEdit(task)}
+            aria-label="編集"
+          >
+            ✏️
+          </button>
+        )}
+        <button
+          className="delete-btn"
+          onClick={() => onDelete(task.id)}
+          aria-label="削除"
+        >
+          🗑️
+        </button>
+      </div>
     </div>
   )
 }
