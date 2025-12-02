@@ -182,11 +182,13 @@ function UnitDashboard({ tasks, onEditTask }) {
           const stats = getUnitStats(unit.id)
           const sessions = getSessionsByUnit(unit.id)
           const isExpanded = showSessionForm === unit.id
+          const unitBackgroundColor = `${subjectColors[selectedSubject]}10`
 
           return (
             <div
               key={unit.id}
               className={`unit-card ${stats.needsReview ? 'needs-review' : ''} ${stats.studyCount === 0 ? 'unstudied' : ''}`}
+              style={{ backgroundColor: unitBackgroundColor }}
             >
               <div className="unit-header">
                 <div className="unit-title">

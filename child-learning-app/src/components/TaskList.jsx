@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import TaskItem from './TaskItem'
 import './TaskList.css'
 
-function TaskList({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
+function TaskList({ tasks, onToggleTask, onDeleteTask, onBulkDeleteTasks, onEditTask }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('dueDate') // dueDate, subject, priority, created
   const [selectedTasks, setSelectedTasks] = useState([])
@@ -114,9 +114,13 @@ function TaskList({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
 
   const handleBulkDelete = () => {
     if (window.confirm(`${selectedTasks.length}件のタスクを削除しますか？この操作は取り消せません。`)) {
-      selectedTasks.forEach(taskId => {
-        onDeleteTask(taskId)
-      })
+      if (onBulkDeleteTasks) {
+        onBulkDeleteTasks(selectedTasks)
+      } else {
+        selectedTasks.forEach(taskId => {
+          onDeleteTask(taskId)
+        })
+      }
       setSelectedTasks([])
       setBulkMode(false)
     }

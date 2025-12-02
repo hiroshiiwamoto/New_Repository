@@ -32,11 +32,15 @@ function TaskItem({ task, onToggle, onDelete, onEdit }) {
   }
 
   const subjectColor = task.subject ? (subjectColors[task.subject] || '#ffffff') : '#ffffff'
+  const backgroundColor = task.subject && subjectColors[task.subject] ? `${subjectColor}15` : '#ffffff'
 
   return (
     <div
       className={`task-item ${task.completed ? 'completed' : ''}`}
-      style={{ borderLeftColor: subjectColor }}
+      style={{
+        borderLeftColor: subjectColor,
+        backgroundColor: backgroundColor
+      }}
     >
       <div className="task-content">
         <input

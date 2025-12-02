@@ -71,6 +71,10 @@ function App() {
     setTasks(tasks.filter(task => task.id !== id))
   }
 
+  const bulkDeleteTasks = (ids) => {
+    setTasks(tasks.filter(task => !ids.includes(task.id)))
+  }
+
   const handleEditTask = (task) => {
     console.log('✏️ Editing task:', task.title)
     // Save current view to return to later
@@ -190,6 +194,7 @@ function App() {
             tasks={tasks}
             onToggleTask={toggleTask}
             onDeleteTask={deleteTask}
+            onBulkDeleteTasks={bulkDeleteTasks}
             onEditTask={handleEditTask}
           />
         ) : null}
