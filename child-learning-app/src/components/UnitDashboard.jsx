@@ -37,15 +37,6 @@ function UnitDashboard({ tasks, onEditTask }) {
   const currentUnits = unitsDatabase[selectedSubject]?.[selectedGrade] || []
   const progress = getGradeProgress(selectedSubject, selectedGrade, currentUnits)
 
-  // 科目別達成率を計算
-  const getSubjectProgress = (subject) => {
-    const subjectTasks = tasks.filter(task => task.subject === subject)
-    const completed = subjectTasks.filter(task => task.completed).length
-    const total = subjectTasks.length
-    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0
-    return { completed, total, percentage }
-  }
-
   const handleAddSession = (unitId) => {
     addStudySession({
       unitId,
@@ -116,41 +107,6 @@ function UnitDashboard({ tasks, onEditTask }) {
               <span>{subject}</span>
             </button>
           ))}
-        </div>
-      </div>
-
-      {/* 科目別達成率 */}
-      <div className="subject-achievement">
-        <h3 className="achievement-title">📊 科目別達成率</h3>
-        <div className="achievement-grid">
-          {subjects.map(subject => {
-            const { completed, total, percentage } = getSubjectProgress(subject)
-            return (
-              <div key={subject} className="achievement-card">
-                <div className="achievement-header">
-                  <span className="achievement-emoji">{subjectEmojis[subject]}</span>
-                  <span className="achievement-name">{subject}</span>
-                </div>
-                <div className="achievement-info">
-                  <div className="achievement-percentage" style={{ color: subjectColors[subject] }}>
-                    {percentage}%
-                  </div>
-                  <div className="achievement-count">
-                    {completed} / {total}
-                  </div>
-                </div>
-                <div className="achievement-bar">
-                  <div
-                    className="achievement-fill"
-                    style={{
-                      width: `${percentage}%`,
-                      background: subjectColors[subject]
-                    }}
-                  ></div>
-                </div>
-              </div>
-            )
-          })}
         </div>
       </div>
 
