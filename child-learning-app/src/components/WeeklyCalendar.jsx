@@ -60,12 +60,6 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
     setCurrentMonth(newMonth)
   }
 
-  function goToFirstTask() {
-    const initialDate = getInitialDate()
-    setCurrentWeekStart(getWeekStart(initialDate))
-    setCurrentMonth(initialDate)
-  }
-
   function goToToday() {
     const today = new Date()
     setCurrentWeekStart(getWeekStart(today))
@@ -93,7 +87,6 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
     const year = currentMonth.getFullYear()
     const month = currentMonth.getMonth()
     const firstDay = new Date(year, month, 1)
-    const lastDay = new Date(year, month + 1, 0)
     const startDay = new Date(firstDay)
     startDay.setDate(startDay.getDate() - startDay.getDay())
 

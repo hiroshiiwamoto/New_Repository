@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './ProgressChart.css'
 
-function ProgressChart({ data, subjects, type = 'line' }) {
+function ProgressChart({ data, subjects, type: _type = 'line' }) {
   const [selectedSubjects, setSelectedSubjects] = useState(['全体', ...subjects])
 
   const subjectColors = {

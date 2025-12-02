@@ -43,9 +43,10 @@ function TaskList({ tasks, onToggleTask, onDeleteTask, onBulkDeleteTasks, onEdit
           return new Date(a.dueDate) - new Date(b.dueDate)
         case 'subject':
           return (a.subject || '').localeCompare(b.subject || '')
-        case 'priority':
+        case 'priority': {
           const priorityOrder = { A: 0, B: 1, C: 2 }
           return (priorityOrder[a.priority] || 3) - (priorityOrder[b.priority] || 3)
+        }
         case 'created':
           return new Date(b.createdAt) - new Date(a.createdAt)
         default:

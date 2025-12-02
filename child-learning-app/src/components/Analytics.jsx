@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import './Analytics.css'
 import ProgressChart from './ProgressChart'
 import { getProgressForPeriod, getWeeklyProgress, calculateStatistics, recordProgressSnapshot } from '../utils/progressTracking'
@@ -10,17 +10,7 @@ function Analytics({ tasks }) {
 
   const subjects = ['国語', '算数', '理科', '社会']
 
-  useEffect(() => {
-    // 現在の進捗をスナップショット
-    if (tasks && tasks.length > 0) {
-      recordProgressSnapshot(tasks)
-    }
-
-    // データを読み込み
-    loadProgressData()
-  }, [tasks, period])
-
-  const loadProgressData = () => {
+  const loadProgressData = useCallback(() => {
     let data
     let statDays
 
@@ -37,7 +27,17 @@ function Analytics({ tasks }) {
 
     setProgressData(data)
     setStatistics(calculateStatistics(statDays))
-  }
+  }, [period])
+
+  useEffect(() => {
+    // 現在の進捗をスナップショット
+    if (tasks && tasks.length > 0) {
+      recordProgressSnapshot(tasks)
+    }
+
+    // データを読み込み
+    loadProgressData()
+  }, [tasks, period, loadProgressData])
 
   const subjectEmojis = {
     '国語': '📖',

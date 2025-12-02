@@ -19,18 +19,6 @@ function TaskItem({ task, onToggle, onDelete, onEdit }) {
     '社会': '#f59e0b',
   }
 
-  const difficultyColors = {
-    easy: '#4ade80',
-    medium: '#fbbf24',
-    hard: '#f87171',
-  }
-
-  const difficultyLabels = {
-    easy: 'かんたん',
-    medium: 'ふつう',
-    hard: 'むずかしい',
-  }
-
   const subjectColor = task.subject ? (subjectColors[task.subject] || '#ffffff') : '#ffffff'
   const backgroundColor = task.subject && subjectColors[task.subject] ? `${subjectColor}33` : '#ffffff'
 

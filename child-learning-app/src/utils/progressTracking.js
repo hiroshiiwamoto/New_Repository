@@ -189,7 +189,7 @@ export const getWeeklyProgress = (weeks = 12) => {
 }
 
 // 指定日の学習セッションを取得（ダミー実装 - 実際は studySessions から取得）
-const getStudySessionsForDate = (dateKey) => {
+const getStudySessionsForDate = (_dateKey) => {
   // TODO: 実際の学習セッションデータと連携
   return []
 }

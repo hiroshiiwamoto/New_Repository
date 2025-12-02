@@ -6,7 +6,6 @@ import {
   getUnitStats,
   getGradeProgress,
   addStudySession,
-  deleteStudySession,
 } from '../utils/studySessions'
 
 function UnitDashboard({ tasks, onEditTask }) {
