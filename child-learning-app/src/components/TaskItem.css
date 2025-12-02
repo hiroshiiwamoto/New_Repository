@@ -1,22 +1,22 @@
 .task-item {
   background: white;
-  border-radius: 15px;
-  padding: 20px;
+  border-radius: 8px;
+  padding: 8px 12px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  gap: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
   width: 100%;
+  border-left: 3px solid;
 }
 
 .task-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .task-item.completed {
-  opacity: 0.7;
+  opacity: 0.6;
 }
 
 .task-item.completed .task-title {
@@ -24,75 +24,55 @@
   color: #999;
 }
 
-.task-content {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  flex: 1;
-}
-
 .task-checkbox {
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
   cursor: pointer;
   accent-color: #667eea;
-}
-
-.task-info {
-  flex: 1;
-}
-
-.task-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-shrink: 0;
 }
 
 .subject-emoji {
-  font-size: 1.3rem;
-}
-
-.task-meta {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.subject-badge,
-.difficulty-badge {
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 1.1rem;
+  flex-shrink: 0;
 }
 
 .subject-badge {
-  background: #e0e7ff;
-  color: #667eea;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
-.difficulty-badge {
-  color: white;
+.task-title {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .task-actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .edit-btn {
   background: #3b82f6;
   color: white;
   border: none;
-  border-radius: 8px;
-  width: 36px;
-  height: 36px;
-  font-size: 1rem;
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  font-size: 0.9rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -103,109 +83,104 @@
 
 .edit-btn:hover {
   opacity: 1;
-  transform: scale(1.1);
+  transform: scale(1.05);
 }
 
 .delete-btn {
   background: none;
   border: none;
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   cursor: pointer;
-  padding: 5px 10px;
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: transform 0.2s ease;
   opacity: 0.6;
 }
 
 .delete-btn:hover {
-  transform: scale(1.2);
+  transform: scale(1.1);
   opacity: 1;
 }
 
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .task-item {
-    padding: 15px;
-    border-radius: 12px;
-  }
-
-  .task-content {
-    gap: 12px;
+    padding: 6px 10px;
+    gap: 8px;
   }
 
   .task-checkbox {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
   }
 
   .task-title {
+    font-size: 0.85rem;
+  }
+
+  .subject-emoji {
     font-size: 1rem;
   }
 
-  .subject-emoji {
-    font-size: 1.2rem;
-  }
-
-  .subject-badge,
-  .difficulty-badge {
-    padding: 3px 10px;
-    font-size: 0.8rem;
+  .subject-badge {
+    padding: 2px 6px;
+    font-size: 0.7rem;
   }
 
   .edit-btn {
-    width: 32px;
-    height: 32px;
-    font-size: 0.9rem;
-  }
-
-  .delete-btn {
-    font-size: 1.3rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .task-item {
-    padding: 12px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .task-content {
-    width: 100%;
-  }
-
-  .task-title {
-    font-size: 0.95rem;
-    margin-bottom: 6px;
-  }
-
-  .subject-emoji {
-    font-size: 1.1rem;
-  }
-
-  .task-meta {
-    gap: 6px;
-  }
-
-  .subject-badge,
-  .difficulty-badge {
-    padding: 2px 8px;
-    font-size: 0.75rem;
-  }
-
-  .task-actions {
-    align-self: flex-end;
-    margin-top: -5px;
-    gap: 6px;
-  }
-
-  .edit-btn {
-    width: 30px;
-    height: 30px;
+    width: 26px;
+    height: 26px;
     font-size: 0.85rem;
   }
 
   .delete-btn {
     font-size: 1.2rem;
+    width: 26px;
+    height: 26px;
+  }
+}
+
+@media (max-width: 480px) {
+  .task-item {
+    padding: 6px 8px;
+    gap: 6px;
+  }
+
+  .task-checkbox {
+    width: 16px;
+    height: 16px;
+  }
+
+  .task-title {
+    font-size: 0.8rem;
+  }
+
+  .subject-emoji {
+    font-size: 0.95rem;
+  }
+
+  .subject-badge {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+  }
+
+  .task-actions {
+    gap: 4px;
+  }
+
+  .edit-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 0.8rem;
+  }
+
+  .delete-btn {
+    font-size: 1.1rem;
+    width: 24px;
+    height: 24px;
   }
 }

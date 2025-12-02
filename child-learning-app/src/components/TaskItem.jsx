@@ -42,36 +42,22 @@ function TaskItem({ task, onToggle, onDelete, onEdit }) {
         backgroundColor: backgroundColor
       }}
     >
-      <div className="task-content">
-        <input
-          type="checkbox"
-          checked={task.completed}
-          onChange={() => onToggle(task.id)}
-          className="task-checkbox"
-        />
-        <div className="task-info">
-          <div className="task-title">
-            <span className="subject-emoji">{subjectEmojis[task.subject]}</span>
-            <span>{task.title}</span>
-          </div>
-          <div className="task-meta">
-            <span
-              className="subject-badge"
-              style={{
-                backgroundColor: task.subject ? `${subjectColor}20` : '#f3f4f6',
-                color: task.subject ? subjectColor : '#6b7280',
-                borderColor: subjectColor
-              }}
-            >{task.subject}</span>
-            <span
-              className="difficulty-badge"
-              style={{ backgroundColor: difficultyColors[task.difficulty] }}
-            >
-              {difficultyLabels[task.difficulty]}
-            </span>
-          </div>
-        </div>
-      </div>
+      <input
+        type="checkbox"
+        checked={task.completed}
+        onChange={() => onToggle(task.id)}
+        className="task-checkbox"
+      />
+      <span className="subject-emoji">{subjectEmojis[task.subject]}</span>
+      <span
+        className="subject-badge"
+        style={{
+          backgroundColor: task.subject ? `${subjectColor}20` : '#f3f4f6',
+          color: task.subject ? subjectColor : '#6b7280',
+          borderColor: subjectColor
+        }}
+      >{task.subject}</span>
+      <span className="task-title">{task.title}</span>
       <div className="task-actions">
         {onEdit && (
           <button
