@@ -182,7 +182,7 @@ function UnitDashboard({ tasks, onEditTask }) {
           const stats = getUnitStats(unit.id)
           const sessions = getSessionsByUnit(unit.id)
           const isExpanded = showSessionForm === unit.id
-          const unitBackgroundColor = `${subjectColors[selectedSubject]}10`
+          const unitBackgroundColor = `${subjectColors[selectedSubject]}26`
 
           return (
             <div

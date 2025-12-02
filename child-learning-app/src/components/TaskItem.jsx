@@ -32,7 +32,7 @@ function TaskItem({ task, onToggle, onDelete, onEdit }) {
   }
 
   const subjectColor = task.subject ? (subjectColors[task.subject] || '#ffffff') : '#ffffff'
-  const backgroundColor = task.subject && subjectColors[task.subject] ? `${subjectColor}15` : '#ffffff'
+  const backgroundColor = task.subject && subjectColors[task.subject] ? `${subjectColor}33` : '#ffffff'
 
   return (
     <div
