@@ -638,7 +638,7 @@
   }
 
   .subject-selector {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 10px;
   }
 
@@ -665,7 +665,7 @@
   }
 
   .progress-summary {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 10px;
   }
 
@@ -699,4 +699,65 @@
     min-height: 48px;
     align-self: flex-end;
   }
+}
+
+/* 新しいクリック可能な単元カードのスタイル */
+.unit-header.clickable {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+}
+
+.unit-header.clickable:hover {
+  opacity: 0.8;
+}
+
+.unit-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.expand-icon {
+  font-size: 0.9rem;
+  color: #64748b;
+  transition: transform 0.2s ease;
+}
+
+.unit-card.expanded .expand-icon {
+  transform: rotate(90deg);
+}
+
+/* コンパクト表示 */
+.unit-compact {
+  padding: 10px 0;
+}
+
+.compact-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+}
+
+.compact-mastery {
+  color: #f59e0b;
+}
+
+.compact-last-study {
+  color: #64748b;
+}
+
+.compact-alert {
+  color: #ef4444;
+  font-size: 1.1rem;
+}
+
+/* 詳細表示 */
+.unit-details {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
 }

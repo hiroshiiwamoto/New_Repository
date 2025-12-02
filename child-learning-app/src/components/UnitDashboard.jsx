@@ -12,7 +12,8 @@ import {
 function UnitDashboard({ tasks, onEditTask }) {
   const [selectedGrade, setSelectedGrade] = useState('4年生')
   const [selectedSubject, setSelectedSubject] = useState('算数')
-  const [showSessionForm, setShowSessionForm] = useState(null) // unitId or null
+  const [expandedUnit, setExpandedUnit] = useState(null) // 展開された単元のID
+  const [showSessionForm, setShowSessionForm] = useState(false) // 学習記録フォームの表示
   const [sessionForm, setSessionForm] = useState({
     duration: 30,
     masteryLevel: 3,
@@ -42,7 +43,7 @@ function UnitDashboard({ tasks, onEditTask }) {
       unitId,
       ...sessionForm,
     })
-    setShowSessionForm(null)
+    setShowSessionForm(false)
     setSessionForm({
       duration: 30,
       masteryLevel: 3,
@@ -51,6 +52,16 @@ function UnitDashboard({ tasks, onEditTask }) {
     })
     // Force re-render by updating state
     setSelectedGrade(selectedGrade)
+  }
+
+  const toggleUnitExpand = (unitId) => {
+    if (expandedUnit === unitId) {
+      setExpandedUnit(null)
+      setShowSessionForm(false)
+    } else {
+      setExpandedUnit(unitId)
+      setShowSessionForm(false)
+    }
   }
 
   const getMasteryStars = (level) => {
@@ -137,67 +148,97 @@ function UnitDashboard({ tasks, onEditTask }) {
         {currentUnits.map((unit) => {
           const stats = getUnitStats(unit.id)
           const sessions = getSessionsByUnit(unit.id)
-          const isExpanded = showSessionForm === unit.id
+          const isExpanded = expandedUnit === unit.id
           const unitBackgroundColor = `${subjectColors[selectedSubject]}26`
+          const relatedTasks = getRelatedTasks(unit.id)
 
           return (
             <div
               key={unit.id}
-              className={`unit-card ${stats.needsReview ? 'needs-review' : ''} ${stats.studyCount === 0 ? 'unstudied' : ''}`}
+              className={`unit-card ${stats.needsReview ? 'needs-review' : ''} ${stats.studyCount === 0 ? 'unstudied' : ''} ${isExpanded ? 'expanded' : ''}`}
               style={{ backgroundColor: unitBackgroundColor }}
             >
-              <div className="unit-header">
+              {/* クリック可能なヘッダー */}
+              <div
+                className="unit-header clickable"
+                onClick={() => toggleUnitExpand(unit.id)}
+              >
                 <div className="unit-title">
                   <span className="unit-name">{unit.name}</span>
                   <span className="unit-category">{unit.category}</span>
                 </div>
-                {stats.studyCount > 0 && (
-                  <div className="unit-badge">
-                    {stats.studyCount}回
-                  </div>
-                )}
-              </div>
-
-              {stats.studyCount > 0 ? (
-                <div className="unit-stats">
-                  <div className="stat-row">
-                    <span className="stat-label">理解度:</span>
-                    <span className="stat-value mastery">
-                      {getMasteryStars(Math.round(stats.averageMastery))}
-                    </span>
-                  </div>
-                  <div className="stat-row">
-                    <span className="stat-label">最終学習:</span>
-                    <span className="stat-value">
-                      {getDaysSinceText(stats.daysSinceLastStudy)}
-                    </span>
-                  </div>
-                  <div className="stat-row">
-                    <span className="stat-label">学習時間:</span>
-                    <span className="stat-value">{stats.totalDuration}分</span>
-                  </div>
-                  {stats.needsReview && (
-                    <div className="review-alert">
-                      ⚠️ 復習推奨
+                <div className="unit-header-right">
+                  {stats.studyCount > 0 && (
+                    <div className="unit-badge">
+                      {stats.studyCount}回
                     </div>
                   )}
+                  <span className="expand-icon">{isExpanded ? '▼' : '▶'}</span>
                 </div>
-              ) : (
-                <div className="unit-unstudied">
-                  📝 未学習
+              </div>
+
+              {/* コンパクト表示：基本情報のみ */}
+              {!isExpanded && (
+                <div className="unit-compact">
+                  {stats.studyCount > 0 ? (
+                    <div className="compact-info">
+                      <span className="compact-mastery">
+                        {getMasteryStars(Math.round(stats.averageMastery))}
+                      </span>
+                      <span className="compact-last-study">
+                        {getDaysSinceText(stats.daysSinceLastStudy)}
+                      </span>
+                      {stats.needsReview && <span className="compact-alert">⚠️</span>}
+                    </div>
+                  ) : (
+                    <div className="unit-unstudied">📝 未学習</div>
+                  )}
                 </div>
               )}
 
-              {/* 学習記録ボタン */}
-              <button
-                className="add-session-btn"
-                onClick={() => setShowSessionForm(isExpanded ? null : unit.id)}
-              >
-                {isExpanded ? '✕ キャンセル' : '+ 学習記録'}
-              </button>
-
-              {/* 学習記録フォーム */}
+              {/* 展開表示：詳細情報 */}
               {isExpanded && (
+                <div className="unit-details">
+                  {/* 詳細統計 */}
+                  {stats.studyCount > 0 && (
+                    <div className="unit-stats">
+                      <div className="stat-row">
+                        <span className="stat-label">理解度:</span>
+                        <span className="stat-value mastery">
+                          {getMasteryStars(Math.round(stats.averageMastery))}
+                        </span>
+                      </div>
+                      <div className="stat-row">
+                        <span className="stat-label">最終学習:</span>
+                        <span className="stat-value">
+                          {getDaysSinceText(stats.daysSinceLastStudy)}
+                        </span>
+                      </div>
+                      <div className="stat-row">
+                        <span className="stat-label">学習時間:</span>
+                        <span className="stat-value">{stats.totalDuration}分</span>
+                      </div>
+                      {stats.needsReview && (
+                        <div className="review-alert">
+                          ⚠️ 復習推奨
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 学習記録ボタン */}
+                  <button
+                    className="add-session-btn"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setShowSessionForm(!showSessionForm)
+                    }}
+                  >
+                    {showSessionForm ? '✕ キャンセル' : '+ 学習記録'}
+                  </button>
+
+                  {/* 学習記録フォーム */}
+                  {showSessionForm && (
                 <div className="session-form">
                   <div className="form-group">
                     <label>学習時間（分）:</label>
@@ -242,53 +283,50 @@ function UnitDashboard({ tasks, onEditTask }) {
                     ✓ 記録する
                   </button>
                 </div>
-              )}
-
-              {/* 過去の学習履歴 */}
-              {sessions.length > 0 && !isExpanded && (
-                <div className="session-history">
-                  <div className="history-header">学習履歴:</div>
-                  {sessions.slice(0, 3).map((session) => (
-                    <div key={session.id} className="session-item">
-                      <span className="session-date">{session.date}</span>
-                      <span className="session-mastery">{getMasteryStars(session.masteryLevel)}</span>
-                      <span className="session-duration">{session.duration}分</span>
-                    </div>
-                  ))}
-                  {sessions.length > 3 && (
-                    <div className="more-sessions">他 {sessions.length - 3}件</div>
                   )}
-                </div>
-              )}
 
-              {/* 関連タスク */}
-              {!isExpanded && getRelatedTasks(unit.id).length > 0 && (
-                <div className="related-tasks">
-                  <div className="related-header">📋 関連タスク ({getRelatedTasks(unit.id).length}件)</div>
-                  {getRelatedTasks(unit.id).slice(0, 2).map((task) => (
-                    <div key={task.id} className="related-task-item">
-                      <div className="related-task-info">
-                        <span className={`task-status ${task.completed ? 'completed' : ''}`}>
-                          {task.completed ? '✓' : '○'}
-                        </span>
-                        <span className="related-task-title">{task.title}</span>
-                      </div>
-                      {onEditTask && (
-                        <button
-                          className="edit-task-btn"
-                          onClick={() => {
-                            console.log('Edit button clicked for task:', task.title, task)
-                            onEditTask(task)
-                          }}
-                          title="編集"
-                        >
-                          ✏️
-                        </button>
-                      )}
+                  {/* 過去の学習履歴 */}
+                  {sessions.length > 0 && (
+                    <div className="session-history">
+                      <div className="history-header">学習履歴:</div>
+                      {sessions.map((session) => (
+                        <div key={session.id} className="session-item">
+                          <span className="session-date">{session.date}</span>
+                          <span className="session-mastery">{getMasteryStars(session.masteryLevel)}</span>
+                          <span className="session-duration">{session.duration}分</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                  {getRelatedTasks(unit.id).length > 2 && (
-                    <div className="more-tasks-link">他 {getRelatedTasks(unit.id).length - 2}件</div>
+                  )}
+
+                  {/* 関連タスク */}
+                  {relatedTasks.length > 0 && (
+                    <div className="related-tasks">
+                      <div className="related-header">📋 関連タスク ({relatedTasks.length}件)</div>
+                      {relatedTasks.map((task) => (
+                        <div key={task.id} className="related-task-item">
+                          <div className="related-task-info">
+                            <span className={`task-status ${task.completed ? 'completed' : ''}`}>
+                              {task.completed ? '✓' : '○'}
+                            </span>
+                            <span className="related-task-title">{task.title}</span>
+                          </div>
+                          {onEditTask && (
+                            <button
+                              className="edit-task-btn"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                console.log('Edit button clicked for task:', task.title, task)
+                                onEditTask(task)
+                              }}
+                              title="編集"
+                            >
+                              ✏️
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
               )}
