@@ -17,43 +17,63 @@
   border-radius: 12px;
   padding: 20px;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   transition: all 0.2s ease;
-  border-left: 4px solid #e5e7eb;
 }
 
 .stat-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.stat-item.primary {
-  border-left-color: #6366f1;
-}
-
-.stat-item.success {
-  border-left-color: #10b981;
-}
-
-.stat-item.pending {
-  border-left-color: #f59e0b;
-}
-
-.stat-item.rate {
-  border-left-color: #3b82f6;
+.stat-label {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-bottom: 8px;
+  font-weight: 600;
 }
 
 .stat-value {
   font-size: 2rem;
   font-weight: 800;
   color: #1e293b;
-  margin-bottom: 4px;
 }
 
-.stat-label {
-  font-size: 0.85rem;
-  color: #64748b;
+/* 科目フィルター */
+.subject-filter {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.subject-filter-btn {
+  padding: 15px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
   font-weight: 600;
+  font-size: 1rem;
+}
+
+.subject-filter-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.subject-filter-btn.active {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.subject-filter-emoji {
+  font-size: 1.3rem;
 }
 
 /* 検索・ソート・一括操作バー */
@@ -427,6 +447,21 @@
 
   .stat-label {
     font-size: 0.8rem;
+  }
+
+  .subject-filter {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  .subject-filter-btn {
+    padding: 10px;
+    font-size: 0.85rem;
+    gap: 6px;
+  }
+
+  .subject-filter-emoji {
+    font-size: 1.1rem;
   }
 
   .task-controls {

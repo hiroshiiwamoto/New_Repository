@@ -7,6 +7,15 @@ function TaskList({ tasks, onToggleTask, onDeleteTask, onBulkDeleteTasks, onEdit
   const [sortBy, setSortBy] = useState('dueDate') // dueDate, subject, priority, created
   const [selectedTasks, setSelectedTasks] = useState([])
   const [bulkMode, setBulkMode] = useState(false)
+  const [selectedSubject, setSelectedSubject] = useState('全て') // 全て, 国語, 算数, 理科, 社会
+
+  const subjects = [
+    { name: '全て', emoji: '📚', color: '#64748b' },
+    { name: '国語', emoji: '📖', color: '#10b981' },
+    { name: '算数', emoji: '🔢', color: '#ef4444' },
+    { name: '理科', emoji: '🔬', color: '#3b82f6' },
+    { name: '社会', emoji: '🌏', color: '#f59e0b' }
+  ]
 
   // フィルターとソート
   const filteredAndSortedTasks = useMemo(() => {
