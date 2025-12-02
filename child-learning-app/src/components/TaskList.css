@@ -269,6 +269,7 @@
   align-items: center;
   gap: 12px;
   transition: all 0.2s ease;
+  width: 100%;
 }
 
 .task-item-wrapper.bulk-mode {
