@@ -11,9 +11,9 @@ function Dashboard({ tasks }) {
   }
 
   const subjectColors = {
-    '国語': '#8b5cf6',
-    '算数': '#3b82f6',
-    '理科': '#10b981',
+    '国語': '#10b981',
+    '算数': '#ef4444',
+    '理科': '#3b82f6',
     '社会': '#f59e0b',
   }
 
