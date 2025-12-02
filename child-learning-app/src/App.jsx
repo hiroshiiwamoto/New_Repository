@@ -25,10 +25,7 @@ function App() {
   const [view, setView] = useState('calendar') // subject, calendar, analytics, tasks, edit
   const [previousView, setPreviousView] = useState('calendar') // Store previous view for returning after edit
   const [editingTask, setEditingTask] = useState(null)
-  const [targetSchools, setTargetSchools] = useState([
-    { name: '開成中学校', deviation: 71, priority: 1 },
-    { name: '筑波大学附属駒場中学校', deviation: 78, priority: 1 },
-  ])
+  const [targetSchools, setTargetSchools] = useState([])
   const taskFormRef = useRef(null)
   const [migrated, setMigrated] = useState(false)
 
@@ -219,17 +216,11 @@ function App() {
       <header className="app-header">
         <div className="header-content">
           <h1>📘 SAPIX 中学受験 学習管理</h1>
-          <div className="target-schools">
-            {targetSchools.filter(s => s.priority === 1).map((school, idx) => (
-              <span key={idx} className="target-badge">{school.name}</span>
-            ))}
-          </div>
+          <Auth onAuthChange={handleAuthChange} />
         </div>
       </header>
 
       <div className="container">
-        {/* ログイン情報を表示 */}
-        <Auth onAuthChange={handleAuthChange} />
         {/* Edit view - show only the form */}
         {view === 'edit' ? (
           <div className="edit-view">
