@@ -3,9 +3,6 @@ import { getAuth, GoogleAuthProvider } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 
 // Firebase configuration
-// TODO: Replace with your Firebase project configuration
-// Get this from: Firebase Console > Project Settings > General > Your apps > SDK setup and configuration
-
 const firebaseConfig = {
   apiKey: "AIzaSyA4Dg6dUSUljW3lRZGMndbzSnsbcwkEuv8",
   authDomain: "studyapp-28e08.firebaseapp.com",
