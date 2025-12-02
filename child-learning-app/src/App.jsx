@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import './App.css'
+import Auth from './components/Auth'
 import TodayAndWeekView from './components/TodayAndWeekView'
 import TaskForm from './components/TaskForm'
 import TaskList from './components/TaskList'
@@ -7,8 +8,19 @@ import WeeklyCalendar from './components/WeeklyCalendar'
 import UnitDashboard from './components/UnitDashboard'
 import Analytics from './components/Analytics'
 import { generateSAPIXSchedule } from './utils/sampleData'
+import {
+  addTaskToFirestore,
+  updateTaskInFirestore,
+  deleteTaskFromFirestore,
+  bulkDeleteTasksFromFirestore,
+  subscribeToTasks,
+  saveTargetSchools as saveTargetSchoolsToFirestore,
+  getTargetSchools as getTargetSchoolsFromFirestore,
+  migrateLocalStorageToFirestore,
+} from './utils/firestore'
 
 function App() {
+  const [user, setUser] = useState(null)
   const [tasks, setTasks] = useState([])
   const [view, setView] = useState('calendar') // subject, calendar, analytics, tasks, edit
   const [previousView, setPreviousView] = useState('calendar') // Store previous view for returning after edit
@@ -18,61 +30,138 @@ function App() {
     { name: '筑波大学附属駒場中学校', deviation: 78, priority: 1 },
   ])
   const taskFormRef = useRef(null)
+  const [migrated, setMigrated] = useState(false)
 
-  // Load tasks from localStorage on mount
+  // Firestore同期: ユーザーがログインしたら、タスクをリアルタイムで取得
   useEffect(() => {
-    const savedTasks = localStorage.getItem('sapixTasks')
-    if (savedTasks) {
-      setTasks(JSON.parse(savedTasks))
+    if (!user) {
+      // ユーザーがログインしていない場合は、localStorageから読み込む
+      const savedTasks = localStorage.getItem('sapixTasks')
+      if (savedTasks) {
+        setTasks(JSON.parse(savedTasks))
+      }
+      const savedSchools = localStorage.getItem('targetSchools')
+      if (savedSchools) {
+        setTargetSchools(JSON.parse(savedSchools))
+      }
+      return
     }
-    const savedSchools = localStorage.getItem('targetSchools')
-    if (savedSchools) {
-      setTargetSchools(JSON.parse(savedSchools))
+
+    // localStorageからFirestoreへの移行（初回のみ）
+    if (!migrated) {
+      const hasLocalData = localStorage.getItem('sapixTasks') || localStorage.getItem('targetSchools')
+      if (hasLocalData) {
+        migrateLocalStorageToFirestore(user.uid).then(() => {
+          console.log('✅ LocalStorageからFirestoreへデータを移行しました')
+          setMigrated(true)
+        })
+      } else {
+        setMigrated(true)
+      }
     }
-  }, [])
 
-  // Save tasks to localStorage whenever they change
+    // 目標学校を取得
+    getTargetSchoolsFromFirestore(user.uid).then(result => {
+      if (result.success && result.data.length > 0) {
+        setTargetSchools(result.data)
+      }
+    })
+
+    // タスクのリアルタイム同期を開始
+    const unsubscribe = subscribeToTasks(user.uid, (firestoreTasks) => {
+      setTasks(firestoreTasks)
+    })
+
+    return () => unsubscribe()
+  }, [user, migrated])
+
+  // 目標学校が変更されたらFirestoreに保存
   useEffect(() => {
-    localStorage.setItem('sapixTasks', JSON.stringify(tasks))
-  }, [tasks])
+    if (user) {
+      saveTargetSchoolsToFirestore(user.uid, targetSchools)
+    } else {
+      // ユーザーがログインしていない場合は、localStorageに保存
+      localStorage.setItem('targetSchools', JSON.stringify(targetSchools))
+    }
+  }, [targetSchools, user])
 
-  useEffect(() => {
-    localStorage.setItem('targetSchools', JSON.stringify(targetSchools))
-  }, [targetSchools])
 
-
-  const addTask = (task) => {
+  const addTask = async (task) => {
     const newTask = {
       id: Date.now(),
       ...task,
       completed: false,
       createdAt: new Date().toISOString(),
     }
-    setTasks([...tasks, newTask])
+
+    if (user) {
+      // Firestoreに保存
+      await addTaskToFirestore(user.uid, newTask)
+    } else {
+      // ユーザーがログインしていない場合は、localStorageに保存
+      const updatedTasks = [...tasks, newTask]
+      setTasks(updatedTasks)
+      localStorage.setItem('sapixTasks', JSON.stringify(updatedTasks))
+    }
     setEditingTask(null)
   }
 
-  const updateTask = (id, updates) => {
-    setTasks(tasks.map(task =>
-      task.id === id ? { ...task, ...updates } : task
-    ))
+  const updateTask = async (id, updates) => {
+    if (user) {
+      // Firestoreで更新
+      await updateTaskInFirestore(user.uid, id, updates)
+    } else {
+      // ユーザーがログインしていない場合は、localStorageで更新
+      const updatedTasks = tasks.map(task =>
+        task.id === id ? { ...task, ...updates } : task
+      )
+      setTasks(updatedTasks)
+      localStorage.setItem('sapixTasks', JSON.stringify(updatedTasks))
+    }
     setEditingTask(null)
     // Return to previous view after updating
     setView(previousView)
   }
 
-  const toggleTask = (id) => {
-    setTasks(tasks.map(task =>
-      task.id === id ? { ...task, completed: !task.completed } : task
-    ))
+  const toggleTask = async (id) => {
+    const task = tasks.find(t => t.id === id)
+    if (!task) return
+
+    if (user) {
+      // Firestoreで更新
+      await updateTaskInFirestore(user.uid, id, { completed: !task.completed })
+    } else {
+      // ユーザーがログインしていない場合は、localStorageで更新
+      const updatedTasks = tasks.map(t =>
+        t.id === id ? { ...t, completed: !t.completed } : t
+      )
+      setTasks(updatedTasks)
+      localStorage.setItem('sapixTasks', JSON.stringify(updatedTasks))
+    }
   }
 
-  const deleteTask = (id) => {
-    setTasks(tasks.filter(task => task.id !== id))
+  const deleteTask = async (id) => {
+    if (user) {
+      // Firestoreから削除
+      await deleteTaskFromFirestore(user.uid, id)
+    } else {
+      // ユーザーがログインしていない場合は、localStorageから削除
+      const updatedTasks = tasks.filter(task => task.id !== id)
+      setTasks(updatedTasks)
+      localStorage.setItem('sapixTasks', JSON.stringify(updatedTasks))
+    }
   }
 
-  const bulkDeleteTasks = (ids) => {
-    setTasks(tasks.filter(task => !ids.includes(task.id)))
+  const bulkDeleteTasks = async (ids) => {
+    if (user) {
+      // Firestoreから一括削除
+      await bulkDeleteTasksFromFirestore(user.uid, ids)
+    } else {
+      // ユーザーがログインしていない場合は、localStorageから削除
+      const updatedTasks = tasks.filter(task => !ids.includes(task.id))
+      setTasks(updatedTasks)
+      localStorage.setItem('sapixTasks', JSON.stringify(updatedTasks))
+    }
   }
 
   const handleEditTask = (task) => {
@@ -90,12 +179,39 @@ function App() {
     setView(previousView)
   }
 
-  const loadSampleSchedule = () => {
+  const loadSampleSchedule = async () => {
     if (window.confirm('SAPIX新四年生の1月～3月のサンプルスケジュール（80タスク以上）を読み込みますか？\n既存のタスクは削除されます。')) {
       const sampleTasks = generateSAPIXSchedule()
-      setTasks(sampleTasks)
+
+      if (user) {
+        // 既存のタスクを削除してから新しいタスクを追加
+        const taskIds = tasks.map(t => t.id)
+        if (taskIds.length > 0) {
+          await bulkDeleteTasksFromFirestore(user.uid, taskIds)
+        }
+
+        // サンプルタスクをFirestoreに追加
+        const uploadPromises = sampleTasks.map(task =>
+          addTaskToFirestore(user.uid, task)
+        )
+        await Promise.all(uploadPromises)
+      } else {
+        // ユーザーがログインしていない場合は、localStorageに保存
+        setTasks(sampleTasks)
+        localStorage.setItem('sapixTasks', JSON.stringify(sampleTasks))
+      }
+
       alert(`✅ ${sampleTasks.length}個のタスクを読み込みました！`)
     }
+  }
+
+  const handleAuthChange = (currentUser) => {
+    setUser(currentUser)
+  }
+
+  // ログインしていない場合は、Authコンポーネントを表示
+  if (!user) {
+    return <Auth onAuthChange={handleAuthChange} />
   }
 
   return (
@@ -112,6 +228,8 @@ function App() {
       </header>
 
       <div className="container">
+        {/* ログイン情報を表示 */}
+        <Auth onAuthChange={handleAuthChange} />
         {/* Edit view - show only the form */}
         {view === 'edit' ? (
           <div className="edit-view">
