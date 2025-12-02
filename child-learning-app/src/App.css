@@ -4,20 +4,27 @@
   padding: 0;
 }
 
-/* SAPIX Theme - Blue and White */
+/* Apple-inspired Modern Design */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 .app.sapix-theme {
   min-height: 100vh;
-  background: #f8fafc;
-  padding: 20px;
+  background: #f5f5f7;
+  padding: 24px;
 }
 
 .app-header {
   color: white;
-  margin-bottom: 30px;
-  padding: 25px 20px;
-  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-  border-radius: 15px;
-  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.2);
+  margin-bottom: 32px;
+  padding: 28px 32px;
+  background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(0, 122, 255, 0.15);
+  backdrop-filter: blur(20px);
 }
 
 .header-content {
@@ -29,28 +36,29 @@
 }
 
 .header-content h1 {
-  font-size: 2.2rem;
+  font-size: 2rem;
   margin: 0;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  font-weight: 700;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 .target-schools {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   justify-content: center;
   flex-wrap: wrap;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .target-badge {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.2);
   color: white;
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
 }
 
 .container {
@@ -60,243 +68,233 @@
 
 .sample-schedule-prompt {
   background: white;
-  border-radius: 15px;
-  padding: 30px;
+  border-radius: 20px;
+  padding: 32px;
   text-align: center;
-  margin: 20px 0;
-  box-shadow: 0 8px 24px rgba(30, 64, 175, 0.15);
+  margin: 24px 0;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .sample-schedule-prompt p {
-  color: #1e40af;
-  font-size: 1.1rem;
+  color: #1d1d1f;
+  font-size: 1.0625rem;
   margin-bottom: 20px;
-  font-weight: 600;
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
 
 .load-sample-btn {
-  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  background: #007AFF;
   color: white;
   border: none;
-  border-radius: 10px;
-  padding: 16px 32px;
-  font-size: 1.1rem;
-  font-weight: 700;
+  border-radius: 12px;
+  padding: 14px 28px;
+  font-size: 1rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
 }
 
 .load-sample-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(30, 64, 175, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+  background: #0071e3;
+}
+
+.load-sample-btn:active {
+  transform: scale(0.98);
 }
 
 .view-switcher {
   display: flex;
-  gap: 10px;
-  margin: 20px 0;
+  gap: 8px;
+  margin: 24px 0;
   justify-content: center;
   flex-wrap: wrap;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 14px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .view-switcher button {
-  padding: 12px 24px;
-  border: 2px solid #3b82f6;
-  background: white;
-  color: #3b82f6;
-  border-radius: 25px;
+  padding: 10px 20px;
+  border: none;
+  background: transparent;
+  color: #1d1d1f;
+  border-radius: 10px;
   cursor: pointer;
-  font-size: 1rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .view-switcher button:hover {
-  background: #eff6ff;
-  transform: translateY(-2px);
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .view-switcher button.active {
-  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-  color: white;
-  border-color: #1e40af;
-  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+  background: white;
+  color: #007AFF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .filter-buttons {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   margin: 20px 0;
   justify-content: center;
   flex-wrap: wrap;
 }
 
 .filter-buttons button {
-  padding: 10px 20px;
-  border: 2px solid white;
+  padding: 8px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
   background: rgba(255, 255, 255, 0.15);
   color: white;
-  border-radius: 25px;
+  border-radius: 20px;
   cursor: pointer;
-  font-size: 1rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
 }
 
 .filter-buttons button:hover {
   background: rgba(255, 255, 255, 0.25);
-  transform: translateY(-2px);
 }
 
 .filter-buttons button.active {
   background: white;
-  color: #1e40af;
-}
-
-/* Mobile responsiveness */
-@media (max-width: 768px) {
-  .app.sapix-theme {
-    padding: 10px;
-  }
-
-  .app-header {
-    padding: 20px 15px;
-  }
-
-  .header-content h1 {
-    font-size: 1.7rem;
-  }
-
-  .target-badge {
-    font-size: 0.8rem;
-    padding: 5px 12px;
-  }
-
-  .view-switcher button {
-    padding: 10px 18px;
-    font-size: 0.9rem;
-  }
-
-  .filter-buttons {
-    gap: 8px;
-  }
-
-  .filter-buttons button {
-    padding: 8px 16px;
-    font-size: 0.9rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .app-header {
-    padding: 15px 12px;
-  }
-
-  .header-content {
-    flex-wrap: nowrap;
-    gap: 8px;
-  }
-
-  .header-content h1 {
-    font-size: 1.1rem;
-    flex: 1;
-    min-width: 0;
-  }
-
-  .target-badge {
-    font-size: 0.75rem;
-    padding: 4px 10px;
-  }
-
-  .view-switcher {
-    gap: 6px;
-  }
-
-  .view-switcher button {
-    padding: 8px 14px;
-    font-size: 0.85rem;
-  }
-
-  .filter-buttons {
-    gap: 5px;
-  }
-
-  .filter-buttons button {
-    padding: 6px 12px;
-    font-size: 0.85rem;
-  }
+  color: #007AFF;
+  border-color: white;
 }
 
 /* Edit View Styles */
 .edit-view {
   background: white;
   border-radius: 20px;
-  padding: 30px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  margin-bottom: 20px;
+  padding: 32px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  margin-bottom: 24px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .edit-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 28px;
   padding-bottom: 20px;
-  border-bottom: 3px solid #e5e7eb;
+  border-bottom: 1px solid #d2d2d7;
 }
 
 .edit-header h2 {
-  font-size: 1.8rem;
-  color: #1e40af;
+  font-size: 1.75rem;
+  color: #1d1d1f;
   margin: 0;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 .back-btn {
-  background: #6b7280;
-  color: white;
+  background: #f5f5f7;
+  color: #1d1d1f;
   border: none;
   border-radius: 10px;
-  padding: 12px 24px;
-  font-size: 1rem;
-  font-weight: 600;
+  padding: 10px 20px;
+  font-size: 0.9375rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .back-btn:hover {
-  background: #4b5563;
-  transform: translateY(-2px);
+  background: #e8e8ed;
+  transform: scale(0.98);
 }
 
+/* Mobile responsiveness */
 @media (max-width: 768px) {
+  .app.sapix-theme {
+    padding: 16px;
+  }
+
+  .app-header {
+    padding: 24px 20px;
+  }
+
+  .header-content h1 {
+    font-size: 1.625rem;
+  }
+
+  .view-switcher button {
+    padding: 8px 16px;
+    font-size: 0.875rem;
+  }
+
   .edit-view {
-    padding: 20px;
+    padding: 24px;
   }
 
   .edit-header h2 {
-    font-size: 1.4rem;
+    font-size: 1.375rem;
   }
 
   .back-btn {
-    padding: 10px 18px;
-    font-size: 0.9rem;
+    padding: 8px 16px;
+    font-size: 0.875rem;
   }
 }
 
 @media (max-width: 480px) {
+  .app-header {
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+
+  .header-content {
+    flex-wrap: nowrap;
+    gap: 12px;
+  }
+
+  .header-content h1 {
+    font-size: 1.125rem;
+    flex: 1;
+    min-width: 0;
+    font-weight: 600;
+  }
+
+  .view-switcher {
+    width: 100%;
+    margin: 16px 0;
+  }
+
+  .view-switcher button {
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 0.8125rem;
+  }
+
   .edit-view {
-    padding: 15px;
+    padding: 20px;
+    border-radius: 16px;
   }
 
   .edit-header {
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
     align-items: flex-start;
   }
 
   .edit-header h2 {
-    font-size: 1.2rem;
+    font-size: 1.25rem;
   }
 
   .back-btn {
