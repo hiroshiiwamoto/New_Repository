@@ -21,6 +21,11 @@ function TaskList({ tasks, onToggleTask, onDeleteTask, onBulkDeleteTasks, onEdit
   const filteredAndSortedTasks = useMemo(() => {
     let result = [...tasks]
 
+    // 科目フィルター
+    if (selectedSubject !== '全て') {
+      result = result.filter(task => task.subject === selectedSubject)
+    }
+
     // 検索フィルター
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase()
@@ -49,7 +54,7 @@ function TaskList({ tasks, onToggleTask, onDeleteTask, onBulkDeleteTasks, onEdit
     })
 
     return result
-  }, [tasks, searchQuery, sortBy])
+  }, [tasks, searchQuery, sortBy, selectedSubject])
 
   // 統計を計算
   const statistics = useMemo(() => {
@@ -148,22 +153,36 @@ function TaskList({ tasks, onToggleTask, onDeleteTask, onBulkDeleteTasks, onEdit
     <div className="enhanced-task-list">
       {/* 統計サマリー */}
       <div className="task-statistics">
-        <div className="stat-item primary">
-          <div className="stat-value">{statistics.total}</div>
+        <div className="stat-item">
           <div className="stat-label">総タスク数</div>
+          <div className="stat-value">{statistics.total}</div>
         </div>
-        <div className="stat-item success">
-          <div className="stat-value">{statistics.completed}</div>
+        <div className="stat-item">
           <div className="stat-label">完了</div>
+          <div className="stat-value">{statistics.completed}</div>
         </div>
-        <div className="stat-item pending">
-          <div className="stat-value">{statistics.pending}</div>
+        <div className="stat-item">
           <div className="stat-label">未完了</div>
+          <div className="stat-value">{statistics.pending}</div>
         </div>
-        <div className="stat-item rate">
-          <div className="stat-value">{statistics.completionRate}%</div>
+        <div className="stat-item">
           <div className="stat-label">達成率</div>
+          <div className="stat-value">{statistics.completionRate}%</div>
         </div>
+      </div>
+
+      {/* 科目フィルター */}
+      <div className="subject-filter">
+        {subjects.map(subject => (
+          <button
+            key={subject.name}
+            className={`subject-filter-btn ${selectedSubject === subject.name ? 'active' : ''}`}
+            onClick={() => setSelectedSubject(subject.name)}
+          >
+            <span className="subject-filter-emoji">{subject.emoji}</span>
+            <span>{subject.name}</span>
+          </button>
+        ))}
       </div>
 
       {/* 検索・ソート・一括操作バー */}
