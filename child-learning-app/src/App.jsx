@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import './App.css'
 import TodayAndWeekView from './components/TodayAndWeekView'
 import TaskForm from './components/TaskForm'
-import TaskList from './components/TaskList'
 import WeeklyCalendar from './components/WeeklyCalendar'
 import UnitDashboard from './components/UnitDashboard'
 import Analytics from './components/Analytics'
@@ -10,8 +9,7 @@ import { generateSAPIXSchedule } from './utils/sampleData'
 
 function App() {
   const [tasks, setTasks] = useState([])
-  const [filter, setFilter] = useState('all') // all, active, completed
-  const [view, setView] = useState('calendar') // subject, calendar, list, analytics, edit
+  const [view, setView] = useState('calendar') // subject, calendar, analytics, edit
   const [previousView, setPreviousView] = useState('calendar') // Store previous view for returning after edit
   const [editingTask, setEditingTask] = useState(null)
   const [targetSchools, setTargetSchools] = useState([
@@ -41,23 +39,6 @@ function App() {
     localStorage.setItem('targetSchools', JSON.stringify(targetSchools))
   }, [targetSchools])
 
-  // Scroll to form when editing task
-  useEffect(() => {
-    if (editingTask && view === 'list' && taskFormRef.current) {
-      // Wait longer for view switch and DOM update on mobile
-      const timer = setTimeout(() => {
-        // Use auto behavior for better mobile compatibility
-        taskFormRef.current.scrollIntoView({ behavior: 'auto', block: 'center' })
-        console.log('✅ Scrolled to form for task:', editingTask.title)
-        // Force scroll if needed
-        window.scrollTo({
-          top: taskFormRef.current.offsetTop - 100,
-          behavior: 'smooth'
-        })
-      }, 800)
-      return () => clearTimeout(timer)
-    }
-  }, [editingTask, view])
 
   const addTask = (task) => {
     const newTask = {
@@ -111,12 +92,6 @@ function App() {
       alert(`✅ ${sampleTasks.length}個のタスクを読み込みました！`)
     }
   }
-
-  const filteredTasks = tasks.filter(task => {
-    if (filter === 'active') return !task.completed
-    if (filter === 'completed') return task.completed
-    return true
-  })
 
   return (
     <div className="app sapix-theme">
@@ -187,12 +162,6 @@ function App() {
           >
             📅 カレンダー
           </button>
-          <button
-            className={view === 'list' ? 'active' : ''}
-            onClick={() => setView('list')}
-          >
-            📋 リスト
-          </button>
         </div>
 
         {view === 'subject' ? (
@@ -209,37 +178,7 @@ function App() {
             onDeleteTask={deleteTask}
             onEditTask={handleEditTask}
           />
-        ) : (
-          <>
-            <div className="filter-buttons">
-              <button
-                className={filter === 'all' ? 'active' : ''}
-                onClick={() => setFilter('all')}
-              >
-                すべて
-              </button>
-              <button
-                className={filter === 'active' ? 'active' : ''}
-                onClick={() => setFilter('active')}
-              >
-                未完了
-              </button>
-              <button
-                className={filter === 'completed' ? 'active' : ''}
-                onClick={() => setFilter('completed')}
-              >
-                完了
-              </button>
-            </div>
-
-            <TaskList
-              tasks={filteredTasks}
-              onToggleTask={toggleTask}
-              onDeleteTask={deleteTask}
-              onEditTask={handleEditTask}
-            />
-          </>
-        )}
+        ) : null}
           </>
         )}
 
