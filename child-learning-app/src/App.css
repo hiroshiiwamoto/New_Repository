@@ -193,8 +193,15 @@
     padding: 15px 12px;
   }
 
+  .header-content {
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+
   .header-content h1 {
-    font-size: 1.4rem;
+    font-size: 1.1rem;
+    flex: 1;
+    min-width: 0;
   }
 
   .target-badge {
