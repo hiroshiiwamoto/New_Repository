@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import './App.css'
 import TodayAndWeekView from './components/TodayAndWeekView'
 import TaskForm from './components/TaskForm'
+import TaskList from './components/TaskList'
 import WeeklyCalendar from './components/WeeklyCalendar'
 import UnitDashboard from './components/UnitDashboard'
 import Analytics from './components/Analytics'
@@ -9,7 +10,7 @@ import { generateSAPIXSchedule } from './utils/sampleData'
 
 function App() {
   const [tasks, setTasks] = useState([])
-  const [view, setView] = useState('calendar') // subject, calendar, analytics, edit
+  const [view, setView] = useState('calendar') // subject, calendar, analytics, tasks, edit
   const [previousView, setPreviousView] = useState('calendar') // Store previous view for returning after edit
   const [editingTask, setEditingTask] = useState(null)
   const [targetSchools, setTargetSchools] = useState([
@@ -162,6 +163,12 @@ function App() {
           >
             📅 カレンダー
           </button>
+          <button
+            className={view === 'tasks' ? 'active' : ''}
+            onClick={() => setView('tasks')}
+          >
+            📋 タスク
+          </button>
         </div>
 
         {view === 'subject' ? (
@@ -173,6 +180,13 @@ function App() {
           <Analytics tasks={tasks} />
         ) : view === 'calendar' ? (
           <WeeklyCalendar
+            tasks={tasks}
+            onToggleTask={toggleTask}
+            onDeleteTask={deleteTask}
+            onEditTask={handleEditTask}
+          />
+        ) : view === 'tasks' ? (
+          <TaskList
             tasks={tasks}
             onToggleTask={toggleTask}
             onDeleteTask={deleteTask}
