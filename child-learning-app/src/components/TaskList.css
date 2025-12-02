@@ -413,7 +413,7 @@
 
 @media (max-width: 480px) {
   .task-statistics {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(4, 1fr);
     gap: 10px;
   }
 
