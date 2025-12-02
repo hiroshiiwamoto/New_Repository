@@ -638,7 +638,7 @@
   }
 
   .subject-selector {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(4, 1fr);
     gap: 10px;
   }
 
@@ -665,7 +665,7 @@
   }
 
   .progress-summary {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(4, 1fr);
     gap: 10px;
   }
 
