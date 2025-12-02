@@ -72,20 +72,20 @@
 
 .priority-task {
   background: white;
-  border-radius: 10px;
-  padding: 10px;
+  border-radius: 8px;
+  padding: 6px 10px;
   display: flex;
-  gap: 10px;
-  align-items: flex-start;
+  gap: 8px;
+  align-items: center;
   transition: all 0.2s ease;
-  border: 2px solid transparent;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  border-left: 3px solid;
   position: relative;
 }
 
 .priority-task:hover {
-  border-color: #3b82f6;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
 }
 
 .priority-task.completed {
@@ -98,32 +98,16 @@
   color: #94a3b8;
 }
 
-.task-priority {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 800;
-  font-size: 0.95rem;
-  flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+.task-priority-badge {
+  background: rgba(0, 0, 0, 0.05);
+  color: #64748b;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-left: auto;
 }
 
-.task-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.task-header-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
-  flex-wrap: wrap;
-}
 
 .task-checkbox {
   width: 18px;
@@ -134,17 +118,20 @@
 
 .task-emoji {
   font-size: 1rem;
+  flex-shrink: 0;
 }
 
 .task-subject {
-  font-weight: 700;
+  font-weight: 600;
   color: #1e293b;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
+  flex-shrink: 0;
 }
 
 .task-unit {
   color: #64748b;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
+  flex-shrink: 0;
 }
 
 .task-date {
@@ -158,35 +145,28 @@
 }
 
 .task-title {
-  font-size: 0.9375rem;
-  font-weight: 600;
+  font-size: 0.875rem;
+  font-weight: 500;
   color: #0f172a;
-  margin-bottom: 6px;
+  margin: 0;
   line-height: 1.3;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .task-meta {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.task-type {
-  background: #f1f5f9;
-  color: #475569;
-  padding: 2px 8px;
-  border-radius: 5px;
-  font-size: 0.75rem;
-  font-weight: 500;
+  display: none;
 }
 
 .task-actions {
-  position: absolute;
-  top: 8px;
-  right: 8px;
   display: flex;
   gap: 6px;
   align-items: center;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .edit-btn {

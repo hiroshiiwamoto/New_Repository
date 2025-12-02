@@ -26,10 +26,11 @@ function TodayAndWeekView({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
     '社会': '🌍',
   }
 
-  const priorityColors = {
-    'A': '#ef4444',
-    'B': '#f59e0b',
-    'C': '#3b82f6',
+  const subjectColors = {
+    '国語': '#10b981',
+    '算数': '#ef4444',
+    '理科': '#3b82f6',
+    '社会': '#f59e0b',
   }
 
   const todayTasks = getTodayTasks()
@@ -61,27 +62,24 @@ function TodayAndWeekView({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
               <div className="no-tasks-message">今日のタスクはありません</div>
             ) : (
               todayTasks.map(task => (
-                <div key={task.id} className={`priority-task ${task.completed ? 'completed' : ''}`}>
-                  <div className="task-priority" style={{ background: priorityColors[task.priority] }}>
-                    {task.priority}
-                  </div>
-                  <div className="task-content">
-                    <div className="task-header-row">
-                      <input
-                        type="checkbox"
-                        checked={task.completed}
-                        onChange={() => onToggleTask(task.id)}
-                        className="task-checkbox"
-                      />
-                      <span className="task-emoji">{subjectEmojis[task.subject]}</span>
-                      <span className="task-subject">{task.subject}</span>
-                      {task.unit && <span className="task-unit">/ {task.unit}</span>}
-                    </div>
-                    <div className="task-title">{task.title}</div>
-                    <div className="task-meta">
-                      <span className="task-type">{task.taskType}</span>
-                    </div>
-                  </div>
+                <div
+                  key={task.id}
+                  className={`priority-task ${task.completed ? 'completed' : ''}`}
+                  style={{ borderLeftColor: subjectColors[task.subject] || '#64748b' }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={task.completed}
+                    onChange={() => onToggleTask(task.id)}
+                    className="task-checkbox"
+                  />
+                  <span className="task-emoji">{subjectEmojis[task.subject]}</span>
+                  <span className="task-subject">{task.subject}</span>
+                  {task.unit && <span className="task-unit">/ {task.unit}</span>}
+                  <div className="task-title">{task.title}</div>
+                  {task.priority && (
+                    <span className="task-priority-badge">{task.priority}</span>
+                  )}
                   <div className="task-actions">
                     {onEditTask && (
                       <button
