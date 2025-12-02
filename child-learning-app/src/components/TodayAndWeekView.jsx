@@ -76,7 +76,7 @@ function TodayAndWeekView({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
                   <span className="task-emoji">{subjectEmojis[task.subject]}</span>
                   <span className="task-subject">{task.subject}</span>
                   {task.unit && <span className="task-unit">/ {task.unit}</span>}
-                  <div className="task-title">{task.title}</div>
+                  <span className="task-title">{task.title}</span>
                   {task.priority && (
                     <span className="task-priority-badge">{task.priority}</span>
                   )}
