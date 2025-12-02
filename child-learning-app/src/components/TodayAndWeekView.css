@@ -304,20 +304,6 @@
   }
 
   .task-actions {
-    top: 10px;
-    right: 10px;
-    gap: 6px;
-  }
-
-  .edit-btn {
-    width: 26px;
-    height: 26px;
-    font-size: 0.85rem;
-  }
-
-  .delete-btn {
-    width: 26px;
-    height: 26px;
-    font-size: 1.2rem;
+    display: none;
   }
 }
