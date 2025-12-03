@@ -82,13 +82,19 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
     const { generateCustomUnitId } = await import('../utils/customUnits')
     const unitId = generateCustomUnitId(subject, grade, customUnitName)
 
-    const result = await onAddCustomUnit({
+    const unitData = {
       id: unitId,
       subject,
       grade,
       name: customUnitName.trim(),
       category: customUnitCategory,
-    })
+    }
+
+    console.log('➕ カスタム単元を追加:', unitData)
+
+    const result = await onAddCustomUnit(unitData)
+
+    console.log('✅ 追加結果:', result)
 
     if (result.success) {
       // フォームをリセット
@@ -98,6 +104,8 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
       // 追加した単元を選択
       setUnitId(result.data.id)
       alert(`✅ 単元「${customUnitName}」を追加しました`)
+    } else {
+      alert(`❌ カスタム単元の追加に失敗しました: ${result.error || '不明なエラー'}`)
     }
   }
 
@@ -129,6 +137,15 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
   const defaultUnits = unitsDatabase[subject]?.[grade] || []
   const filteredCustomUnits = customUnits.filter(u => u.subject === subject && u.grade === grade)
   const currentUnits = [...defaultUnits, ...filteredCustomUnits]
+
+  // デバッグ: カスタム単元の内容を確認
+  useEffect(() => {
+    console.log('🔍 カスタム単元デバッグ情報:')
+    console.log('  全カスタム単元:', customUnits)
+    console.log('  現在の科目:', subject)
+    console.log('  現在の学年:', grade)
+    console.log('  フィルタ後のカスタム単元:', filteredCustomUnits)
+  }, [customUnits, subject, grade, filteredCustomUnits])
 
   return (
     <form className="task-form sapix-form" onSubmit={handleSubmit}>

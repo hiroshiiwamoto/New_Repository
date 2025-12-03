@@ -71,8 +71,12 @@ function App() {
 
     // カスタム単元を取得
     getCustomUnits(user.uid).then(result => {
+      console.log('🔄 App.jsx - Firestoreからカスタム単元を取得:', result)
       if (result.success) {
+        console.log('🔄 App.jsx - カスタム単元をセット:', result.data)
         setCustomUnits(result.data)
+      } else {
+        console.log('🔄 App.jsx - カスタム単元の取得に失敗:', result.error)
       }
     })
 
@@ -235,15 +239,22 @@ function App() {
       return { success: false }
     }
 
+    console.log('📦 App.jsx - カスタム単元を追加:', unitData)
+    console.log('📦 App.jsx - 現在のcustomUnits:', customUnits)
+
     const result = await addCustomUnitToFirestore(user.uid, unitData)
+
+    console.log('📦 App.jsx - Firestore追加結果:', result)
 
     if (result.success) {
       // カスタム単元リストを更新
-      setCustomUnits([result.data, ...customUnits])
+      const newCustomUnits = [result.data, ...customUnits]
+      console.log('📦 App.jsx - 更新後のcustomUnits:', newCustomUnits)
+      setCustomUnits(newCustomUnits)
       return { success: true, data: result.data }
     } else {
       alert('❌ カスタム単元の追加に失敗しました: ' + result.error)
-      return { success: false }
+      return { success: false, error: result.error }
     }
   }
 
