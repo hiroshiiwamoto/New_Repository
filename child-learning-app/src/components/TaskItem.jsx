@@ -19,16 +19,11 @@ function TaskItem({ task, onToggle, onDelete, onEdit }) {
     '社会': '#f59e0b',
   }
 
-  const subjectColor = task.subject ? (subjectColors[task.subject] || '#ffffff') : '#ffffff'
-  const backgroundColor = task.subject && subjectColors[task.subject] ? `${subjectColor}33` : '#ffffff'
+  const subjectColor = subjectColors[task.subject] || '#007AFF'
 
   return (
     <div
       className={`task-item ${task.completed ? 'completed' : ''}`}
-      style={{
-        borderLeftColor: subjectColor,
-        backgroundColor: backgroundColor
-      }}
     >
       <input
         type="checkbox"
@@ -40,8 +35,8 @@ function TaskItem({ task, onToggle, onDelete, onEdit }) {
       <span
         className="subject-badge"
         style={{
-          backgroundColor: task.subject ? `${subjectColor}20` : '#f3f4f6',
-          color: task.subject ? subjectColor : '#6b7280',
+          backgroundColor: `${subjectColor}15`,
+          color: subjectColor,
           borderColor: subjectColor
         }}
       >{task.subject}</span>

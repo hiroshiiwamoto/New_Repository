@@ -195,16 +195,10 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
                     <div className="no-tasks">予定なし</div>
                   ) : (
                     dayTasks.map(task => {
-                      const subjectColor = subjectColors[task.subject] || '#64748b'
-                      const backgroundColor = `${subjectColor}33`
                       return (
                         <div
                           key={task.id}
                           className={`calendar-task ${task.completed ? 'completed' : ''}`}
-                          style={{
-                            borderLeftColor: subjectColor,
-                            backgroundColor: backgroundColor
-                          }}
                         >
                           <div className="task-header">
                             <input
