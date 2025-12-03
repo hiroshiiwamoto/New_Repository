@@ -18,6 +18,10 @@ import {
   getTargetSchools as getTargetSchoolsFromFirestore,
   migrateLocalStorageToFirestore,
 } from './utils/firestore'
+import {
+  getCustomUnits,
+  addCustomUnit as addCustomUnitToFirestore,
+} from './utils/customUnits'
 
 function App() {
   const [user, setUser] = useState(null)
@@ -26,6 +30,7 @@ function App() {
   const [previousView, setPreviousView] = useState('calendar') // Store previous view for returning after edit
   const [editingTask, setEditingTask] = useState(null)
   const [targetSchools, setTargetSchools] = useState([])
+  const [customUnits, setCustomUnits] = useState([]) // カスタム単元
   const taskFormRef = useRef(null)
   const [migrated, setMigrated] = useState(false)
 
@@ -61,6 +66,13 @@ function App() {
     getTargetSchoolsFromFirestore(user.uid).then(result => {
       if (result.success && result.data.length > 0) {
         setTargetSchools(result.data)
+      }
+    })
+
+    // カスタム単元を取得
+    getCustomUnits(user.uid).then(result => {
+      if (result.success) {
+        setCustomUnits(result.data)
       }
     })
 
@@ -217,6 +229,24 @@ function App() {
     alert(`✅ ${selectedGrade}のサンプルスケジュール（${sampleTasks.length}個のタスク）を読み込みました！`)
   }
 
+  const addCustomUnit = async (unitData) => {
+    if (!user) {
+      alert('❌ カスタム単元を追加するにはログインが必要です')
+      return { success: false }
+    }
+
+    const result = await addCustomUnitToFirestore(user.uid, unitData)
+
+    if (result.success) {
+      // カスタム単元リストを更新
+      setCustomUnits([result.data, ...customUnits])
+      return { success: true, data: result.data }
+    } else {
+      alert('❌ カスタム単元の追加に失敗しました: ' + result.error)
+      return { success: false }
+    }
+  }
+
   const handleAuthChange = (currentUser) => {
     setUser(currentUser)
   }
@@ -250,6 +280,8 @@ function App() {
               onUpdateTask={updateTask}
               editingTask={editingTask}
               onCancelEdit={handleCancelEdit}
+              customUnits={customUnits}
+              onAddCustomUnit={addCustomUnit}
             />
           </div>
         ) : (
@@ -333,6 +365,8 @@ function App() {
               onUpdateTask={updateTask}
               editingTask={editingTask}
               onCancelEdit={handleCancelEdit}
+              customUnits={customUnits}
+              onAddCustomUnit={addCustomUnit}
             />
           </div>
         )}
