@@ -207,29 +207,24 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.calendar-day.today {
+.day-header {
+  text-align: center;
+  margin-bottom: 10px;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.calendar-day.today .day-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+  border: 3px solid #667eea;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
 .calendar-day.today .day-name,
 .calendar-day.today .day-date {
   color: white;
-}
-
-.calendar-day.today .no-tasks {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.day-header {
-  text-align: center;
-  margin-bottom: 10px;
-  padding-bottom: 8px;
-  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
-}
-
-.calendar-day.today .day-header {
-  border-bottom-color: rgba(255, 255, 255, 0.3);
 }
 
 .day-name {
