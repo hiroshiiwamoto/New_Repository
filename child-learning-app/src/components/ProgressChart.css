@@ -1,0 +1,123 @@
+.progress-chart {
+  background: white;
+  border-radius: 16px;
+  padding: 25px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin-bottom: 20px;
+}
+
+.chart-legend {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 2px solid;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: transparent;
+}
+
+.legend-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.legend-item.active {
+  font-weight: 700;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: block;
+}
+
+.legend-label {
+  color: #1e293b;
+}
+
+.chart-container {
+  position: relative;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+.chart-svg {
+  width: 100%;
+  height: auto;
+  min-width: 600px;
+}
+
+.axis-label {
+  font-size: 12px;
+  fill: #64748b;
+  font-weight: 500;
+}
+
+.no-data-message {
+  text-align: center;
+  padding: 60px 20px;
+  color: #64748b;
+}
+
+.no-data-message p {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.no-data-message .hint {
+  font-size: 0.9rem;
+  font-weight: 400;
+  margin-top: 8px;
+  color: #94a3b8;
+}
+
+/* モバイル対応 */
+@media (max-width: 768px) {
+  .progress-chart {
+    padding: 20px 15px;
+  }
+
+  .chart-legend {
+    gap: 8px;
+  }
+
+  .legend-item {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+
+  .legend-color {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .progress-chart {
+    padding: 15px 10px;
+  }
+
+  .chart-legend {
+    gap: 6px;
+  }
+
+  .legend-item {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+  }
+}
