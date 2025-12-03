@@ -150,16 +150,15 @@
 }
 
 .month-day.today .month-day-date {
-  background: #007AFF;
-  color: white;
+  color: #007AFF;
+  border: 2px solid #007AFF;
   border-radius: 50%;
-  padding: 6px;
+  padding: 4px;
   width: 28px;
   height: 28px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
 }
 
 .month-day-tasks {
@@ -223,8 +222,7 @@
 }
 
 .calendar-day.today .day-header {
-  background: #007AFF;
-  color: white;
+  border: 2px solid #007AFF;
   border-radius: 50%;
   width: 70px;
   height: 70px;
@@ -233,19 +231,18 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
   padding: 0;
 }
 
 .calendar-day.today .day-name {
-  color: white;
+  color: #007AFF;
   font-size: 0.7rem;
   margin: 0;
   line-height: 1;
 }
 
 .calendar-day.today .day-date {
-  color: white;
+  color: #007AFF;
   font-size: 1.4rem;
   margin: 0;
   line-height: 1;
