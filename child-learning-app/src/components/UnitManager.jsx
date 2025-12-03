@@ -1,0 +1,227 @@
+import { useState } from 'react'
+import './UnitManager.css'
+import { unitsDatabase, subjects, grades } from '../utils/unitsDatabase'
+
+function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
+  const [selectedGrade, setSelectedGrade] = useState('4年生')
+  const [selectedSubject, setSelectedSubject] = useState('算数')
+  const [editingUnit, setEditingUnit] = useState(null)
+  const [editForm, setEditForm] = useState({ name: '', category: '' })
+
+  const subjectEmojis = {
+    '国語': '📖',
+    '算数': '🔢',
+    '理科': '🔬',
+    '社会': '🌍',
+  }
+
+  const subjectColors = {
+    '国語': '#10b981',
+    '算数': '#ef4444',
+    '理科': '#3b82f6',
+    '社会': '#f59e0b',
+  }
+
+  // デフォルト単元とカスタム単元を統合
+  const defaultUnits = unitsDatabase[selectedSubject]?.[selectedGrade] || []
+  const filteredCustomUnits = customUnits.filter(
+    u => u.subject === selectedSubject && u.grade === selectedGrade
+  )
+
+  const handleEditClick = (unit) => {
+    setEditingUnit(unit)
+    setEditForm({ name: unit.name, category: unit.category })
+  }
+
+  const handleCancelEdit = () => {
+    setEditingUnit(null)
+    setEditForm({ name: '', category: '' })
+  }
+
+  const handleSaveEdit = async () => {
+    if (!editForm.name.trim()) {
+      alert('単元名を入力してください')
+      return
+    }
+
+    const result = await onUpdateUnit(editingUnit.firestoreId, {
+      name: editForm.name.trim(),
+      category: editForm.category,
+    })
+
+    if (result.success) {
+      alert('✅ 単元を更新しました')
+      setEditingUnit(null)
+      setEditForm({ name: '', category: '' })
+    } else {
+      alert('❌ 更新に失敗しました: ' + result.error)
+    }
+  }
+
+  const handleDelete = async (unit) => {
+    if (!window.confirm(`「${unit.name}」を削除しますか？\n\nこの操作は取り消せません。`)) {
+      return
+    }
+
+    const result = await onDeleteUnit(unit.firestoreId)
+
+    if (result.success) {
+      alert('✅ 単元を削除しました')
+    } else {
+      alert('❌ 削除に失敗しました: ' + result.error)
+    }
+  }
+
+  return (
+    <div className="unit-manager">
+      <div className="manager-header">
+        <h2>📚 単元管理</h2>
+        <p className="manager-description">
+          デフォルト単元とカスタム単元を管理できます。カスタム単元のみ編集・削除が可能です。
+        </p>
+      </div>
+
+      {/* フィルター */}
+      <div className="manager-filters">
+        <div className="filter-group">
+          <label>学年:</label>
+          <div className="grade-buttons">
+            {grades.map((grade) => (
+              <button
+                key={grade}
+                className={`filter-btn ${selectedGrade === grade ? 'active' : ''}`}
+                onClick={() => setSelectedGrade(grade)}
+              >
+                {grade}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="filter-group">
+          <label>科目:</label>
+          <div className="subject-buttons">
+            {subjects.map((subject) => (
+              <button
+                key={subject}
+                className={`filter-btn subject ${selectedSubject === subject ? 'active' : ''}`}
+                onClick={() => setSelectedSubject(subject)}
+                style={{
+                  borderColor: selectedSubject === subject ? subjectColors[subject] : '#e2e8f0',
+                  background: selectedSubject === subject ? `${subjectColors[subject]}15` : 'white',
+                }}
+              >
+                <span className="subject-emoji">{subjectEmojis[subject]}</span>
+                <span>{subject}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* デフォルト単元セクション */}
+      <div className="units-section">
+        <h3 className="section-title">
+          📋 標準単元 <span className="unit-count">({defaultUnits.length}件)</span>
+        </h3>
+        {defaultUnits.length === 0 ? (
+          <div className="no-units">標準単元がありません</div>
+        ) : (
+          <div className="units-list">
+            {defaultUnits.map((unit) => (
+              <div key={unit.id} className="unit-item default">
+                <div className="unit-info">
+                  <span className="unit-name">{unit.name}</span>
+                  <span className="unit-category">{unit.category}</span>
+                </div>
+                <div className="unit-actions">
+                  <span className="default-badge">標準</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* カスタム単元セクション */}
+      <div className="units-section">
+        <h3 className="section-title">
+          ➕ カスタム単元 <span className="unit-count">({filteredCustomUnits.length}件)</span>
+        </h3>
+        {filteredCustomUnits.length === 0 ? (
+          <div className="no-units">
+            カスタム単元がありません
+            <br />
+            <small>タスク追加画面の「➕」ボタンから追加できます</small>
+          </div>
+        ) : (
+          <div className="units-list">
+            {filteredCustomUnits.map((unit) => (
+              <div key={unit.id} className="unit-item custom">
+                {editingUnit && editingUnit.id === unit.id ? (
+                  // 編集モード
+                  <div className="unit-edit-form">
+                    <div className="edit-fields">
+                      <input
+                        type="text"
+                        value={editForm.name}
+                        onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                        placeholder="単元名"
+                        className="edit-input"
+                      />
+                      <select
+                        value={editForm.category}
+                        onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                        className="edit-select"
+                      >
+                        <option value="過去問">過去問</option>
+                        <option value="弱点対策">弱点対策</option>
+                        <option value="発展">発展</option>
+                        <option value="特訓">特訓</option>
+                        <option value="その他">その他</option>
+                      </select>
+                    </div>
+                    <div className="edit-actions">
+                      <button className="save-btn" onClick={handleSaveEdit}>
+                        ✓ 保存
+                      </button>
+                      <button className="cancel-btn" onClick={handleCancelEdit}>
+                        ✕ キャンセル
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  // 表示モード
+                  <>
+                    <div className="unit-info">
+                      <span className="unit-name">{unit.name}</span>
+                      <span className="unit-category">{unit.category}</span>
+                    </div>
+                    <div className="unit-actions">
+                      <button
+                        className="edit-btn"
+                        onClick={() => handleEditClick(unit)}
+                        title="編集"
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        className="delete-btn"
+                        onClick={() => handleDelete(unit)}
+                        title="削除"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default UnitManager
