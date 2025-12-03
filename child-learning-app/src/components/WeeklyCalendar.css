@@ -147,20 +147,21 @@
   font-weight: bold;
   color: #333;
   margin-bottom: 5px;
+  line-height: 1.1;
 }
 
 .month-day.today .month-day-date {
   background: #007AFF;
   color: white;
   border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  display: flex;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 5px;
   box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   line-height: 1;
 }
 
