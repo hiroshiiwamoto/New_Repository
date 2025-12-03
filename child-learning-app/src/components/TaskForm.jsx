@@ -30,16 +30,19 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
   const handleSubmit = (e) => {
     e.preventDefault()
     if (title.trim()) {
+      const unitName = getUnitName(unitId)
       const taskData = {
         title: title.trim(),
         subject,
         grade,
         unitId,
-        unit: getUnitName(unitId),
+        unit: unitName,
         taskType,
         priority,
         dueDate: dueDate || null,
       }
+
+      console.log('📝 タスク作成/更新:', taskData)
 
       if (editingTask) {
         onUpdateTask(editingTask.id, taskData)
@@ -57,15 +60,25 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
   }
 
   const getUnitName = (unitId) => {
+    console.log('🔍 getUnitName呼び出し:', { unitId, subject, grade })
     if (!unitId) return ''
     // デフォルト単元から検索
     const defaultUnits = unitsDatabase[subject]?.[grade] || []
     const defaultUnit = defaultUnits.find(u => u.id === unitId)
-    if (defaultUnit) return defaultUnit.name
+    if (defaultUnit) {
+      console.log('✅ デフォルト単元が見つかりました:', defaultUnit.name)
+      return defaultUnit.name
+    }
 
     // カスタム単元から検索
+    console.log('🔍 カスタム単元から検索:', { customUnits, unitId })
     const customUnit = customUnits.find(u => u.id === unitId)
-    return customUnit ? customUnit.name : ''
+    if (customUnit) {
+      console.log('✅ カスタム単元が見つかりました:', customUnit.name)
+      return customUnit.name
+    }
+    console.log('❌ 単元が見つかりませんでした')
+    return ''
   }
 
   const handleAddCustomUnit = async () => {
