@@ -262,12 +262,14 @@ function App() {
               onEditTask={handleEditTask}
             />
 
-            <div className="sample-schedule-prompt">
-              <p>📅 サンプルスケジュールを読み込んで、すぐに使い始められます！</p>
-              <button onClick={loadSampleSchedule} className="load-sample-btn">
-                🎓 SAPIXサンプルスケジュールを読み込む（新3年 / 新4年）
-              </button>
-            </div>
+            {tasks.length === 0 && (
+              <div className="sample-schedule-prompt">
+                <p>📅 サンプルスケジュールを読み込んで、すぐに使い始められます！</p>
+                <button onClick={loadSampleSchedule} className="load-sample-btn">
+                  🎓 SAPIXサンプルスケジュールを読み込む（新3年 / 新4年）
+                </button>
+              </div>
+            )}
 
             {/* 2. ビュー切り替え */}
             <div className="view-switcher">
