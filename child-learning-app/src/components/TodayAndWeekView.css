@@ -90,7 +90,6 @@
 
 .priority-task.completed {
   opacity: 0.5;
-  background: #f5f5f7;
 }
 
 .priority-task.completed .task-title {
