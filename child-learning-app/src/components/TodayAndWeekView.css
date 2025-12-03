@@ -80,6 +80,8 @@
   border: 1px solid rgba(0, 0, 0, 0.08);
   position: relative;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .priority-task:hover {
@@ -271,7 +273,7 @@
 
 @media (max-width: 480px) {
   .section-header {
-    padding: 16px 18px;
+    padding: 16px 12px;
   }
 
   .section-header h2 {
@@ -279,14 +281,24 @@
   }
 
   .task-grid {
-    padding: 15px;
+    padding: 12px;
   }
 
   .priority-task {
     padding: 5px 8px;
+    gap: 6px;
   }
 
   .task-actions {
     display: none;
+  }
+
+  .subject-badge {
+    font-size: 0.65rem;
+    padding: 2px 4px;
+  }
+
+  .task-title {
+    font-size: 0.8rem;
   }
 }
