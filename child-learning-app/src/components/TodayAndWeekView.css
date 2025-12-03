@@ -80,10 +80,12 @@
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-left: 3px solid;
   position: relative;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .priority-task:hover {
-  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
 }
 
 .priority-task.completed {
