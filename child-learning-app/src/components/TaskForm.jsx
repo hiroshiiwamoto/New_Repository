@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import './TaskForm.css'
 import { unitsDatabase, grades } from '../utils/unitsDatabase'
 
-function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit }) {
+function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUnits = [], onAddCustomUnit }) {
   const [title, setTitle] = useState('')
   const [subject, setSubject] = useState('算数')
   const [grade, setGrade] = useState('4年生')
@@ -10,6 +10,9 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit }) {
   const [taskType, setTaskType] = useState('daily')
   const [priority, setPriority] = useState('B')
   const [dueDate, setDueDate] = useState('')
+  const [showCustomUnitForm, setShowCustomUnitForm] = useState(false)
+  const [customUnitName, setCustomUnitName] = useState('')
+  const [customUnitCategory, setCustomUnitCategory] = useState('過去問')
 
   // 編集モードの場合、フォームに値を設定
   useEffect(() => {
@@ -55,9 +58,47 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit }) {
 
   const getUnitName = (unitId) => {
     if (!unitId) return ''
-    const units = unitsDatabase[subject]?.[grade] || []
-    const unit = units.find(u => u.id === unitId)
-    return unit ? unit.name : ''
+    // デフォルト単元から検索
+    const defaultUnits = unitsDatabase[subject]?.[grade] || []
+    const defaultUnit = defaultUnits.find(u => u.id === unitId)
+    if (defaultUnit) return defaultUnit.name
+
+    // カスタム単元から検索
+    const customUnit = customUnits.find(u => u.id === unitId)
+    return customUnit ? customUnit.name : ''
+  }
+
+  const handleAddCustomUnit = async () => {
+    if (!customUnitName.trim()) {
+      alert('単元名を入力してください')
+      return
+    }
+
+    if (!onAddCustomUnit) {
+      alert('カスタム単元の追加機能が利用できません')
+      return
+    }
+
+    const { generateCustomUnitId } = await import('../utils/customUnits')
+    const unitId = generateCustomUnitId(subject, grade, customUnitName)
+
+    const result = await onAddCustomUnit({
+      id: unitId,
+      subject,
+      grade,
+      name: customUnitName.trim(),
+      category: customUnitCategory,
+    })
+
+    if (result.success) {
+      // フォームをリセット
+      setCustomUnitName('')
+      setCustomUnitCategory('過去問')
+      setShowCustomUnitForm(false)
+      // 追加した単元を選択
+      setUnitId(result.data.id)
+      alert(`✅ 単元「${customUnitName}」を追加しました`)
+    }
   }
 
   const handleCancel = () => {
@@ -83,7 +124,11 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit }) {
   ]
 
   const subjects = ['国語', '算数', '理科', '社会']
-  const currentUnits = unitsDatabase[subject]?.[grade] || []
+
+  // デフォルト単元とカスタム単元を統合
+  const defaultUnits = unitsDatabase[subject]?.[grade] || []
+  const filteredCustomUnits = customUnits.filter(u => u.subject === subject && u.grade === grade)
+  const currentUnits = [...defaultUnits, ...filteredCustomUnits]
 
   return (
     <form className="task-form sapix-form" onSubmit={handleSubmit}>
@@ -124,20 +169,96 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit }) {
 
         <div className="form-group third">
           <label htmlFor="unit">単元</label>
-          <select
-            id="unit"
-            value={unitId}
-            onChange={(e) => setUnitId(e.target.value)}
-          >
-            <option value="">選択してください</option>
-            {currentUnits.map(u => (
-              <option key={u.id} value={u.id}>
-                {u.name} ({u.category})
-              </option>
-            ))}
-          </select>
+          <div className="unit-select-container">
+            <select
+              id="unit"
+              value={unitId}
+              onChange={(e) => setUnitId(e.target.value)}
+            >
+              <option value="">選択してください</option>
+              {defaultUnits.length > 0 && (
+                <optgroup label="標準単元">
+                  {defaultUnits.map(u => (
+                    <option key={u.id} value={u.id}>
+                      {u.name} ({u.category})
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+              {filteredCustomUnits.length > 0 && (
+                <optgroup label="カスタム単元">
+                  {filteredCustomUnits.map(u => (
+                    <option key={u.id} value={u.id}>
+                      {u.name} ({u.category})
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+            </select>
+            <button
+              type="button"
+              className="add-custom-unit-btn"
+              onClick={() => setShowCustomUnitForm(!showCustomUnitForm)}
+              title="カスタム単元を追加"
+            >
+              ➕
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* カスタム単元追加フォーム */}
+      {showCustomUnitForm && (
+        <div className="custom-unit-form">
+          <h3>➕ カスタム単元を追加</h3>
+          <div className="form-row">
+            <div className="form-group half">
+              <label htmlFor="customUnitName">単元名</label>
+              <input
+                type="text"
+                id="customUnitName"
+                value={customUnitName}
+                onChange={(e) => setCustomUnitName(e.target.value)}
+                placeholder="例: 開成2023年第1回"
+              />
+            </div>
+            <div className="form-group half">
+              <label htmlFor="customUnitCategory">カテゴリ</label>
+              <select
+                id="customUnitCategory"
+                value={customUnitCategory}
+                onChange={(e) => setCustomUnitCategory(e.target.value)}
+              >
+                <option value="過去問">過去問</option>
+                <option value="弱点対策">弱点対策</option>
+                <option value="発展">発展</option>
+                <option value="特訓">特訓</option>
+                <option value="その他">その他</option>
+              </select>
+            </div>
+          </div>
+          <div className="custom-unit-actions">
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => {
+                setShowCustomUnitForm(false)
+                setCustomUnitName('')
+                setCustomUnitCategory('過去問')
+              }}
+            >
+              キャンセル
+            </button>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={handleAddCustomUnit}
+            >
+              追加
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="form-group">
         <label htmlFor="title">学習内容</label>
