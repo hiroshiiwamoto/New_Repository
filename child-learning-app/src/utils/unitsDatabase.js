@@ -1,7 +1,21 @@
-// SAPIX 中学受験 4-6年生 単元データベース
+// SAPIX 中学受験 3-6年生 単元データベース
 
 export const unitsDatabase = {
   '算数': {
+    '3年生': [
+      { id: 'math3_01', name: '計算の基礎（足し算・引き算）', category: '計算' },
+      { id: 'math3_02', name: '計算の基礎（掛け算・割り算）', category: '計算' },
+      { id: 'math3_03', name: '時刻と時間', category: '量と測定' },
+      { id: 'math3_04', name: '長さ・重さ', category: '量と測定' },
+      { id: 'math3_05', name: 'かさ', category: '量と測定' },
+      { id: 'math3_06', name: '図形の基礎', category: '図形' },
+      { id: 'math3_07', name: '三角形と四角形の基本', category: '図形' },
+      { id: 'math3_08', name: '表とグラフの読み方', category: 'データ' },
+      { id: 'math3_09', name: '大きい数', category: '数と計算' },
+      { id: 'math3_10', name: '文章題入門', category: '文章題' },
+      { id: 'math3_11', name: '単位の換算', category: '量と測定' },
+      { id: 'math3_12', name: 'きまりを見つけよう', category: '規則性' },
+    ],
     '4年生': [
       { id: 'math4_01', name: '四則計算の基礎', category: '計算' },
       { id: 'math4_02', name: '植木算', category: '特殊算' },
@@ -55,6 +69,16 @@ export const unitsDatabase = {
     ],
   },
   '国語': {
+    '3年生': [
+      { id: 'lang3_01', name: '漢字（3年配当）', category: '漢字' },
+      { id: 'lang3_02', name: '語彙の基礎', category: '語彙' },
+      { id: 'lang3_03', name: '物語文の基礎', category: '読解' },
+      { id: 'lang3_04', name: '説明文の基礎', category: '読解' },
+      { id: 'lang3_05', name: '音読・暗唱', category: '読解' },
+      { id: 'lang3_06', name: 'かたかなことば', category: '語彙' },
+      { id: 'lang3_07', name: '主語と述語', category: '文法' },
+      { id: 'lang3_08', name: '短い文章を書こう', category: '作文' },
+    ],
     '4年生': [
       { id: 'lang4_01', name: '漢字（4年配当）', category: '漢字' },
       { id: 'lang4_02', name: '語彙（基礎）', category: '語彙' },
@@ -94,6 +118,16 @@ export const unitsDatabase = {
     ],
   },
   '理科': {
+    '3年生': [
+      { id: 'sci3_01', name: '身の回りの生き物', category: '生物' },
+      { id: 'sci3_02', name: '植物の観察', category: '生物' },
+      { id: 'sci3_03', name: '磁石の性質', category: '物理' },
+      { id: 'sci3_04', name: '電気の基礎', category: '物理' },
+      { id: 'sci3_05', name: '太陽の動き', category: '地学' },
+      { id: 'sci3_06', name: 'かげと太陽', category: '地学' },
+      { id: 'sci3_07', name: '風やゴムの力', category: '物理' },
+      { id: 'sci3_08', name: '光の性質', category: '物理' },
+    ],
     '4年生': [
       { id: 'sci4_01', name: '植物のつくり', category: '生物' },
       { id: 'sci4_02', name: '植物の成長', category: '生物' },
@@ -135,6 +169,14 @@ export const unitsDatabase = {
     ],
   },
   '社会': {
+    '3年生': [
+      { id: 'soc3_01', name: '身近な地域', category: '地域学習' },
+      { id: 'soc3_02', name: 'まちたんけん', category: '地域学習' },
+      { id: 'soc3_03', name: '買い物と仕事', category: '生活' },
+      { id: 'soc3_04', name: '昔の道具', category: '歴史' },
+      { id: 'soc3_05', name: '季節の行事', category: '文化' },
+      { id: 'soc3_06', name: '市の様子', category: '地域学習' },
+    ],
     '4年生': [
       { id: 'soc4_01', name: '都道府県', category: '地理' },
       { id: 'soc4_02', name: '地図の見方', category: '地理' },
@@ -198,4 +240,4 @@ export function getUnitsBySubjectAndGrade(subject, grade) {
 export const subjects = ['算数', '国語', '理科', '社会']
 
 // 全学年リスト
-export const grades = ['4年生', '5年生', '6年生']
+export const grades = ['3年生', '4年生', '5年生', '6年生']

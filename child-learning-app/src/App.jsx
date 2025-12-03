@@ -7,7 +7,7 @@ import TaskList from './components/TaskList'
 import WeeklyCalendar from './components/WeeklyCalendar'
 import UnitDashboard from './components/UnitDashboard'
 import Analytics from './components/Analytics'
-import { generateSAPIXSchedule } from './utils/sampleData'
+import { generateSAPIXScheduleByGrade } from './utils/sampleData'
 import {
   addTaskToFirestore,
   updateTaskInFirestore,
@@ -177,29 +177,44 @@ function App() {
   }
 
   const loadSampleSchedule = async () => {
-    if (window.confirm('SAPIX新四年生の1月～3月のサンプルスケジュール（80タスク以上）を読み込みますか？\n既存のタスクは削除されます。')) {
-      const sampleTasks = generateSAPIXSchedule()
+    const grade = window.prompt(
+      'どの学年のサンプルスケジュールを読み込みますか？\n\n3 = 新三年生（1月～3月）\n4 = 新四年生（1月～3月）\n\n既存のタスクは削除されます。',
+      '4'
+    )
 
-      if (user) {
-        // 既存のタスクを削除してから新しいタスクを追加
-        const taskIds = tasks.map(t => t.id)
-        if (taskIds.length > 0) {
-          await bulkDeleteTasksFromFirestore(user.uid, taskIds)
-        }
+    if (!grade) return // キャンセルされた場合
 
-        // サンプルタスクをFirestoreに追加
-        const uploadPromises = sampleTasks.map(task =>
-          addTaskToFirestore(user.uid, task)
-        )
-        await Promise.all(uploadPromises)
-      } else {
-        // ユーザーがログインしていない場合は、localStorageに保存
-        setTasks(sampleTasks)
-        localStorage.setItem('sapixTasks', JSON.stringify(sampleTasks))
+    let selectedGrade = '4年生' // デフォルト
+    if (grade === '3') {
+      selectedGrade = '3年生'
+    } else if (grade === '4') {
+      selectedGrade = '4年生'
+    } else {
+      alert('❌ 3または4を入力してください')
+      return
+    }
+
+    const sampleTasks = generateSAPIXScheduleByGrade(selectedGrade)
+
+    if (user) {
+      // 既存のタスクを削除してから新しいタスクを追加
+      const taskIds = tasks.map(t => t.id)
+      if (taskIds.length > 0) {
+        await bulkDeleteTasksFromFirestore(user.uid, taskIds)
       }
 
-      alert(`✅ ${sampleTasks.length}個のタスクを読み込みました！`)
+      // サンプルタスクをFirestoreに追加
+      const uploadPromises = sampleTasks.map(task =>
+        addTaskToFirestore(user.uid, task)
+      )
+      await Promise.all(uploadPromises)
+    } else {
+      // ユーザーがログインしていない場合は、localStorageに保存
+      setTasks(sampleTasks)
+      localStorage.setItem('sapixTasks', JSON.stringify(sampleTasks))
     }
+
+    alert(`✅ ${selectedGrade}のサンプルスケジュール（${sampleTasks.length}個のタスク）を読み込みました！`)
   }
 
   const handleAuthChange = (currentUser) => {
@@ -251,7 +266,7 @@ function App() {
               <div className="sample-schedule-prompt">
                 <p>📅 サンプルスケジュールを読み込んで、すぐに使い始められます！</p>
                 <button onClick={loadSampleSchedule} className="load-sample-btn">
-                  🎓 SAPIX新四年生スケジュールを読み込む（1月～3月）
+                  🎓 SAPIXサンプルスケジュールを読み込む（新3年 / 新4年）
                 </button>
               </div>
             )}

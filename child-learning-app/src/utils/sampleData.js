@@ -1,6 +1,82 @@
-// SAPIX新四年生 1月～3月 学習スケジュールデータ（単元ID対応版）
+// SAPIX 学習スケジュールデータ（単元ID対応版）
 
-export const generateSAPIXSchedule = () => {
+// 新三年生 1月～3月 サンプルスケジュール
+export const generateGrade3Schedule = () => {
+  const tasks = [];
+  let taskId = Date.now();
+
+  // 日付ヘルパー関数
+  const getDate = (month, day) => {
+    return `2026-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  };
+
+  // 1月（準備期間）
+  tasks.push(
+    { id: taskId++, title: '2年生算数復習 計算ドリル', subject: '算数', grade: '3年生', unitId: 'math3_01', unit: '計算の基礎（足し算・引き算）', taskType: 'basic', priority: 'A', dueDate: getDate(1, 6), completed: false },
+    { id: taskId++, title: '2年生国語復習 漢字100字', subject: '国語', grade: '3年生', unitId: 'lang3_01', unit: '漢字（3年配当）', taskType: 'basic', priority: 'A', dueDate: getDate(1, 7), completed: false },
+    { id: taskId++, title: '身の回りの生き物を観察しよう', subject: '理科', grade: '3年生', unitId: 'sci3_01', unit: '身の回りの生き物', taskType: 'daily', priority: 'B', dueDate: getDate(1, 8), completed: false },
+    { id: taskId++, title: 'まちたんけんの準備', subject: '社会', grade: '3年生', unitId: 'soc3_02', unit: 'まちたんけん', taskType: 'daily', priority: 'B', dueDate: getDate(1, 9), completed: false },
+
+    { id: taskId++, title: '掛け算の練習', subject: '算数', grade: '3年生', unitId: 'math3_02', unit: '計算の基礎（掛け算・割り算）', taskType: 'basic', priority: 'A', dueDate: getDate(1, 13), completed: false },
+    { id: taskId++, title: '物語文を読もう', subject: '国語', grade: '3年生', unitId: 'lang3_03', unit: '物語文の基礎', taskType: 'daily', priority: 'A', dueDate: getDate(1, 14), completed: false },
+    { id: taskId++, title: '植物の観察日記', subject: '理科', grade: '3年生', unitId: 'sci3_02', unit: '植物の観察', taskType: 'daily', priority: 'B', dueDate: getDate(1, 15), completed: false },
+    { id: taskId++, title: '身近な地域について', subject: '社会', grade: '3年生', unitId: 'soc3_01', unit: '身近な地域', taskType: 'daily', priority: 'B', dueDate: getDate(1, 16), completed: false },
+
+    { id: taskId++, title: '時刻と時間の問題', subject: '算数', grade: '3年生', unitId: 'math3_03', unit: '時刻と時間', taskType: 'daily', priority: 'A', dueDate: getDate(1, 20), completed: false },
+    { id: taskId++, title: '語彙を増やそう', subject: '国語', grade: '3年生', unitId: 'lang3_02', unit: '語彙の基礎', taskType: 'daily', priority: 'B', dueDate: getDate(1, 22), completed: false },
+  );
+
+  // 2月（新学年スタート）
+  tasks.push(
+    { id: taskId++, title: '長さの単位', subject: '算数', grade: '3年生', unitId: 'math3_04', unit: '長さ・重さ', taskType: 'daily', priority: 'A', dueDate: getDate(2, 3), completed: false },
+    { id: taskId++, title: '説明文を読もう', subject: '国語', grade: '3年生', unitId: 'lang3_04', unit: '説明文の基礎', taskType: 'daily', priority: 'A', dueDate: getDate(2, 3), completed: false },
+    { id: taskId++, title: '磁石の実験', subject: '理科', grade: '3年生', unitId: 'sci3_03', unit: '磁石の性質', taskType: 'daily', priority: 'A', dueDate: getDate(2, 3), completed: false },
+    { id: taskId++, title: 'お店の仕事を調べよう', subject: '社会', grade: '3年生', unitId: 'soc3_03', unit: '買い物と仕事', taskType: 'daily', priority: 'B', dueDate: getDate(2, 3), completed: false },
+
+    { id: taskId++, title: '重さの単位', subject: '算数', grade: '3年生', unitId: 'math3_04', unit: '長さ・重さ', taskType: 'daily', priority: 'A', dueDate: getDate(2, 10), completed: false },
+    { id: taskId++, title: '音読の練習', subject: '国語', grade: '3年生', unitId: 'lang3_05', unit: '音読・暗唱', taskType: 'daily', priority: 'A', dueDate: getDate(2, 10), completed: false },
+    { id: taskId++, title: '電気の回路', subject: '理科', grade: '3年生', unitId: 'sci3_04', unit: '電気の基礎', taskType: 'daily', priority: 'A', dueDate: getDate(2, 10), completed: false },
+    { id: taskId++, title: '昔の道具を調べる', subject: '社会', grade: '3年生', unitId: 'soc3_04', unit: '昔の道具', taskType: 'daily', priority: 'B', dueDate: getDate(2, 10), completed: false },
+
+    { id: taskId++, title: 'かさの単位', subject: '算数', grade: '3年生', unitId: 'math3_05', unit: 'かさ', taskType: 'daily', priority: 'A', dueDate: getDate(2, 17), completed: false },
+    { id: taskId++, title: '主語と述語', subject: '国語', grade: '3年生', unitId: 'lang3_07', unit: '主語と述語', taskType: 'daily', priority: 'B', dueDate: getDate(2, 18), completed: false },
+    { id: taskId++, title: '太陽の動きを観察', subject: '理科', grade: '3年生', unitId: 'sci3_05', unit: '太陽の動き', taskType: 'daily', priority: 'A', dueDate: getDate(2, 19), completed: false },
+    { id: taskId++, title: '季節の行事', subject: '社会', grade: '3年生', unitId: 'soc3_05', unit: '季節の行事', taskType: 'daily', priority: 'B', dueDate: getDate(2, 20), completed: false },
+
+    { id: taskId++, title: '図形の基礎', subject: '算数', grade: '3年生', unitId: 'math3_06', unit: '図形の基礎', taskType: 'daily', priority: 'A', dueDate: getDate(2, 24), completed: false },
+    { id: taskId++, title: '短い文章を書く練習', subject: '国語', grade: '3年生', unitId: 'lang3_08', unit: '短い文章を書こう', taskType: 'daily', priority: 'A', dueDate: getDate(2, 25), completed: false },
+  );
+
+  // 3月
+  tasks.push(
+    { id: taskId++, title: '三角形と四角形', subject: '算数', grade: '3年生', unitId: 'math3_07', unit: '三角形と四角形の基本', taskType: 'daily', priority: 'A', dueDate: getDate(3, 3), completed: false },
+    { id: taskId++, title: 'かたかなことば', subject: '国語', grade: '3年生', unitId: 'lang3_06', unit: 'かたかなことば', taskType: 'daily', priority: 'B', dueDate: getDate(3, 4), completed: false },
+    { id: taskId++, title: 'かげと太陽', subject: '理科', grade: '3年生', unitId: 'sci3_06', unit: 'かげと太陽', taskType: 'daily', priority: 'A', dueDate: getDate(3, 5), completed: false },
+    { id: taskId++, title: '市の様子を調べる', subject: '社会', grade: '3年生', unitId: 'soc3_06', unit: '市の様子', taskType: 'daily', priority: 'B', dueDate: getDate(3, 6), completed: false },
+
+    { id: taskId++, title: '表とグラフの読み方', subject: '算数', grade: '3年生', unitId: 'math3_08', unit: '表とグラフの読み方', taskType: 'daily', priority: 'A', dueDate: getDate(3, 10), completed: false },
+    { id: taskId++, title: '漢字のまとめ', subject: '国語', grade: '3年生', unitId: 'lang3_01', unit: '漢字（3年配当）', taskType: 'test', priority: 'A', dueDate: getDate(3, 11), completed: false },
+    { id: taskId++, title: '風やゴムの力', subject: '理科', grade: '3年生', unitId: 'sci3_07', unit: '風やゴムの力', taskType: 'daily', priority: 'A', dueDate: getDate(3, 12), completed: false },
+
+    { id: taskId++, title: '大きい数', subject: '算数', grade: '3年生', unitId: 'math3_09', unit: '大きい数', taskType: 'daily', priority: 'A', dueDate: getDate(3, 17), completed: false },
+    { id: taskId++, title: '物語文の感想文', subject: '国語', grade: '3年生', unitId: 'lang3_03', unit: '物語文の基礎', taskType: 'daily', priority: 'B', dueDate: getDate(3, 18), completed: false },
+    { id: taskId++, title: '光の性質', subject: '理科', grade: '3年生', unitId: 'sci3_08', unit: '光の性質', taskType: 'daily', priority: 'A', dueDate: getDate(3, 19), completed: false },
+
+    { id: taskId++, title: '文章題に挑戦', subject: '算数', grade: '3年生', unitId: 'math3_10', unit: '文章題入門', taskType: 'daily', priority: 'A', dueDate: getDate(3, 24), completed: false },
+    { id: taskId++, title: '単位の換算', subject: '算数', grade: '3年生', unitId: 'math3_11', unit: '単位の換算', taskType: 'daily', priority: 'A', dueDate: getDate(3, 26), completed: false },
+    { id: taskId++, title: 'きまりを見つけよう', subject: '算数', grade: '3年生', unitId: 'math3_12', unit: 'きまりを見つけよう', taskType: 'daily', priority: 'B', dueDate: getDate(3, 27), completed: false },
+
+    { id: taskId++, title: '3月総復習テスト', subject: '算数', grade: '3年生', unitId: 'math3_01', unit: '計算の基礎（足し算・引き算）', taskType: 'test', priority: 'A', dueDate: getDate(3, 31), completed: false },
+  );
+
+  return tasks.map(task => ({
+    ...task,
+    createdAt: new Date().toISOString()
+  }));
+};
+
+// 新四年生 1月～3月 サンプルスケジュール
+export const generateGrade4Schedule = () => {
   const tasks = [];
   let taskId = Date.now();
 
@@ -83,3 +159,18 @@ export const generateSAPIXSchedule = () => {
     createdAt: new Date().toISOString()
   }));
 };
+
+// 学年を指定してスケジュールを生成
+export const generateSAPIXScheduleByGrade = (grade = '4年生') => {
+  switch (grade) {
+    case '3年生':
+      return generateGrade3Schedule();
+    case '4年生':
+      return generateGrade4Schedule();
+    default:
+      return generateGrade4Schedule(); // デフォルトは4年生
+  }
+};
+
+// 後方互換性のため、デフォルトエクスポートは4年生のスケジュール
+export const generateSAPIXSchedule = generateGrade4Schedule;
