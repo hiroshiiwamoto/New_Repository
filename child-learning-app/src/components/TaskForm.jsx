@@ -13,6 +13,7 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
   const [showCustomUnitForm, setShowCustomUnitForm] = useState(false)
   const [customUnitName, setCustomUnitName] = useState('')
   const [customUnitCategory, setCustomUnitCategory] = useState('過去問')
+  const [lastAddedCustomUnit, setLastAddedCustomUnit] = useState(null) // 最近追加したカスタム単元を一時保存
 
   // 編集モードの場合、フォームに値を設定
   useEffect(() => {
@@ -30,16 +31,19 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
   const handleSubmit = (e) => {
     e.preventDefault()
     if (title.trim()) {
+      const unitName = getUnitName(unitId)
       const taskData = {
         title: title.trim(),
         subject,
         grade,
         unitId,
-        unit: getUnitName(unitId),
+        unit: unitName,
         taskType,
         priority,
         dueDate: dueDate || null,
       }
+
+      console.log('📝 タスク作成/更新:', taskData)
 
       if (editingTask) {
         onUpdateTask(editingTask.id, taskData)
@@ -50,6 +54,7 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
       // フォームをリセット
       setTitle('')
       setUnitId('')
+      setLastAddedCustomUnit(null) // 一時保存した単元情報をクリア
       if (editingTask && onCancelEdit) {
         onCancelEdit()
       }
@@ -57,15 +62,32 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
   }
 
   const getUnitName = (unitId) => {
+    console.log('🔍 getUnitName呼び出し:', { unitId, subject, grade })
     if (!unitId) return ''
+
+    // 最近追加したカスタム単元を優先的にチェック（状態更新が間に合わない場合の対策）
+    if (lastAddedCustomUnit && lastAddedCustomUnit.id === unitId) {
+      console.log('✅ 最近追加したカスタム単元を使用:', lastAddedCustomUnit.name)
+      return lastAddedCustomUnit.name
+    }
+
     // デフォルト単元から検索
     const defaultUnits = unitsDatabase[subject]?.[grade] || []
     const defaultUnit = defaultUnits.find(u => u.id === unitId)
-    if (defaultUnit) return defaultUnit.name
+    if (defaultUnit) {
+      console.log('✅ デフォルト単元が見つかりました:', defaultUnit.name)
+      return defaultUnit.name
+    }
 
     // カスタム単元から検索
+    console.log('🔍 カスタム単元から検索:', { customUnits, unitId })
     const customUnit = customUnits.find(u => u.id === unitId)
-    return customUnit ? customUnit.name : ''
+    if (customUnit) {
+      console.log('✅ カスタム単元が見つかりました:', customUnit.name)
+      return customUnit.name
+    }
+    console.log('❌ 単元が見つかりませんでした')
+    return ''
   }
 
   const handleAddCustomUnit = async () => {
@@ -82,22 +104,34 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
     const { generateCustomUnitId } = await import('../utils/customUnits')
     const unitId = generateCustomUnitId(subject, grade, customUnitName)
 
-    const result = await onAddCustomUnit({
+    const unitData = {
       id: unitId,
       subject,
       grade,
       name: customUnitName.trim(),
       category: customUnitCategory,
-    })
+    }
+
+    console.log('➕ カスタム単元を追加:', unitData)
+
+    const result = await onAddCustomUnit(unitData)
+
+    console.log('✅ 追加結果:', result)
 
     if (result.success) {
+      // 最近追加したカスタム単元として保存（状態更新が間に合わない場合の対策）
+      const addedUnitName = customUnitName.trim()
+      setLastAddedCustomUnit({ id: result.data.id, name: addedUnitName })
+
       // フォームをリセット
       setCustomUnitName('')
       setCustomUnitCategory('過去問')
       setShowCustomUnitForm(false)
       // 追加した単元を選択
       setUnitId(result.data.id)
-      alert(`✅ 単元「${customUnitName}」を追加しました`)
+      alert(`✅ 単元「${addedUnitName}」を追加しました`)
+    } else {
+      alert(`❌ カスタム単元の追加に失敗しました: ${result.error || '不明なエラー'}`)
     }
   }
 
@@ -129,6 +163,15 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
   const defaultUnits = unitsDatabase[subject]?.[grade] || []
   const filteredCustomUnits = customUnits.filter(u => u.subject === subject && u.grade === grade)
   const currentUnits = [...defaultUnits, ...filteredCustomUnits]
+
+  // デバッグ: カスタム単元の内容を確認
+  useEffect(() => {
+    console.log('🔍 カスタム単元デバッグ情報:')
+    console.log('  全カスタム単元:', customUnits)
+    console.log('  現在の科目:', subject)
+    console.log('  現在の学年:', grade)
+    console.log('  フィルタ後のカスタム単元:', filteredCustomUnits)
+  }, [customUnits, subject, grade, filteredCustomUnits])
 
   return (
     <form className="task-form sapix-form" onSubmit={handleSubmit}>
