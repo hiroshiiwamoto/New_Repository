@@ -72,7 +72,7 @@
 
 .priority-task {
   background: white;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 6px 10px;
   display: flex;
   gap: 8px;
@@ -81,21 +81,22 @@
   border: 1px solid rgba(0, 0, 0, 0.04);
   border-left: 3px solid;
   position: relative;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 .priority-task:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.06);
   transform: translateY(-1px);
 }
 
 .priority-task.completed {
-  opacity: 0.6;
-  background: #f1f5f9;
+  opacity: 0.5;
+  background: #f5f5f7;
 }
 
 .priority-task.completed .task-title {
   text-decoration: line-through;
-  color: #94a3b8;
+  color: #86868b;
 }
 
 .task-priority-badge {
