@@ -61,45 +61,58 @@ function TodayAndWeekView({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
             {todayTasks.length === 0 ? (
               <div className="no-tasks-message">今日のタスクはありません</div>
             ) : (
-              todayTasks.map(task => (
-                <div
-                  key={task.id}
-                  className={`priority-task ${task.completed ? 'completed' : ''}`}
-                  style={{ borderLeftColor: subjectColors[task.subject] || '#64748b' }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={task.completed}
-                    onChange={() => onToggleTask(task.id)}
-                    className="task-checkbox"
-                  />
-                  <span className="task-emoji">{subjectEmojis[task.subject]}</span>
-                  <span className="task-subject">{task.subject}</span>
-                  {task.unit && <span className="task-unit">/ {task.unit}</span>}
-                  <span className="task-title">{task.title}</span>
-                  {task.priority && (
-                    <span className="task-priority-badge">{task.priority}</span>
-                  )}
-                  <div className="task-actions">
-                    {onEditTask && (
-                      <button
-                        className="edit-btn"
-                        onClick={() => onEditTask(task)}
-                        title="編集"
-                      >
-                        ✏️
-                      </button>
+              todayTasks.map(task => {
+                const subjectColor = subjectColors[task.subject] || '#64748b'
+                const backgroundColor = `${subjectColor}33`
+                return (
+                  <div
+                    key={task.id}
+                    className={`priority-task ${task.completed ? 'completed' : ''}`}
+                    style={{
+                      borderLeftColor: subjectColor,
+                      backgroundColor: backgroundColor
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={task.completed}
+                      onChange={() => onToggleTask(task.id)}
+                      className="task-checkbox"
+                    />
+                    <span className="subject-emoji">{subjectEmojis[task.subject]}</span>
+                    <span
+                      className="subject-badge"
+                      style={{
+                        backgroundColor: `${subjectColor}20`,
+                        color: subjectColor,
+                        borderColor: subjectColor
+                      }}
+                    >{task.subject}</span>
+                    <span className="task-title">{task.title}</span>
+                    {task.priority && (
+                      <span className="task-priority-badge">{task.priority}</span>
                     )}
-                    <button
-                      className="delete-btn"
-                      onClick={() => onDeleteTask(task.id)}
-                      title="削除"
-                    >
-                      ×
-                    </button>
+                    <div className="task-actions">
+                      {onEditTask && (
+                        <button
+                          className="edit-btn"
+                          onClick={() => onEditTask(task)}
+                          title="編集"
+                        >
+                          ✏️
+                        </button>
+                      )}
+                      <button
+                        className="delete-btn"
+                        onClick={() => onDeleteTask(task.id)}
+                        title="削除"
+                      >
+                        🗑️
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))
+                )
+              })
             )}
           </div>
         )}
