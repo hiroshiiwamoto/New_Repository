@@ -13,6 +13,7 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
   const [showCustomUnitForm, setShowCustomUnitForm] = useState(false)
   const [customUnitName, setCustomUnitName] = useState('')
   const [customUnitCategory, setCustomUnitCategory] = useState('過去問')
+  const [lastAddedCustomUnit, setLastAddedCustomUnit] = useState(null) // 最近追加したカスタム単元を一時保存
 
   // 編集モードの場合、フォームに値を設定
   useEffect(() => {
@@ -53,6 +54,7 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
       // フォームをリセット
       setTitle('')
       setUnitId('')
+      setLastAddedCustomUnit(null) // 一時保存した単元情報をクリア
       if (editingTask && onCancelEdit) {
         onCancelEdit()
       }
@@ -62,6 +64,13 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
   const getUnitName = (unitId) => {
     console.log('🔍 getUnitName呼び出し:', { unitId, subject, grade })
     if (!unitId) return ''
+
+    // 最近追加したカスタム単元を優先的にチェック（状態更新が間に合わない場合の対策）
+    if (lastAddedCustomUnit && lastAddedCustomUnit.id === unitId) {
+      console.log('✅ 最近追加したカスタム単元を使用:', lastAddedCustomUnit.name)
+      return lastAddedCustomUnit.name
+    }
+
     // デフォルト単元から検索
     const defaultUnits = unitsDatabase[subject]?.[grade] || []
     const defaultUnit = defaultUnits.find(u => u.id === unitId)
@@ -110,13 +119,17 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
     console.log('✅ 追加結果:', result)
 
     if (result.success) {
+      // 最近追加したカスタム単元として保存（状態更新が間に合わない場合の対策）
+      const addedUnitName = customUnitName.trim()
+      setLastAddedCustomUnit({ id: result.data.id, name: addedUnitName })
+
       // フォームをリセット
       setCustomUnitName('')
       setCustomUnitCategory('過去問')
       setShowCustomUnitForm(false)
       // 追加した単元を選択
       setUnitId(result.data.id)
-      alert(`✅ 単元「${customUnitName}」を追加しました`)
+      alert(`✅ 単元「${addedUnitName}」を追加しました`)
     } else {
       alert(`❌ カスタム単元の追加に失敗しました: ${result.error || '不明なエラー'}`)
     }
