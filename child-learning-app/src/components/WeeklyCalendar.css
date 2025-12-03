@@ -135,7 +135,7 @@
 }
 
 .month-day.today {
-  /* Keep normal background */
+  border: 2px solid #007AFF;
 }
 
 .month-day.other-month {
@@ -147,18 +147,6 @@
   font-weight: bold;
   color: #333;
   margin-bottom: 5px;
-}
-
-.month-day.today .month-day-date {
-  color: #007AFF;
-  border: 2px solid #007AFF;
-  border-radius: 50%;
-  padding: 4px;
-  width: 28px;
-  height: 28px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .month-day-tasks {
@@ -214,38 +202,15 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+.calendar-day.today {
+  border: 2px solid #007AFF;
+}
+
 .day-header {
   text-align: center;
   margin-bottom: 10px;
-  padding: 8px;
-  transition: all 0.3s ease;
-}
-
-.calendar-day.today .day-header {
-  border: 2px solid #007AFF;
-  border-radius: 50%;
-  width: 70px;
-  height: 70px;
-  margin: 0 auto 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-}
-
-.calendar-day.today .day-name {
-  color: #007AFF;
-  font-size: 0.7rem;
-  margin: 0;
-  line-height: 1;
-}
-
-.calendar-day.today .day-date {
-  color: #007AFF;
-  font-size: 1.4rem;
-  margin: 0;
-  line-height: 1;
+  padding-bottom: 8px;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
 }
 
 .day-name {
