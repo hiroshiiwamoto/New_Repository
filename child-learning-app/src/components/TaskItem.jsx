@@ -24,6 +24,11 @@ function TaskItem({ task, onToggle, onDelete, onEdit }) {
   return (
     <div
       className={`task-item ${task.completed ? 'completed' : ''}`}
+      style={{
+        borderColor: subjectColor,
+        backgroundColor: `${subjectColor}15`,
+        boxShadow: `0 2px 8px ${subjectColor}25`
+      }}
     >
       <input
         type="checkbox"
@@ -35,9 +40,7 @@ function TaskItem({ task, onToggle, onDelete, onEdit }) {
       <span
         className="subject-badge"
         style={{
-          backgroundColor: `${subjectColor}15`,
-          color: subjectColor,
-          borderColor: subjectColor
+          color: subjectColor
         }}
       >{task.subject}</span>
       <span className="task-title">{task.title}</span>

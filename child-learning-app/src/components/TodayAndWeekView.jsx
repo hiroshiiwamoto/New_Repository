@@ -63,11 +63,15 @@ function TodayAndWeekView({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
             ) : (
               todayTasks.map(task => {
                 const subjectColor = subjectColors[task.subject] || '#64748b'
-                const backgroundColor = `${subjectColor}33`
                 return (
                   <div
                     key={task.id}
                     className={`priority-task ${task.completed ? 'completed' : ''}`}
+                    style={{
+                      borderColor: subjectColor,
+                      backgroundColor: `${subjectColor}15`,
+                      boxShadow: `0 2px 8px ${subjectColor}25`
+                    }}
                   >
                     <input
                       type="checkbox"
@@ -79,9 +83,7 @@ function TodayAndWeekView({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
                     <span
                       className="subject-badge"
                       style={{
-                        backgroundColor: `${subjectColor}15`,
-                        color: subjectColor,
-                        borderColor: subjectColor
+                        color: subjectColor
                       }}
                     >{task.subject}</span>
                     <span className="task-title">{task.title}</span>
