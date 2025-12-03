@@ -124,6 +124,13 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
     '社会': '🌍',
   }
 
+  const subjectColors = {
+    '国語': '#10b981',
+    '算数': '#ef4444',
+    '理科': '#3b82f6',
+    '社会': '#f59e0b',
+  }
+
   const today = formatDate(new Date())
 
   return (
@@ -187,35 +194,43 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
                   {dayTasks.length === 0 ? (
                     <div className="no-tasks">予定なし</div>
                   ) : (
-                    dayTasks.map(task => (
-                      <div
-                        key={task.id}
-                        className={`calendar-task ${task.completed ? 'completed' : ''}`}
-                      >
-                        <div className="task-header">
-                          <input
-                            type="checkbox"
-                            checked={task.completed}
-                            onChange={() => onToggleTask(task.id)}
-                            className="task-checkbox-small"
-                          />
-                          <span className="task-emoji">{subjectEmojis[task.subject]}</span>
-                        </div>
+                    dayTasks.map(task => {
+                      const subjectColor = subjectColors[task.subject] || '#64748b'
+                      const backgroundColor = `${subjectColor}33`
+                      return (
                         <div
-                          className="task-title-small clickable"
-                          onClick={() => onEditTask && onEditTask(task)}
-                          title="クリックして編集"
+                          key={task.id}
+                          className={`calendar-task ${task.completed ? 'completed' : ''}`}
+                          style={{
+                            borderLeftColor: subjectColor,
+                            backgroundColor: backgroundColor
+                          }}
                         >
-                          {task.title}
+                          <div className="task-header">
+                            <input
+                              type="checkbox"
+                              checked={task.completed}
+                              onChange={() => onToggleTask(task.id)}
+                              className="task-checkbox-small"
+                            />
+                            <span className="task-emoji">{subjectEmojis[task.subject]}</span>
+                          </div>
+                          <div
+                            className="task-title-small clickable"
+                            onClick={() => onEditTask && onEditTask(task)}
+                            title="クリックして編集"
+                          >
+                            {task.title}
+                          </div>
+                          <button
+                            className="delete-btn-small"
+                            onClick={() => onDeleteTask(task.id)}
+                          >
+                            ×
+                          </button>
                         </div>
-                        <button
-                          className="delete-btn-small"
-                          onClick={() => onDeleteTask(task.id)}
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))
+                      )
+                    })
                   )}
                 </div>
               </div>
