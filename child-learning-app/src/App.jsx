@@ -346,6 +346,7 @@ function App() {
           <UnitDashboard
             tasks={tasks}
             onEditTask={handleEditTask}
+            customUnits={customUnits}
           />
         ) : view === 'analytics' ? (
           <Analytics tasks={tasks} />

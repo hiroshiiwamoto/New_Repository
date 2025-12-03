@@ -8,7 +8,7 @@ import {
   addStudySession,
 } from '../utils/studySessions'
 
-function UnitDashboard({ tasks, onEditTask }) {
+function UnitDashboard({ tasks, onEditTask, customUnits = [] }) {
   const [selectedGrade, setSelectedGrade] = useState('4年生')
   const [selectedSubject, setSelectedSubject] = useState('算数')
   const [expandedUnit, setExpandedUnit] = useState(null) // 展開された単元のID
@@ -34,7 +34,10 @@ function UnitDashboard({ tasks, onEditTask }) {
     '社会': '#f59e0b',
   }
 
-  const currentUnits = unitsDatabase[selectedSubject]?.[selectedGrade] || []
+  // デフォルト単元とカスタム単元を統合
+  const defaultUnits = unitsDatabase[selectedSubject]?.[selectedGrade] || []
+  const filteredCustomUnits = customUnits.filter(u => u.subject === selectedSubject && u.grade === selectedGrade)
+  const currentUnits = [...defaultUnits, ...filteredCustomUnits]
   const progress = getGradeProgress(selectedSubject, selectedGrade, currentUnits)
 
   const handleAddSession = (unitId) => {
