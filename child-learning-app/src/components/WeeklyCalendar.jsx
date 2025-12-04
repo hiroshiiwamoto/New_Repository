@@ -105,15 +105,6 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
     const dateStr = formatDate(date)
     const filtered = tasks.filter(task => task.dueDate === dateStr)
 
-    // デバッグ用ログ
-    if (dateStr === '2026-02-03' || dateStr === '2026-02-04') {
-      console.log('🔍 Debug for date:', dateStr)
-      console.log('Total tasks:', tasks.length)
-      console.log('Tasks with dueDate:', tasks.filter(t => t.dueDate).length)
-      console.log('Sample task dueDates:', tasks.slice(0, 5).map(t => t.dueDate))
-      console.log('Filtered tasks:', filtered.length)
-    }
-
     return filtered
   }
 
