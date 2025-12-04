@@ -7,6 +7,7 @@ import TaskList from './components/TaskList'
 import WeeklyCalendar from './components/WeeklyCalendar'
 import UnitDashboard from './components/UnitDashboard'
 import Analytics from './components/Analytics'
+import UnitManager from './components/UnitManager'
 import { generateSAPIXScheduleByGrade } from './utils/sampleData'
 import {
   addTaskToFirestore,
@@ -21,12 +22,14 @@ import {
 import {
   getCustomUnits,
   addCustomUnit as addCustomUnitToFirestore,
+  updateCustomUnit as updateCustomUnitInFirestore,
+  deleteCustomUnit as deleteCustomUnitFromFirestore,
 } from './utils/customUnits'
 
 function App() {
   const [user, setUser] = useState(null)
   const [tasks, setTasks] = useState([])
-  const [view, setView] = useState('calendar') // subject, calendar, analytics, tasks, edit
+  const [view, setView] = useState('calendar') // subject, calendar, analytics, tasks, edit, unitManager
   const [previousView, setPreviousView] = useState('calendar') // Store previous view for returning after edit
   const [editingTask, setEditingTask] = useState(null)
   const [targetSchools, setTargetSchools] = useState([])
@@ -258,6 +261,58 @@ function App() {
     }
   }
 
+  const updateCustomUnit = async (firestoreId, updates) => {
+    if (!user) {
+      alert('❌ カスタム単元を更新するにはログインが必要です')
+      return { success: false }
+    }
+
+    console.log('📝 App.jsx - カスタム単元を更新:', firestoreId, updates)
+
+    const result = await updateCustomUnitInFirestore(user.uid, firestoreId, updates)
+
+    console.log('📝 App.jsx - Firestore更新結果:', result)
+
+    if (result.success) {
+      // カスタム単元リストを更新
+      const updatedCustomUnits = customUnits.map(unit =>
+        unit.firestoreId === firestoreId
+          ? { ...unit, ...updates }
+          : unit
+      )
+      console.log('📝 App.jsx - 更新後のcustomUnits:', updatedCustomUnits)
+      setCustomUnits(updatedCustomUnits)
+      return { success: true }
+    } else {
+      alert('❌ カスタム単元の更新に失敗しました: ' + result.error)
+      return { success: false, error: result.error }
+    }
+  }
+
+  const deleteCustomUnit = async (firestoreId) => {
+    if (!user) {
+      alert('❌ カスタム単元を削除するにはログインが必要です')
+      return { success: false }
+    }
+
+    console.log('🗑️ App.jsx - カスタム単元を削除:', firestoreId)
+
+    const result = await deleteCustomUnitFromFirestore(user.uid, firestoreId)
+
+    console.log('🗑️ App.jsx - Firestore削除結果:', result)
+
+    if (result.success) {
+      // カスタム単元リストから削除
+      const filteredCustomUnits = customUnits.filter(unit => unit.firestoreId !== firestoreId)
+      console.log('🗑️ App.jsx - 削除後のcustomUnits:', filteredCustomUnits)
+      setCustomUnits(filteredCustomUnits)
+      return { success: true }
+    } else {
+      alert('❌ カスタム単元の削除に失敗しました: ' + result.error)
+      return { success: false, error: result.error }
+    }
+  }
+
   const handleAuthChange = (currentUser) => {
     setUser(currentUser)
   }
@@ -340,6 +395,12 @@ function App() {
           >
             📋 タスク
           </button>
+          <button
+            className={view === 'unitManager' ? 'active' : ''}
+            onClick={() => setView('unitManager')}
+          >
+            📚 単元管理
+          </button>
         </div>
 
         {view === 'subject' ? (
@@ -365,12 +426,18 @@ function App() {
             onBulkDeleteTasks={bulkDeleteTasks}
             onEditTask={handleEditTask}
           />
+        ) : view === 'unitManager' ? (
+          <UnitManager
+            customUnits={customUnits}
+            onUpdateUnit={updateCustomUnit}
+            onDeleteUnit={deleteCustomUnit}
+          />
         ) : null}
           </>
         )}
 
-        {/* 3. タスク追加フォーム（一番下） - only show when not in edit view */}
-        {view !== 'edit' && (
+        {/* 3. タスク追加フォーム（一番下） - only show when not in edit view or unitManager view */}
+        {view !== 'edit' && view !== 'unitManager' && (
           <div ref={taskFormRef}>
             <TaskForm
               onAddTask={addTask}
