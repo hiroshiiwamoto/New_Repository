@@ -364,7 +364,7 @@ function TestScoreView({ user }) {
 
             <div className="form-section">
               <h4>2科目（国語+算数）</h4>
-              <div className="form-row">
+              <div className="form-row summary-row">
                 <div className="form-field">
                   <label>得点</label>
                   <div className="score-input-group">
@@ -431,7 +431,7 @@ function TestScoreView({ user }) {
 
             <div className="form-section">
               <h4>4科目合計</h4>
-              <div className="form-row">
+              <div className="form-row summary-row">
                 <div className="form-field">
                   <label>得点</label>
                   <div className="score-input-group">
