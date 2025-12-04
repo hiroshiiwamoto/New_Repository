@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import './PastPaperView.css'
 import { subjects, grades } from '../utils/unitsDatabase'
 import {
@@ -29,29 +29,31 @@ function PastPaperView({ tasks, user, customUnits = [] }) {
   }
 
   // 過去問タスクのみフィルタリング
-  const pastPaperTasks = tasks.filter(
-    t => t.taskType === 'pastpaper' &&
-         t.subject === selectedSubject &&
-         t.grade === selectedGrade
-  )
+  const pastPaperTasks = useMemo(() => {
+    return tasks.filter(
+      t => t.taskType === 'pastpaper' &&
+           t.subject === selectedSubject &&
+           t.grade === selectedGrade
+    )
+  }, [tasks, selectedSubject, selectedGrade])
 
   // セッションデータを読み込み
-  useEffect(() => {
+  const loadSessions = useCallback(async () => {
     if (!user) return
 
-    const loadSessions = async () => {
-      const sessionData = {}
-      for (const task of pastPaperTasks) {
-        const result = await getSessionsByTaskId(user.uid, task.id)
-        if (result.success) {
-          sessionData[task.id] = result.data
-        }
+    const sessionData = {}
+    for (const task of pastPaperTasks) {
+      const result = await getSessionsByTaskId(user.uid, task.id)
+      if (result.success) {
+        sessionData[task.id] = result.data
       }
-      setSessions(sessionData)
     }
+    setSessions(sessionData)
+  }, [user, pastPaperTasks])
 
+  useEffect(() => {
     loadSessions()
-  }, [user, pastPaperTasks.length, selectedSubject, selectedGrade])
+  }, [loadSessions])
 
   // 学校別にグループ化
   const groupBySchool = () => {
@@ -125,11 +127,8 @@ function PastPaperView({ tasks, user, customUnits = [] }) {
     })
 
     if (result.success) {
-      // セッションデータを更新
-      setSessions({
-        ...sessions,
-        [taskId]: [...(sessions[taskId] || []), result.data]
-      })
+      // Firestoreから最新データを再読み込み
+      await loadSessions()
       setShowSessionForm(null)
       alert('✅ 学習記録を保存しました')
     } else {
