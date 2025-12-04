@@ -8,6 +8,7 @@ import WeeklyCalendar from './components/WeeklyCalendar'
 import UnitDashboard from './components/UnitDashboard'
 import Analytics from './components/Analytics'
 import UnitManager from './components/UnitManager'
+import PastPaperView from './components/PastPaperView'
 import { generateSAPIXScheduleByGrade } from './utils/sampleData'
 import {
   addTaskToFirestore,
@@ -29,7 +30,7 @@ import {
 function App() {
   const [user, setUser] = useState(null)
   const [tasks, setTasks] = useState([])
-  const [view, setView] = useState('calendar') // subject, calendar, analytics, tasks, edit, unitManager
+  const [view, setView] = useState('calendar') // subject, calendar, analytics, tasks, edit, unitManager, pastpaper
   const [previousView, setPreviousView] = useState('calendar') // Store previous view for returning after edit
   const [editingTask, setEditingTask] = useState(null)
   const [targetSchools, setTargetSchools] = useState([])
@@ -401,6 +402,12 @@ function App() {
           >
             📚 単元管理
           </button>
+          <button
+            className={view === 'pastpaper' ? 'active' : ''}
+            onClick={() => setView('pastpaper')}
+          >
+            📄 過去問
+          </button>
         </div>
 
         {view === 'subject' ? (
@@ -432,12 +439,18 @@ function App() {
             onUpdateUnit={updateCustomUnit}
             onDeleteUnit={deleteCustomUnit}
           />
+        ) : view === 'pastpaper' ? (
+          <PastPaperView
+            tasks={tasks}
+            user={user}
+            customUnits={customUnits}
+          />
         ) : null}
           </>
         )}
 
-        {/* 3. タスク追加フォーム（一番下） - only show when not in edit view or unitManager view */}
-        {view !== 'edit' && view !== 'unitManager' && (
+        {/* 3. タスク追加フォーム（一番下） - only show when not in edit view, unitManager view, or pastpaper view */}
+        {view !== 'edit' && view !== 'unitManager' && view !== 'pastpaper' && (
           <div ref={taskFormRef}>
             <TaskForm
               onAddTask={addTask}
