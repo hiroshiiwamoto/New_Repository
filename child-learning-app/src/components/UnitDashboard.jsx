@@ -73,10 +73,6 @@ function UnitDashboard({ tasks, onEditTask, customUnits = [] }) {
   const getRelatedTasks = (unitId) => {
     if (!tasks) return []
     const relatedTasks = tasks.filter(task => task.unitId === unitId)
-    // デバッグログ: 関連タスクの確認
-    if (relatedTasks.length > 0) {
-      console.log(`Unit ${unitId} has ${relatedTasks.length} related tasks:`, relatedTasks.map(t => t.title))
-    }
     return relatedTasks
   }
 
@@ -318,7 +314,6 @@ function UnitDashboard({ tasks, onEditTask, customUnits = [] }) {
                               className="edit-task-btn"
                               onClick={(e) => {
                                 e.stopPropagation()
-                                console.log('Edit button clicked for task:', task.title, task)
                                 onEditTask(task)
                               }}
                               title="編集"

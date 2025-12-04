@@ -59,7 +59,6 @@ function App() {
       const hasLocalData = localStorage.getItem('sapixTasks') || localStorage.getItem('targetSchools')
       if (hasLocalData) {
         migrateLocalStorageToFirestore(user.uid).then(() => {
-          console.log('✅ LocalStorageからFirestoreへデータを移行しました')
           setMigrated(true)
         })
       } else {
@@ -76,12 +75,8 @@ function App() {
 
     // カスタム単元を取得
     getCustomUnits(user.uid).then(result => {
-      console.log('🔄 App.jsx - Firestoreからカスタム単元を取得:', result)
       if (result.success) {
-        console.log('🔄 App.jsx - カスタム単元をセット:', result.data)
         setCustomUnits(result.data)
-      } else {
-        console.log('🔄 App.jsx - カスタム単元の取得に失敗:', result.error)
       }
     })
 
@@ -183,7 +178,6 @@ function App() {
   }
 
   const handleEditTask = (task) => {
-    console.log('✏️ Editing task:', task.title)
     // Save current view to return to later
     setPreviousView(view)
     // Switch to edit view
@@ -244,17 +238,11 @@ function App() {
       return { success: false }
     }
 
-    console.log('📦 App.jsx - カスタム単元を追加:', unitData)
-    console.log('📦 App.jsx - 現在のcustomUnits:', customUnits)
-
     const result = await addCustomUnitToFirestore(user.uid, unitData)
-
-    console.log('📦 App.jsx - Firestore追加結果:', result)
 
     if (result.success) {
       // カスタム単元リストを更新
       const newCustomUnits = [result.data, ...customUnits]
-      console.log('📦 App.jsx - 更新後のcustomUnits:', newCustomUnits)
       setCustomUnits(newCustomUnits)
       return { success: true, data: result.data }
     } else {
@@ -269,11 +257,7 @@ function App() {
       return { success: false }
     }
 
-    console.log('📝 App.jsx - カスタム単元を更新:', firestoreId, updates)
-
     const result = await updateCustomUnitInFirestore(user.uid, firestoreId, updates)
-
-    console.log('📝 App.jsx - Firestore更新結果:', result)
 
     if (result.success) {
       // カスタム単元リストを更新
@@ -282,7 +266,6 @@ function App() {
           ? { ...unit, ...updates }
           : unit
       )
-      console.log('📝 App.jsx - 更新後のcustomUnits:', updatedCustomUnits)
       setCustomUnits(updatedCustomUnits)
       return { success: true }
     } else {
@@ -297,16 +280,11 @@ function App() {
       return { success: false }
     }
 
-    console.log('🗑️ App.jsx - カスタム単元を削除:', firestoreId)
-
     const result = await deleteCustomUnitFromFirestore(user.uid, firestoreId)
-
-    console.log('🗑️ App.jsx - Firestore削除結果:', result)
 
     if (result.success) {
       // カスタム単元リストから削除
       const filteredCustomUnits = customUnits.filter(unit => unit.firestoreId !== firestoreId)
-      console.log('🗑️ App.jsx - 削除後のcustomUnits:', filteredCustomUnits)
       setCustomUnits(filteredCustomUnits)
       return { success: true }
     } else {
