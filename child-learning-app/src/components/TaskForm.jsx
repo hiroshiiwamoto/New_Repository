@@ -15,6 +15,12 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
   const [customUnitCategory, setCustomUnitCategory] = useState('過去問')
   const [lastAddedCustomUnit, setLastAddedCustomUnit] = useState(null) // 最近追加したカスタム単元を一時保存
 
+  // 過去問用のフィールド
+  const [schoolName, setSchoolName] = useState('')
+  const [year, setYear] = useState('')
+  const [round, setRound] = useState('第1回')
+  const [relatedUnits, setRelatedUnits] = useState([]) // 関連単元ID配列
+
   // 編集モードの場合、フォームに値を設定
   useEffect(() => {
     if (editingTask) {
@@ -25,6 +31,11 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
       setTaskType(editingTask.taskType || 'daily')
       setPriority(editingTask.priority || 'B')
       setDueDate(editingTask.dueDate || '')
+      // 過去問フィールド
+      setSchoolName(editingTask.schoolName || '')
+      setYear(editingTask.year || '')
+      setRound(editingTask.round || '第1回')
+      setRelatedUnits(editingTask.relatedUnits || [])
     }
   }, [editingTask])
 
@@ -43,6 +54,14 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
         dueDate: dueDate || null,
       }
 
+      // 過去問の場合、追加情報を含める
+      if (taskType === 'pastpaper') {
+        taskData.schoolName = schoolName.trim()
+        taskData.year = year.trim()
+        taskData.round = round
+        taskData.relatedUnits = relatedUnits
+      }
+
       console.log('📝 タスク作成/更新:', taskData)
 
       if (editingTask) {
@@ -55,6 +74,11 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
       setTitle('')
       setUnitId('')
       setLastAddedCustomUnit(null) // 一時保存した単元情報をクリア
+      // 過去問フィールドをリセット
+      setSchoolName('')
+      setYear('')
+      setRound('第1回')
+      setRelatedUnits([])
       if (editingTask && onCancelEdit) {
         onCancelEdit()
       }
@@ -140,6 +164,15 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
     setUnitId('')
     if (onCancelEdit) {
       onCancelEdit()
+    }
+  }
+
+  // 関連単元のトグル処理
+  const handleToggleRelatedUnit = (unitId) => {
+    if (relatedUnits.includes(unitId)) {
+      setRelatedUnits(relatedUnits.filter(id => id !== unitId))
+    } else {
+      setRelatedUnits([...relatedUnits, unitId])
     }
   }
 
@@ -330,6 +363,63 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
           ))}
         </div>
       </div>
+
+      {/* 過去問の場合の追加フィールド */}
+      {taskType === 'pastpaper' && (
+        <div className="pastpaper-fields">
+          <div className="form-row">
+            <div className="form-group third">
+              <label htmlFor="schoolName">学校名</label>
+              <input
+                type="text"
+                id="schoolName"
+                value={schoolName}
+                onChange={(e) => setSchoolName(e.target.value)}
+                placeholder="例: 開成"
+              />
+            </div>
+            <div className="form-group third">
+              <label htmlFor="year">年度</label>
+              <input
+                type="text"
+                id="year"
+                value={year}
+                onChange={(e) => setYear(e.target.value)}
+                placeholder="例: 2023"
+              />
+            </div>
+            <div className="form-group third">
+              <label htmlFor="round">回次</label>
+              <select
+                id="round"
+                value={round}
+                onChange={(e) => setRound(e.target.value)}
+              >
+                <option value="第1回">第1回</option>
+                <option value="第2回">第2回</option>
+                <option value="第3回">第3回</option>
+                <option value="第4回">第4回</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>関連単元（複数選択可）</label>
+            <div className="related-units-checkboxes">
+              {currentUnits.map(unit => (
+                <label key={unit.id} className="unit-checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={relatedUnits.includes(unit.id)}
+                    onChange={() => handleToggleRelatedUnit(unit.id)}
+                  />
+                  <span>{unit.name}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="form-row">
         <div className="form-group half">
