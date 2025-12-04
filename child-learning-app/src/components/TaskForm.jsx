@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import './TaskForm.css'
 import { unitsDatabase, grades } from '../utils/unitsDatabase'
+import CustomUnitForm from './CustomUnitForm'
+import PastPaperFields from './PastPaperFields'
 
 function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUnits = [], onAddCustomUnit }) {
   const [title, setTitle] = useState('')
@@ -264,55 +266,18 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
 
       {/* カスタム単元追加フォーム */}
       {showCustomUnitForm && (
-        <div className="custom-unit-form">
-          <h3>➕ カスタム単元を追加</h3>
-          <div className="form-row">
-            <div className="form-group half">
-              <label htmlFor="customUnitName">単元名</label>
-              <input
-                type="text"
-                id="customUnitName"
-                value={customUnitName}
-                onChange={(e) => setCustomUnitName(e.target.value)}
-                placeholder="例: 開成2023年第1回"
-              />
-            </div>
-            <div className="form-group half">
-              <label htmlFor="customUnitCategory">カテゴリ</label>
-              <select
-                id="customUnitCategory"
-                value={customUnitCategory}
-                onChange={(e) => setCustomUnitCategory(e.target.value)}
-              >
-                <option value="過去問">過去問</option>
-                <option value="弱点対策">弱点対策</option>
-                <option value="発展">発展</option>
-                <option value="特訓">特訓</option>
-                <option value="その他">その他</option>
-              </select>
-            </div>
-          </div>
-          <div className="custom-unit-actions">
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={() => {
-                setShowCustomUnitForm(false)
-                setCustomUnitName('')
-                setCustomUnitCategory('過去問')
-              }}
-            >
-              キャンセル
-            </button>
-            <button
-              type="button"
-              className="btn-primary"
-              onClick={handleAddCustomUnit}
-            >
-              追加
-            </button>
-          </div>
-        </div>
+        <CustomUnitForm
+          customUnitName={customUnitName}
+          setCustomUnitName={setCustomUnitName}
+          customUnitCategory={customUnitCategory}
+          setCustomUnitCategory={setCustomUnitCategory}
+          onAdd={handleAddCustomUnit}
+          onCancel={() => {
+            setShowCustomUnitForm(false)
+            setCustomUnitName('')
+            setCustomUnitCategory('過去問')
+          }}
+        />
       )}
 
       <div className="form-group">
@@ -345,59 +310,17 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
 
       {/* 過去問の場合の追加フィールド */}
       {taskType === 'pastpaper' && (
-        <div className="pastpaper-fields">
-          <div className="form-row">
-            <div className="form-group third">
-              <label htmlFor="schoolName">学校名</label>
-              <input
-                type="text"
-                id="schoolName"
-                value={schoolName}
-                onChange={(e) => setSchoolName(e.target.value)}
-                placeholder="例: 開成"
-              />
-            </div>
-            <div className="form-group third">
-              <label htmlFor="year">年度</label>
-              <input
-                type="text"
-                id="year"
-                value={year}
-                onChange={(e) => setYear(e.target.value)}
-                placeholder="例: 2023"
-              />
-            </div>
-            <div className="form-group third">
-              <label htmlFor="round">回次</label>
-              <select
-                id="round"
-                value={round}
-                onChange={(e) => setRound(e.target.value)}
-              >
-                <option value="第1回">第1回</option>
-                <option value="第2回">第2回</option>
-                <option value="第3回">第3回</option>
-                <option value="第4回">第4回</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label>関連単元（複数選択可）</label>
-            <div className="related-units-checkboxes">
-              {currentUnits.map(unit => (
-                <label key={unit.id} className="unit-checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={relatedUnits.includes(unit.id)}
-                    onChange={() => handleToggleRelatedUnit(unit.id)}
-                  />
-                  <span>{unit.name}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-        </div>
+        <PastPaperFields
+          schoolName={schoolName}
+          setSchoolName={setSchoolName}
+          year={year}
+          setYear={setYear}
+          round={round}
+          setRound={setRound}
+          relatedUnits={relatedUnits}
+          onToggleRelatedUnit={handleToggleRelatedUnit}
+          currentUnits={currentUnits}
+        />
       )}
 
       <div className="form-row">
