@@ -7,6 +7,9 @@ import {
   getGradeProgress,
   addStudySession,
 } from '../utils/studySessions'
+import { subjectEmojis, subjectColors } from '../utils/constants'
+import { getDaysSinceText } from '../utils/dateUtils'
+import { getMasteryStars } from '../utils/displayUtils'
 
 function UnitDashboard({ tasks, onEditTask, customUnits = [] }) {
   const [selectedGrade, setSelectedGrade] = useState('4年生')
@@ -19,20 +22,6 @@ function UnitDashboard({ tasks, onEditTask, customUnits = [] }) {
     notes: '',
     needsReview: 'medium',
   })
-
-  const subjectEmojis = {
-    '国語': '📖',
-    '算数': '🔢',
-    '理科': '🔬',
-    '社会': '🌍',
-  }
-
-  const subjectColors = {
-    '国語': '#10b981',
-    '算数': '#ef4444',
-    '理科': '#3b82f6',
-    '社会': '#f59e0b',
-  }
 
   // デフォルト単元とカスタム単元を統合
   const defaultUnits = unitsDatabase[selectedSubject]?.[selectedGrade] || []
@@ -66,22 +55,10 @@ function UnitDashboard({ tasks, onEditTask, customUnits = [] }) {
     }
   }
 
-  const getMasteryStars = (level) => {
-    return '★'.repeat(level) + '☆'.repeat(5 - level)
-  }
-
   const getRelatedTasks = (unitId) => {
     if (!tasks) return []
     const relatedTasks = tasks.filter(task => task.unitId === unitId)
     return relatedTasks
-  }
-
-  const getDaysSinceText = (days) => {
-    if (days === 0) return '今日'
-    if (days === 1) return '昨日'
-    if (days < 7) return `${days}日前`
-    if (days < 30) return `${Math.floor(days / 7)}週間前`
-    return `${Math.floor(days / 30)}ヶ月前`
   }
 
   return (

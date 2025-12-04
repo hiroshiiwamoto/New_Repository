@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import './WeeklyCalendar.css'
+import { subjectEmojis, subjectColors, weekDayNames } from '../utils/constants'
+import { getWeekStart, formatDate, addDays } from '../utils/dateUtils'
 
 function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
   // サンプルデータが2025年2月なので、初期表示を2月に設定
@@ -18,27 +20,6 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
   const [currentWeekStart, setCurrentWeekStart] = useState(getWeekStart(getInitialDate()))
   const [viewMode, setViewMode] = useState('week') // 'week' or 'month'
   const [currentMonth, setCurrentMonth] = useState(getInitialDate())
-
-  function getWeekStart(date) {
-    const d = new Date(date)
-    const day = d.getDay()
-    const diff = d.getDate() - day
-    return new Date(d.setDate(diff))
-  }
-
-  // ローカル時間を使用した日付フォーマット（タイムゾーンの問題を修正）
-  function formatDate(date) {
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
-  }
-
-  function addDays(date, days) {
-    const result = new Date(date)
-    result.setDate(result.getDate() + days)
-    return result
-  }
 
   function previousWeek() {
     setCurrentWeekStart(addDays(currentWeekStart, -7))
@@ -79,7 +60,6 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
     setViewMode('week')
   }
 
-  const weekDays = ['日', '月', '火', '水', '木', '金', '土']
   const days = Array.from({ length: 7 }, (_, i) => addDays(currentWeekStart, i))
 
   // 月間カレンダーの日付を取得
@@ -106,20 +86,6 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
     const filtered = tasks.filter(task => task.dueDate === dateStr)
 
     return filtered
-  }
-
-  const subjectEmojis = {
-    '国語': '📖',
-    '算数': '🔢',
-    '理科': '🔬',
-    '社会': '🌍',
-  }
-
-  const subjectColors = {
-    '国語': '#10b981',
-    '算数': '#ef4444',
-    '理科': '#3b82f6',
-    '社会': '#f59e0b',
   }
 
   const today = formatDate(new Date())
@@ -175,7 +141,7 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
             return (
               <div key={index} className={`calendar-day ${isToday ? 'today' : ''}`}>
                 <div className="day-header">
-                  <div className="day-name">{weekDays[index]}</div>
+                  <div className="day-name">{weekDayNames[index]}</div>
                   <div className="day-date">
                     {day.getMonth() + 1}/{day.getDate()}
                   </div>
@@ -226,7 +192,7 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
         // 月間ビュー
         <div className="calendar-grid monthly-grid">
           <div className="month-weekdays">
-            {weekDays.map((day, i) => (
+            {weekDayNames.map((day, i) => (
               <div key={i} className="weekday-header">{day}</div>
             ))}
           </div>
