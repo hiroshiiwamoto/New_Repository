@@ -1,15 +1,13 @@
 import { useState } from 'react'
 import './ProgressChart.css'
+import { subjectColors as baseSubjectColors } from '../utils/constants'
 
 function ProgressChart({ data, subjects, type: _type = 'line' }) {
   const [selectedSubjects, setSelectedSubjects] = useState(['全体', ...subjects])
 
   const subjectColors = {
     '全体': '#6366f1',
-    '国語': '#10b981',
-    '算数': '#ef4444',
-    '理科': '#3b82f6',
-    '社会': '#f59e0b',
+    ...baseSubjectColors,
   }
 
   const toggleSubject = (subject) => {

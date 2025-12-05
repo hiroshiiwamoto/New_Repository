@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import './App.css'
+import './utils/toast.css'
 import Auth from './components/Auth'
 import TodayAndWeekView from './components/TodayAndWeekView'
 import TaskForm from './components/TaskForm'
@@ -27,6 +28,7 @@ import {
   updateCustomUnit as updateCustomUnitInFirestore,
   deleteCustomUnit as deleteCustomUnitFromFirestore,
 } from './utils/customUnits'
+import { toast } from './utils/toast'
 
 function App() {
   const [user, setUser] = useState(null)
@@ -205,7 +207,7 @@ function App() {
     } else if (grade === '4') {
       selectedGrade = '4年生'
     } else {
-      alert('❌ 3または4を入力してください')
+      toast.error('3または4を入力してください')
       return
     }
 
@@ -229,12 +231,12 @@ function App() {
       localStorage.setItem('sapixTasks', JSON.stringify(sampleTasks))
     }
 
-    alert(`✅ ${selectedGrade}のサンプルスケジュール（${sampleTasks.length}個のタスク）を読み込みました！`)
+    toast.success(`${selectedGrade}のサンプルスケジュール（${sampleTasks.length}個のタスク）を読み込みました！`)
   }
 
   const addCustomUnit = async (unitData) => {
     if (!user) {
-      alert('❌ カスタム単元を追加するにはログインが必要です')
+      toast.error('カスタム単元を追加するにはログインが必要です')
       return { success: false }
     }
 
@@ -246,14 +248,14 @@ function App() {
       setCustomUnits(newCustomUnits)
       return { success: true, data: result.data }
     } else {
-      alert('❌ カスタム単元の追加に失敗しました: ' + result.error)
+      toast.error('カスタム単元の追加に失敗しました: ' + result.error)
       return { success: false, error: result.error }
     }
   }
 
   const updateCustomUnit = async (firestoreId, updates) => {
     if (!user) {
-      alert('❌ カスタム単元を更新するにはログインが必要です')
+      toast.error('カスタム単元を更新するにはログインが必要です')
       return { success: false }
     }
 
@@ -269,14 +271,14 @@ function App() {
       setCustomUnits(updatedCustomUnits)
       return { success: true }
     } else {
-      alert('❌ カスタム単元の更新に失敗しました: ' + result.error)
+      toast.error('カスタム単元の更新に失敗しました: ' + result.error)
       return { success: false, error: result.error }
     }
   }
 
   const deleteCustomUnit = async (firestoreId) => {
     if (!user) {
-      alert('❌ カスタム単元を削除するにはログインが必要です')
+      toast.error('カスタム単元を削除するにはログインが必要です')
       return { success: false }
     }
 
@@ -288,7 +290,7 @@ function App() {
       setCustomUnits(filteredCustomUnits)
       return { success: true }
     } else {
-      alert('❌ カスタム単元の削除に失敗しました: ' + result.error)
+      toast.error('カスタム単元の削除に失敗しました: ' + result.error)
       return { success: false, error: result.error }
     }
   }

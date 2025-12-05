@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import './Analytics.css'
 import ProgressChart from './ProgressChart'
 import { getProgressForPeriod, getWeeklyProgress, calculateStatistics, recordProgressSnapshot } from '../utils/progressTracking'
+import { subjectEmojis } from '../utils/constants'
 
 function Analytics({ tasks }) {
   const [period, setPeriod] = useState('30days') // 30days, 90days, 12weeks
@@ -37,14 +38,7 @@ function Analytics({ tasks }) {
 
     // データを読み込み
     loadProgressData()
-  }, [tasks, period, loadProgressData])
-
-  const subjectEmojis = {
-    '国語': '📖',
-    '算数': '🔢',
-    '理科': '🔬',
-    '社会': '🌍',
-  }
+  }, [tasks, loadProgressData])
 
   return (
     <div className="analytics">

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import './PastPaperView.css'
 import { subjects, grades } from '../utils/unitsDatabase'
 import {
@@ -6,6 +6,7 @@ import {
   addPastPaperSession,
   getNextAttemptNumber
 } from '../utils/pastPaperSessions'
+import { subjectColors } from '../utils/constants'
 
 function PastPaperView({ tasks, user, customUnits = [] }) {
   const [viewMode, setViewMode] = useState('school') // 'school' or 'unit'
@@ -21,14 +22,7 @@ function PastPaperView({ tasks, user, customUnits = [] }) {
     notes: ''
   })
 
-  const subjectColors = {
-    '国語': '#10b981',
-    '算数': '#ef4444',
-    '理科': '#3b82f6',
-    '社会': '#f59e0b',
-  }
-
-  // 過去問タスクのみフィルタリング
+  // 過去問タスクのみフィルタリング（useMemoでメモ化）
   const pastPaperTasks = useMemo(() => {
     return tasks.filter(
       t => t.taskType === 'pastpaper' &&
@@ -38,22 +32,22 @@ function PastPaperView({ tasks, user, customUnits = [] }) {
   }, [tasks, selectedSubject, selectedGrade])
 
   // セッションデータを読み込み
-  const loadSessions = useCallback(async () => {
+  useEffect(() => {
     if (!user) return
 
-    const sessionData = {}
-    for (const task of pastPaperTasks) {
-      const result = await getSessionsByTaskId(user.uid, task.id)
-      if (result.success) {
-        sessionData[task.id] = result.data
+    const loadSessions = async () => {
+      const sessionData = {}
+      for (const task of pastPaperTasks) {
+        const result = await getSessionsByTaskId(user.uid, task.id)
+        if (result.success) {
+          sessionData[task.id] = result.data
+        }
       }
+      setSessions(sessionData)
     }
-    setSessions(sessionData)
-  }, [user, pastPaperTasks])
 
-  useEffect(() => {
     loadSessions()
-  }, [loadSessions])
+  }, [user, pastPaperTasks])
 
   // 学校別にグループ化
   const groupBySchool = () => {
