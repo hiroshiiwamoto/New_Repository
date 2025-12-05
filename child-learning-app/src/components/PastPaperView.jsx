@@ -9,7 +9,7 @@ import {
 import { subjectColors } from '../utils/constants'
 import { toast } from '../utils/toast'
 
-function PastPaperView({ tasks, user, customUnits = [] }) {
+function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask }) {
   const [viewMode, setViewMode] = useState('school') // 'school' or 'unit'
   const [selectedSubject, setSelectedSubject] = useState('算数')
   const [selectedGrade, setSelectedGrade] = useState('4年生')
@@ -21,6 +21,12 @@ function PastPaperView({ tasks, user, customUnits = [] }) {
     totalScore: '',
     timeSpent: '',
     notes: ''
+  })
+  const [showAddForm, setShowAddForm] = useState(false) // 過去問追加フォーム
+  const [addForm, setAddForm] = useState({
+    schoolName: '',
+    year: '',
+    round: ''
   })
 
   // 過去問タスクのみフィルタリング（useMemoでメモ化）
@@ -34,26 +40,16 @@ function PastPaperView({ tasks, user, customUnits = [] }) {
 
   // セッションデータを読み込み
   const loadSessions = useCallback(async () => {
-    console.log('=== loadSessions 開始 ===')
-    if (!user) {
-      console.log('ユーザーなし、終了')
-      return
-    }
+    if (!user) return
 
-    console.log('過去問タスク数:', pastPaperTasks.length)
     const sessionData = {}
     for (const task of pastPaperTasks) {
-      console.log(`タスク ${task.id} (${task.title}) のセッションを読み込み中...`)
       const result = await getSessionsByTaskId(user.uid, task.id)
-      console.log(`タスク ${task.id} の結果:`, result)
       if (result.success) {
         sessionData[task.id] = result.data
-        console.log(`タスク ${task.id} のセッション数: ${result.data.length}`)
       }
     }
-    console.log('最終的なsessionData:', sessionData)
     setSessions(sessionData)
-    console.log('=== loadSessions 完了 ===')
   }, [user, pastPaperTasks])
 
   useEffect(() => {
@@ -116,20 +112,12 @@ function PastPaperView({ tasks, user, customUnits = [] }) {
 
   // セッション記録を保存
   const handleSaveSession = async (taskId) => {
-    console.log('=== handleSaveSession 開始 ===')
-    console.log('user:', user)
-    console.log('taskId:', taskId)
-    console.log('sessionForm:', sessionForm)
-
     if (!user) {
-      console.error('ユーザーが未ログイン')
       toast.error('ログインが必要です')
       return
     }
 
-    console.log('次の試行回数を取得中...')
     const attemptNumber = await getNextAttemptNumber(user.uid, taskId)
-    console.log('attemptNumber:', attemptNumber)
 
     const sessionData = {
       ...sessionForm,
@@ -138,21 +126,15 @@ function PastPaperView({ tasks, user, customUnits = [] }) {
       totalScore: sessionForm.totalScore ? parseInt(sessionForm.totalScore) : null,
       timeSpent: sessionForm.timeSpent ? parseInt(sessionForm.timeSpent) : null,
     }
-    console.log('保存するセッションデータ:', sessionData)
 
-    console.log('Firestoreに保存中...')
     const result = await addPastPaperSession(user.uid, taskId, sessionData)
-    console.log('保存結果:', result)
 
     if (result.success) {
-      console.log('保存成功！セッションを再読み込み中...')
       // Firestoreから最新データを再読み込み
       await loadSessions()
       setShowSessionForm(null)
       toast.success('学習記録を保存しました')
-      console.log('=== handleSaveSession 完了 ===')
     } else {
-      console.error('保存失敗:', result.error)
       toast.error('保存に失敗しました: ' + result.error)
     }
   }
@@ -165,16 +147,105 @@ function PastPaperView({ tasks, user, customUnits = [] }) {
     return null
   }
 
+  // 過去問タスクを追加
+  const handleAddPastPaper = async () => {
+    if (!addForm.schoolName || !addForm.year || !addForm.round) {
+      toast.error('学校名、年度、回を入力してください')
+      return
+    }
+
+    const newTask = {
+      title: `${addForm.schoolName} ${addForm.year} ${addForm.round}`,
+      taskType: 'pastpaper',
+      subject: selectedSubject,
+      grade: selectedGrade,
+      schoolName: addForm.schoolName,
+      year: addForm.year,
+      round: addForm.round,
+      relatedUnits: [],
+      dueDate: '',
+      priority: 'medium'
+    }
+
+    await onAddTask(newTask)
+    setAddForm({ schoolName: '', year: '', round: '' })
+    setShowAddForm(false)
+    toast.success('過去問を追加しました')
+  }
+
   const groupedData = viewMode === 'school' ? groupBySchool() : groupByUnit()
 
   return (
     <div className="pastpaper-view">
       <div className="view-header">
-        <h2>📄 過去問管理</h2>
-        <p className="view-description">
-          過去問の学習記録を管理します。同じ過去問を何度でも演習できます。
-        </p>
+        <div className="header-title-row">
+          <div>
+            <h2>📄 過去問管理</h2>
+            <p className="view-description">
+              過去問の学習記録を管理します。同じ過去問を何度でも演習できます。
+            </p>
+          </div>
+          <button
+            className="add-pastpaper-btn"
+            onClick={() => setShowAddForm(!showAddForm)}
+          >
+            {showAddForm ? '✕ 閉じる' : '+ 過去問を追加'}
+          </button>
+        </div>
       </div>
+
+      {/* 過去問追加フォーム */}
+      {showAddForm && (
+        <div className="add-pastpaper-form">
+          <h3>📝 新しい過去問を追加</h3>
+          <div className="add-form-grid">
+            <div className="add-form-field">
+              <label>学校名:</label>
+              <input
+                type="text"
+                placeholder="例: 開成中学校"
+                value={addForm.schoolName}
+                onChange={(e) => setAddForm({ ...addForm, schoolName: e.target.value })}
+              />
+            </div>
+            <div className="add-form-field">
+              <label>年度:</label>
+              <input
+                type="text"
+                placeholder="例: 2024年度"
+                value={addForm.year}
+                onChange={(e) => setAddForm({ ...addForm, year: e.target.value })}
+              />
+            </div>
+            <div className="add-form-field">
+              <label>回:</label>
+              <input
+                type="text"
+                placeholder="例: 第1回"
+                value={addForm.round}
+                onChange={(e) => setAddForm({ ...addForm, round: e.target.value })}
+              />
+            </div>
+          </div>
+          <div className="add-form-actions">
+            <button
+              className="btn-secondary"
+              onClick={() => {
+                setShowAddForm(false)
+                setAddForm({ schoolName: '', year: '', round: '' })
+              }}
+            >
+              キャンセル
+            </button>
+            <button
+              className="btn-primary"
+              onClick={handleAddPastPaper}
+            >
+              ✓ 追加する
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* フィルター */}
       <div className="view-filters">
@@ -253,16 +324,8 @@ function PastPaperView({ tasks, user, customUnits = [] }) {
 
               <div className="task-cards">
                 {taskList.map(task => {
-                  const taskSessions = sessions[task.id] || []
+                  const taskSessions = (sessions[task.id] || []).sort((a, b) => a.attemptNumber - b.attemptNumber)
                   const lastSession = taskSessions[taskSessions.length - 1]
-                  console.log(`タスク ${task.id} (${task.title}):`, {
-                    セッション数: taskSessions.length,
-                    セッション: taskSessions.map(s => ({
-                      attemptNumber: s.attemptNumber,
-                      studiedAt: s.studiedAt,
-                      firestoreId: s.firestoreId
-                    }))
-                  })
 
                   return (
                     <div key={task.id} className="pastpaper-card">
