@@ -441,7 +441,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
             </div>
           </div>
 
-          <div className="add-form-field" style={{ marginBottom: '8px' }}>
+          <div className="add-form-field" style={{ marginBottom: '12px' }}>
             <label>学校名:</label>
             <input
               type="text"
@@ -657,7 +657,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                             </div>
                           </div>
 
-                          <div className="edit-form-field" style={{ marginBottom: '8px' }}>
+                          <div className="edit-form-field" style={{ marginBottom: '12px' }}>
                             <label>学校名:</label>
                             <input
                               type="text"
