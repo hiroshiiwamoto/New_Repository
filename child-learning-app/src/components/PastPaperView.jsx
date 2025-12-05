@@ -106,27 +106,43 @@ function PastPaperView({ tasks, user, customUnits = [] }) {
 
   // セッション記録を保存
   const handleSaveSession = async (taskId) => {
+    console.log('=== handleSaveSession 開始 ===')
+    console.log('user:', user)
+    console.log('taskId:', taskId)
+    console.log('sessionForm:', sessionForm)
+
     if (!user) {
+      console.error('ユーザーが未ログイン')
       toast.error('ログインが必要です')
       return
     }
 
+    console.log('次の試行回数を取得中...')
     const attemptNumber = await getNextAttemptNumber(user.uid, taskId)
+    console.log('attemptNumber:', attemptNumber)
 
-    const result = await addPastPaperSession(user.uid, taskId, {
+    const sessionData = {
       ...sessionForm,
       attemptNumber,
       score: sessionForm.score ? parseInt(sessionForm.score) : null,
       totalScore: sessionForm.totalScore ? parseInt(sessionForm.totalScore) : null,
       timeSpent: sessionForm.timeSpent ? parseInt(sessionForm.timeSpent) : null,
-    })
+    }
+    console.log('保存するセッションデータ:', sessionData)
+
+    console.log('Firestoreに保存中...')
+    const result = await addPastPaperSession(user.uid, taskId, sessionData)
+    console.log('保存結果:', result)
 
     if (result.success) {
+      console.log('保存成功！セッションを再読み込み中...')
       // Firestoreから最新データを再読み込み
       await loadSessions()
       setShowSessionForm(null)
       toast.success('学習記録を保存しました')
+      console.log('=== handleSaveSession 完了 ===')
     } else {
+      console.error('保存失敗:', result.error)
       toast.error('保存に失敗しました: ' + result.error)
     }
   }
