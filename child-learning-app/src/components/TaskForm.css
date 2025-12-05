@@ -5,6 +5,8 @@
   box-shadow: 0 8px 24px rgba(30, 64, 175, 0.15);
   margin-bottom: 20px;
   border: 1px solid rgba(30, 64, 175, 0.1);
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 .task-form h2 {
@@ -23,6 +25,7 @@
 
 .form-group {
   margin-bottom: 20px;
+  min-width: 0;
 }
 
 .form-group.half {
@@ -167,10 +170,12 @@
   display: flex;
   gap: 10px;
   align-items: center;
+  min-width: 0;
 }
 
 .unit-select-container select {
   flex: 1;
+  min-width: 0;
 }
 
 .add-custom-unit-btn {
@@ -205,6 +210,8 @@
   padding: 20px;
   margin-top: 15px;
   animation: slideDown 0.3s ease;
+  min-width: 0;
+  overflow: hidden;
 }
 
 @keyframes slideDown {
@@ -278,6 +285,8 @@
   padding: 20px;
   margin-top: 15px;
   animation: slideDown 0.3s ease;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .related-units-checkboxes {
