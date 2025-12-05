@@ -29,7 +29,8 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     round: '',
     subject: '算数',  // フォーム内で独立して科目を管理
     grade: '4年生',
-    relatedUnits: []
+    relatedUnits: [],
+    fileUrl: ''  // GoogleドライブやPDFのURL
   })
   const [editingTaskId, setEditingTaskId] = useState(null) // 編集中の過去問タスクID
   const [editForm, setEditForm] = useState({
@@ -38,7 +39,8 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     round: '',
     subject: '算数',
     grade: '4年生',
-    relatedUnits: []
+    relatedUnits: [],
+    fileUrl: ''  // GoogleドライブやPDFのURL
   })
 
   // 過去問タスクのみフィルタリング（学年無関係）
@@ -276,12 +278,13 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       year: addForm.year,
       round: addForm.round,
       relatedUnits: addForm.relatedUnits,
+      fileUrl: addForm.fileUrl,  // 問題ファイルのURL
       dueDate: '',
       priority: 'medium'
     }
 
     await onAddTask(newTask)
-    setAddForm({ schoolName: '', year: '', round: '', subject: '算数', grade: '4年生', relatedUnits: [] })
+    setAddForm({ schoolName: '', year: '', round: '', subject: '算数', grade: '4年生', relatedUnits: [], fileUrl: '' })
     setShowAddForm(false)
     toast.success('過去問を追加しました')
   }
@@ -327,7 +330,8 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       round: task.round || '',
       subject: task.subject || '算数',
       grade: task.grade || '4年生',
-      relatedUnits: task.relatedUnits || []
+      relatedUnits: task.relatedUnits || [],
+      fileUrl: task.fileUrl || ''
     })
   }
 
@@ -340,7 +344,8 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       round: '',
       subject: '算数',
       grade: '4年生',
-      relatedUnits: []
+      relatedUnits: [],
+      fileUrl: ''
     })
   }
 
@@ -357,7 +362,8 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       year: editForm.year,
       round: editForm.round,
       subject: editForm.subject,
-      relatedUnits: editForm.relatedUnits
+      relatedUnits: editForm.relatedUnits,
+      fileUrl: editForm.fileUrl
     }
 
     await onUpdateTask(editingTaskId, updatedTask)
@@ -466,6 +472,21 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
             </div>
           </div>
 
+          {/* 問題ファイルURL */}
+          <div className="add-form-section">
+            <label className="section-label">📎 問題ファイル（任意）:</label>
+            <input
+              type="url"
+              className="file-url-input"
+              placeholder="GoogleドライブやPDFのURLを貼り付け"
+              value={addForm.fileUrl}
+              onChange={(e) => setAddForm({ ...addForm, fileUrl: e.target.value })}
+            />
+            <small className="input-hint">
+              Googleドライブの共有リンクやPDFのURLを入力してください
+            </small>
+          </div>
+
           {/* 学年選択 */}
           <div className="add-form-section">
             <label className="section-label">学年（単元選択用）:</label>
@@ -524,7 +545,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
               className="btn-secondary"
               onClick={() => {
                 setShowAddForm(false)
-                setAddForm({ schoolName: '', year: '', round: '', subject: '算数', grade: '4年生', relatedUnits: [] })
+                setAddForm({ schoolName: '', year: '', round: '', subject: '算数', grade: '4年生', relatedUnits: [], fileUrl: '' })
               }}
             >
               キャンセル
@@ -664,6 +685,21 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                             </div>
                           </div>
 
+                          {/* 問題ファイルURL */}
+                          <div className="edit-form-section">
+                            <label className="section-label">📎 問題ファイル（任意）:</label>
+                            <input
+                              type="url"
+                              className="file-url-input"
+                              placeholder="GoogleドライブやPDFのURLを貼り付け"
+                              value={editForm.fileUrl}
+                              onChange={(e) => setEditForm({ ...editForm, fileUrl: e.target.value })}
+                            />
+                            <small className="input-hint">
+                              Googleドライブの共有リンクやPDFのURLを入力してください
+                            </small>
+                          </div>
+
                           {/* 学年選択 */}
                           <div className="edit-form-section">
                             <label className="section-label">学年（単元選択用）:</label>
@@ -738,6 +774,17 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                               <div className="attempt-count">
                                 {taskSessions.length}回演習済み
                               </div>
+                              {task.fileUrl && (
+                                <a
+                                  href={task.fileUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="file-link-btn"
+                                  title="問題ファイルを開く"
+                                >
+                                  📎
+                                </a>
+                              )}
                               <button
                                 className="edit-pastpaper-btn"
                                 onClick={() => handleStartEdit(task)}

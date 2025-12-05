@@ -114,6 +114,30 @@
   margin-bottom: 12px;
 }
 
+/* 問題ファイルURL入力 */
+.file-url-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  margin-bottom: 8px;
+}
+
+.file-url-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.input-hint {
+  display: block;
+  color: #64748b;
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
 /* 科目選択（フォーム内） */
 .subject-selector-inline {
   display: flex;
@@ -391,6 +415,26 @@
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.file-link-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 5px 8px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  opacity: 0.6;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.file-link-btn:hover {
+  background: #fef3c7;
+  opacity: 1;
+  transform: scale(1.1);
 }
 
 .edit-pastpaper-btn {
