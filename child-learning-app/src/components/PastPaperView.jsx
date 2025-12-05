@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import './PastPaperView.css'
 import { subjects, grades } from '../utils/unitsDatabase'
 import {
@@ -7,6 +7,7 @@ import {
   getNextAttemptNumber
 } from '../utils/pastPaperSessions'
 import { subjectColors } from '../utils/constants'
+import { toast } from '../utils/toast'
 
 function PastPaperView({ tasks, user, customUnits = [] }) {
   const [viewMode, setViewMode] = useState('school') // 'school' or 'unit'
@@ -32,22 +33,22 @@ function PastPaperView({ tasks, user, customUnits = [] }) {
   }, [tasks, selectedSubject, selectedGrade])
 
   // セッションデータを読み込み
-  useEffect(() => {
+  const loadSessions = useCallback(async () => {
     if (!user) return
 
-    const loadSessions = async () => {
-      const sessionData = {}
-      for (const task of pastPaperTasks) {
-        const result = await getSessionsByTaskId(user.uid, task.id)
-        if (result.success) {
-          sessionData[task.id] = result.data
-        }
+    const sessionData = {}
+    for (const task of pastPaperTasks) {
+      const result = await getSessionsByTaskId(user.uid, task.id)
+      if (result.success) {
+        sessionData[task.id] = result.data
       }
-      setSessions(sessionData)
     }
-
-    loadSessions()
+    setSessions(sessionData)
   }, [user, pastPaperTasks])
+
+  useEffect(() => {
+    loadSessions()
+  }, [loadSessions])
 
   // 学校別にグループ化
   const groupBySchool = () => {
@@ -106,7 +107,7 @@ function PastPaperView({ tasks, user, customUnits = [] }) {
   // セッション記録を保存
   const handleSaveSession = async (taskId) => {
     if (!user) {
-      alert('❌ ログインが必要です')
+      toast.error('ログインが必要です')
       return
     }
 
@@ -124,9 +125,9 @@ function PastPaperView({ tasks, user, customUnits = [] }) {
       // Firestoreから最新データを再読み込み
       await loadSessions()
       setShowSessionForm(null)
-      alert('✅ 学習記録を保存しました')
+      toast.success('学習記録を保存しました')
     } else {
-      alert('❌ 保存に失敗しました: ' + result.error)
+      toast.error('保存に失敗しました: ' + result.error)
     }
   }
 
