@@ -31,16 +31,11 @@ function UnitDashboard({ tasks, onEditTask, customUnits = [] }) {
   const progress = getGradeProgress(selectedSubject, selectedGrade, currentUnits)
 
   const handleAddSession = (unitId) => {
-    console.log('=== handleAddSession 開始 ===')
-    console.log('unitId:', unitId)
-    console.log('sessionForm:', sessionForm)
-
     try {
-      const result = addStudySession({
+      addStudySession({
         unitId,
         ...sessionForm,
       })
-      console.log('保存結果:', result)
 
       setShowSessionForm(false)
       setSessionForm({
@@ -53,9 +48,7 @@ function UnitDashboard({ tasks, onEditTask, customUnits = [] }) {
       setSelectedGrade(selectedGrade)
 
       toast.success('学習記録を保存しました')
-      console.log('=== handleAddSession 完了 ===')
     } catch (error) {
-      console.error('保存エラー:', error)
       toast.error('保存に失敗しました: ' + error.message)
     }
   }
