@@ -168,6 +168,40 @@ export async function deleteSession(userId, firestoreId) {
 }
 
 /**
+ * タスクに関連するすべてのセッションを削除
+ * @param {string} userId - ユーザーID
+ * @param {string} taskId - タスクID
+ * @returns {Promise<object>} 結果
+ */
+export async function deleteSessionsByTaskId(userId, taskId) {
+  try {
+    const result = await getSessionsByTaskId(userId, taskId)
+
+    if (!result.success) {
+      return result
+    }
+
+    // 全てのセッションを削除
+    const deletePromises = result.data.map(session =>
+      deleteSession(userId, session.firestoreId)
+    )
+
+    await Promise.all(deletePromises)
+
+    return {
+      success: true,
+      deletedCount: result.data.length
+    }
+  } catch (error) {
+    console.error('Error deleting sessions by task ID:', error)
+    return {
+      success: false,
+      error: error.message
+    }
+  }
+}
+
+/**
  * タスクの最新の試行回数を取得
  * @param {string} userId - ユーザーID
  * @param {string} taskId - タスクID
