@@ -1,21 +1,8 @@
 import './Dashboard.css'
+import { subjectEmojis, subjectColors } from '../utils/constants'
 
 function Dashboard({ tasks }) {
   const subjects = ['国語', '算数', '理科', '社会']
-
-  const subjectEmojis = {
-    '国語': '📖',
-    '算数': '🔢',
-    '理科': '🔬',
-    '社会': '🌍',
-  }
-
-  const subjectColors = {
-    '国語': '#10b981',
-    '算数': '#ef4444',
-    '理科': '#3b82f6',
-    '社会': '#f59e0b',
-  }
 
   const getSubjectProgress = (subject) => {
     const subjectTasks = tasks.filter(task => task.subject === subject)

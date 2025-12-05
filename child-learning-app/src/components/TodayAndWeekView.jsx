@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './TodayAndWeekView.css'
+import { subjectEmojis, subjectColors } from '../utils/constants'
 
 function TodayAndWeekView({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
   const [expandedSection, setExpandedSection] = useState('today') // 'today' or 'week'
@@ -16,21 +17,6 @@ function TodayAndWeekView({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
   function getTodayTasks() {
     const today = formatDate(new Date())
     return tasks.filter(task => task.dueDate === today)
-  }
-
-
-  const subjectEmojis = {
-    '国語': '📖',
-    '算数': '🔢',
-    '理科': '🔬',
-    '社会': '🌍',
-  }
-
-  const subjectColors = {
-    '国語': '#10b981',
-    '算数': '#ef4444',
-    '理科': '#3b82f6',
-    '社会': '#f59e0b',
   }
 
   const todayTasks = getTodayTasks()

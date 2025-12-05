@@ -1,24 +1,7 @@
 import './TaskItem.css'
+import { subjectEmojis, subjectColors } from '../utils/constants'
 
 function TaskItem({ task, onToggle, onDelete, onEdit }) {
-  const subjectEmojis = {
-    '国語': '📖',
-    '算数': '🔢',
-    '理科': '🔬',
-    '社会': '🌍',
-    '英語': '🔤',
-    '音楽': '🎵',
-    '体育': '⚽',
-    'その他': '📝',
-  }
-
-  const subjectColors = {
-    '国語': '#10b981',
-    '算数': '#ef4444',
-    '理科': '#3b82f6',
-    '社会': '#f59e0b',
-  }
-
   const subjectColor = subjectColors[task.subject] || '#007AFF'
 
   return (

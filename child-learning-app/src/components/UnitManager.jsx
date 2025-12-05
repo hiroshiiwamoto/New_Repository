@@ -1,26 +1,13 @@
 import { useState } from 'react'
 import './UnitManager.css'
 import { unitsDatabase, subjects, grades } from '../utils/unitsDatabase'
+import { subjectEmojis, subjectColors } from '../utils/constants'
 
 function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
   const [selectedGrade, setSelectedGrade] = useState('4年生')
   const [selectedSubject, setSelectedSubject] = useState('算数')
   const [editingUnit, setEditingUnit] = useState(null)
   const [editForm, setEditForm] = useState({ name: '', category: '' })
-
-  const subjectEmojis = {
-    '国語': '📖',
-    '算数': '🔢',
-    '理科': '🔬',
-    '社会': '🌍',
-  }
-
-  const subjectColors = {
-    '国語': '#10b981',
-    '算数': '#ef4444',
-    '理科': '#3b82f6',
-    '社会': '#f59e0b',
-  }
 
   // デフォルト単元とカスタム単元を統合
   const defaultUnits = unitsDatabase[selectedSubject]?.[selectedGrade] || []

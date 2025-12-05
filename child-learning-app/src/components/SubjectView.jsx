@@ -1,14 +1,8 @@
 import './SubjectView.css'
+import { subjectColors } from '../utils/constants'
 
 function SubjectView({ tasks, onToggleTask, onDeleteTask }) {
   const subjects = ['国語', '算数', '理科', '社会']
-
-  const subjectColors = {
-    '国語': '#10b981',
-    '算数': '#ef4444',
-    '理科': '#3b82f6',
-    '社会': '#f59e0b'
-  }
 
   const taskTypeLabels = {
     'daily': '📖 デイリー',
