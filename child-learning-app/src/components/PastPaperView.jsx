@@ -27,6 +27,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     schoolName: '',
     year: '',
     round: '',
+    subject: '算数',  // フォーム内で独立して科目を管理
     grade: '4年生',
     relatedUnits: []
   })
@@ -260,7 +261,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     const newTask = {
       title: `${addForm.schoolName} ${addForm.year} ${addForm.round}`,
       taskType: 'pastpaper',
-      subject: selectedSubject,
+      subject: addForm.subject,  // フォーム内の科目を使用
       grade: '全学年', // 過去問は学年無関係
       schoolName: addForm.schoolName,
       year: addForm.year,
@@ -271,7 +272,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     }
 
     await onAddTask(newTask)
-    setAddForm({ schoolName: '', year: '', round: '', grade: '4年生', relatedUnits: [] })
+    setAddForm({ schoolName: '', year: '', round: '', subject: '算数', grade: '4年生', relatedUnits: [] })
     setShowAddForm(false)
     toast.success('過去問を追加しました')
   }
@@ -333,6 +334,35 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       {showAddForm && (
         <div className="add-pastpaper-form">
           <h3>📝 新しい過去問を追加</h3>
+
+          {/* 科目選択（最優先） */}
+          <div className="add-form-section">
+            <label className="section-label">科目:</label>
+            <div className="subject-selector-inline">
+              {subjects.map((subject) => (
+                <button
+                  key={subject}
+                  type="button"
+                  className={`subject-btn-form ${addForm.subject === subject ? 'active' : ''}`}
+                  onClick={() => {
+                    // 科目変更時に単元選択をクリア
+                    setAddForm({
+                      ...addForm,
+                      subject,
+                      relatedUnits: []  // 科目が変わったら単元選択をリセット
+                    })
+                  }}
+                  style={{
+                    borderColor: addForm.subject === subject ? subjectColors[subject] : '#e2e8f0',
+                    background: addForm.subject === subject ? `${subjectColors[subject]}15` : 'white',
+                  }}
+                >
+                  {subject}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="add-form-grid">
             <div className="add-form-field">
               <label>学校名:</label>
@@ -385,7 +415,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
             <label className="section-label">関連単元（任意）:</label>
             <div className="units-checkbox-grid">
               {/* デフォルト単元 */}
-              {unitsDatabase[selectedSubject]?.[addForm.grade]?.map((unit) => (
+              {unitsDatabase[addForm.subject]?.[addForm.grade]?.map((unit) => (
                 <label key={unit.id} className="unit-checkbox-label">
                   <input
                     type="checkbox"
@@ -397,7 +427,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
               ))}
               {/* カスタム単元 */}
               {customUnits
-                .filter(u => u.subject === selectedSubject && u.grade === addForm.grade)
+                .filter(u => u.subject === addForm.subject && u.grade === addForm.grade)
                 .map((unit) => (
                   <label key={unit.id} className="unit-checkbox-label custom">
                     <input
@@ -421,7 +451,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
               className="btn-secondary"
               onClick={() => {
                 setShowAddForm(false)
-                setAddForm({ schoolName: '', year: '', round: '', grade: '4年生', relatedUnits: [] })
+                setAddForm({ schoolName: '', year: '', round: '', subject: '算数', grade: '4年生', relatedUnits: [] })
               }}
             >
               キャンセル

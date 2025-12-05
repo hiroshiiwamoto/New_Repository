@@ -114,6 +114,37 @@
   margin-bottom: 12px;
 }
 
+/* 科目選択（フォーム内） */
+.subject-selector-inline {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+.subject-btn-form {
+  padding: 8px 18px;
+  border: 2px solid #e2e8f0;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  color: #475569;
+}
+
+.subject-btn-form:hover {
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+.subject-btn-form.active {
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  font-weight: 700;
+}
+
 .grade-selector-inline {
   display: flex;
   gap: 8px;
