@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import './PastPaperView.css'
-import { subjects, grades } from '../utils/unitsDatabase'
+import { subjects } from '../utils/unitsDatabase'
 import {
   getSessionsByTaskId,
   addPastPaperSession,
@@ -12,7 +12,6 @@ import { toast } from '../utils/toast'
 function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask }) {
   const [viewMode, setViewMode] = useState('school') // 'school' or 'unit'
   const [selectedSubject, setSelectedSubject] = useState('算数')
-  const [selectedGrade, setSelectedGrade] = useState('4年生')
   const [sessions, setSessions] = useState({}) // taskId -> sessions[]
   const [showSessionForm, setShowSessionForm] = useState(null) // taskId
   const [sessionForm, setSessionForm] = useState({
@@ -29,14 +28,13 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask 
     round: ''
   })
 
-  // 過去問タスクのみフィルタリング（useMemoでメモ化）
+  // 過去問タスクのみフィルタリング（学年無関係）
   const pastPaperTasks = useMemo(() => {
     return tasks.filter(
       t => t.taskType === 'pastpaper' &&
-           t.subject === selectedSubject &&
-           t.grade === selectedGrade
+           t.subject === selectedSubject
     )
-  }, [tasks, selectedSubject, selectedGrade])
+  }, [tasks, selectedSubject])
 
   // セッションデータを読み込み
   const loadSessions = useCallback(async () => {
@@ -158,7 +156,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask 
       title: `${addForm.schoolName} ${addForm.year} ${addForm.round}`,
       taskType: 'pastpaper',
       subject: selectedSubject,
-      grade: selectedGrade,
+      grade: '全学年', // 過去問は学年無関係
       schoolName: addForm.schoolName,
       year: addForm.year,
       round: addForm.round,
@@ -265,23 +263,6 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask 
               >
                 📚 単元別
               </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="filter-row">
-          <div className="filter-group">
-            <label>学年:</label>
-            <div className="grade-buttons">
-              {grades.map((grade) => (
-                <button
-                  key={grade}
-                  className={`filter-btn ${selectedGrade === grade ? 'active' : ''}`}
-                  onClick={() => setSelectedGrade(grade)}
-                >
-                  {grade}
-                </button>
-              ))}
             </div>
           </div>
 
