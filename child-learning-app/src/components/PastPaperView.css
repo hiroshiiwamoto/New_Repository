@@ -381,15 +381,15 @@
 /* タスクカード */
 .task-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 15px;
 }
 
 .pastpaper-card {
   background: #fefce8;
   border: 2px solid #fde047;
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 8px;
+  padding: 12px;
   transition: all 0.3s ease;
 }
 
@@ -402,9 +402,9 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 15px;
-  padding-bottom: 15px;
-  border-bottom: 2px solid #fef3c7;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #fef3c7;
 }
 
 .task-title {
@@ -475,8 +475,8 @@
   display: block;
   font-weight: 700;
   color: #1e293b;
-  font-size: 1.05rem;
-  margin-bottom: 5px;
+  font-size: 0.95rem;
+  margin-bottom: 0;
 }
 
 .task-details {
@@ -488,40 +488,40 @@
 .attempt-count {
   background: #fbbf24;
   color: white;
-  padding: 4px 12px;
+  padding: 3px 10px;
   border-radius: 12px;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
 }
 
 /* 関連単元 */
 .related-units {
-  margin-top: 12px;
-  margin-bottom: 12px;
-}
-
-.related-units-label {
-  display: block;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #64748b;
+  margin-top: 8px;
   margin-bottom: 8px;
 }
 
+.related-units-label {
+  display: inline;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-right: 6px;
+}
+
 .related-units-tags {
-  display: flex;
+  display: inline-flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 4px;
 }
 
 .unit-tag {
   display: inline-block;
   background: #dbeafe;
   color: #1e40af;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 0.8rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
   font-weight: 500;
   border: 1px solid #bfdbfe;
 }
@@ -530,12 +530,12 @@
 .last-session {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 15px;
+  gap: 8px;
+  padding: 6px 10px;
   background: white;
-  border-radius: 8px;
-  margin-bottom: 12px;
-  font-size: 0.9rem;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
 }
 
 .session-label {
@@ -551,34 +551,34 @@
   margin-left: auto;
   background: #10b981;
   color: white;
-  padding: 4px 10px;
-  border-radius: 8px;
+  padding: 2px 8px;
+  border-radius: 6px;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
 }
 
 /* セッション一覧 */
 .sessions-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 15px;
+  gap: 6px;
+  margin-bottom: 10px;
 }
 
 .session-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
+  gap: 8px;
+  padding: 6px 10px;
   background: white;
-  border-radius: 6px;
-  font-size: 0.85rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
 }
 
 .session-attempt {
   font-weight: 600;
   color: #1e40af;
-  min-width: 50px;
+  min-width: 45px;
 }
 
 .session-time {
