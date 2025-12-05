@@ -435,16 +435,17 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
             </div>
           </div>
 
-          <div className="add-form-grid">
-            <div className="add-form-field">
-              <label>学校名:</label>
-              <input
-                type="text"
-                placeholder="例: 開成中学校"
-                value={addForm.schoolName}
-                onChange={(e) => setAddForm({ ...addForm, schoolName: e.target.value })}
-              />
-            </div>
+          <div className="add-form-field" style={{ marginBottom: '15px' }}>
+            <label>学校名:</label>
+            <input
+              type="text"
+              placeholder="例: 開成中学校"
+              value={addForm.schoolName}
+              onChange={(e) => setAddForm({ ...addForm, schoolName: e.target.value })}
+            />
+          </div>
+
+          <div className="add-form-grid-two-cols">
             <div className="add-form-field">
               <label>年度:</label>
               <input
@@ -635,15 +636,16 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                             </div>
                           </div>
 
-                          <div className="edit-form-grid">
-                            <div className="edit-form-field">
-                              <label>学校名:</label>
-                              <input
-                                type="text"
-                                value={editForm.schoolName}
-                                onChange={(e) => setEditForm({ ...editForm, schoolName: e.target.value })}
-                              />
-                            </div>
+                          <div className="edit-form-field" style={{ marginBottom: '15px' }}>
+                            <label>学校名:</label>
+                            <input
+                              type="text"
+                              value={editForm.schoolName}
+                              onChange={(e) => setEditForm({ ...editForm, schoolName: e.target.value })}
+                            />
+                          </div>
+
+                          <div className="edit-form-grid-two-cols">
                             <div className="edit-form-field">
                               <label>年度:</label>
                               <input

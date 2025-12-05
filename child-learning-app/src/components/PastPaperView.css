@@ -61,9 +61,9 @@
   font-size: 1.2rem;
 }
 
-.add-form-grid {
+.add-form-grid-two-cols {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 15px;
   margin-bottom: 20px;
 }
@@ -655,9 +655,9 @@
   border-top: 1px solid #fef3c7;
 }
 
-.edit-form-grid {
+.edit-form-grid-two-cols {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
   margin-bottom: 15px;
 }
@@ -710,11 +710,11 @@
     width: 100%;
   }
 
-  .add-form-grid {
+  .add-form-grid-two-cols {
     grid-template-columns: 1fr;
   }
 
-  .edit-form-grid {
+  .edit-form-grid-two-cols {
     grid-template-columns: 1fr;
   }
 
