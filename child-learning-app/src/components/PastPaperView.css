@@ -81,10 +81,12 @@
 }
 
 .add-form-field input {
+  width: 100%;
   padding: 10px 12px;
   border: 2px solid #e2e8f0;
   border-radius: 8px;
   font-size: 0.95rem;
+  box-sizing: border-box;
   transition: all 0.3s ease;
 }
 
@@ -121,6 +123,7 @@
   border: 2px solid #e2e8f0;
   border-radius: 8px;
   font-size: 0.9rem;
+  box-sizing: border-box;
   transition: all 0.3s ease;
   margin-bottom: 8px;
 }
@@ -751,10 +754,12 @@
 }
 
 .edit-form-field input {
+  width: 100%;
   padding: 8px 10px;
   border: 2px solid #e2e8f0;
   border-radius: 6px;
   font-size: 0.9rem;
+  box-sizing: border-box;
   transition: all 0.3s ease;
 }
 
