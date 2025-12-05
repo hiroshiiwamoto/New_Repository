@@ -393,6 +393,23 @@
   gap: 10px;
 }
 
+.edit-pastpaper-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 5px 8px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  opacity: 0.6;
+}
+
+.edit-pastpaper-btn:hover {
+  background: #dbeafe;
+  opacity: 1;
+  transform: scale(1.1);
+}
+
 .delete-pastpaper-btn {
   background: transparent;
   border: none;
@@ -621,6 +638,63 @@
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
 
+/* 編集フォーム */
+.edit-form-container {
+  padding: 15px;
+}
+
+.edit-form-container h4 {
+  color: #1e40af;
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+}
+
+.edit-form-section {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #fef3c7;
+}
+
+.edit-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.edit-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.edit-form-field label {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 0.9rem;
+}
+
+.edit-form-field input {
+  padding: 8px 10px;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.edit-form-field input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.edit-form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 15px;
+}
+
 /* レスポンシブ */
 @media (max-width: 768px) {
   .pastpaper-view {
@@ -637,6 +711,10 @@
   }
 
   .add-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .edit-form-grid {
     grid-template-columns: 1fr;
   }
 

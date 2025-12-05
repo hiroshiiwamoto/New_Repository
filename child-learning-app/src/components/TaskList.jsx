@@ -21,6 +21,9 @@ function TaskList({ tasks, onToggleTask, onDeleteTask, onBulkDeleteTasks, onEdit
   const filteredAndSortedTasks = useMemo(() => {
     let result = [...tasks]
 
+    // 過去問タスクを除外（過去問ビューで管理）
+    result = result.filter(task => task.taskType !== 'pastpaper')
+
     // 科目フィルター
     if (selectedSubject !== '全て') {
       result = result.filter(task => task.subject === selectedSubject)
@@ -57,16 +60,17 @@ function TaskList({ tasks, onToggleTask, onDeleteTask, onBulkDeleteTasks, onEdit
     return result
   }, [tasks, searchQuery, sortBy, selectedSubject])
 
-  // 統計を計算
+  // 統計を計算（過去問を除外）
   const statistics = useMemo(() => {
-    const total = tasks.length
-    const completed = tasks.filter(t => t.completed).length
+    const nonPastPaperTasks = tasks.filter(t => t.taskType !== 'pastpaper')
+    const total = nonPastPaperTasks.length
+    const completed = nonPastPaperTasks.filter(t => t.completed).length
     const pending = total - completed
     const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0
 
     // 科目別統計
     const bySubject = {}
-    tasks.forEach(task => {
+    nonPastPaperTasks.forEach(task => {
       const subject = task.subject || 'その他'
       if (!bySubject[subject]) {
         bySubject[subject] = { total: 0, completed: 0 }
@@ -77,7 +81,7 @@ function TaskList({ tasks, onToggleTask, onDeleteTask, onBulkDeleteTasks, onEdit
 
     // 優先度別統計
     const byPriority = {}
-    tasks.forEach(task => {
+    nonPastPaperTasks.forEach(task => {
       const priority = task.priority || 'なし'
       if (!byPriority[priority]) {
         byPriority[priority] = { total: 0, completed: 0 }
