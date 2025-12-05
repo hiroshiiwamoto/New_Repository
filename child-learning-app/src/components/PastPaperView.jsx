@@ -34,16 +34,26 @@ function PastPaperView({ tasks, user, customUnits = [] }) {
 
   // セッションデータを読み込み
   const loadSessions = useCallback(async () => {
-    if (!user) return
+    console.log('=== loadSessions 開始 ===')
+    if (!user) {
+      console.log('ユーザーなし、終了')
+      return
+    }
 
+    console.log('過去問タスク数:', pastPaperTasks.length)
     const sessionData = {}
     for (const task of pastPaperTasks) {
+      console.log(`タスク ${task.id} (${task.title}) のセッションを読み込み中...`)
       const result = await getSessionsByTaskId(user.uid, task.id)
+      console.log(`タスク ${task.id} の結果:`, result)
       if (result.success) {
         sessionData[task.id] = result.data
+        console.log(`タスク ${task.id} のセッション数: ${result.data.length}`)
       }
     }
+    console.log('最終的なsessionData:', sessionData)
     setSessions(sessionData)
+    console.log('=== loadSessions 完了 ===')
   }, [user, pastPaperTasks])
 
   useEffect(() => {
@@ -245,6 +255,14 @@ function PastPaperView({ tasks, user, customUnits = [] }) {
                 {taskList.map(task => {
                   const taskSessions = sessions[task.id] || []
                   const lastSession = taskSessions[taskSessions.length - 1]
+                  console.log(`タスク ${task.id} (${task.title}):`, {
+                    セッション数: taskSessions.length,
+                    セッション: taskSessions.map(s => ({
+                      attemptNumber: s.attemptNumber,
+                      studiedAt: s.studiedAt,
+                      firestoreId: s.firestoreId
+                    }))
+                  })
 
                   return (
                     <div key={task.id} className="pastpaper-card">
