@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import './PastPaperView.css'
-import { subjects, unitsDatabase } from '../utils/unitsDatabase'
+import { subjects, unitsDatabase, grades } from '../utils/unitsDatabase'
 import {
   getSessionsByTaskId,
   addPastPaperSession,
@@ -26,7 +26,9 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
   const [addForm, setAddForm] = useState({
     schoolName: '',
     year: '',
-    round: ''
+    round: '',
+    grade: '4年生',
+    relatedUnits: []
   })
 
   // 過去問タスクのみフィルタリング（学年無関係）
@@ -232,6 +234,22 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     return null
   }
 
+  // 単元選択をトグル
+  const toggleRelatedUnit = (unitId) => {
+    const currentUnits = addForm.relatedUnits || []
+    if (currentUnits.includes(unitId)) {
+      setAddForm({
+        ...addForm,
+        relatedUnits: currentUnits.filter(id => id !== unitId)
+      })
+    } else {
+      setAddForm({
+        ...addForm,
+        relatedUnits: [...currentUnits, unitId]
+      })
+    }
+  }
+
   // 過去問タスクを追加
   const handleAddPastPaper = async () => {
     if (!addForm.schoolName || !addForm.year || !addForm.round) {
@@ -247,13 +265,13 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       schoolName: addForm.schoolName,
       year: addForm.year,
       round: addForm.round,
-      relatedUnits: [],
+      relatedUnits: addForm.relatedUnits,
       dueDate: '',
       priority: 'medium'
     }
 
     await onAddTask(newTask)
-    setAddForm({ schoolName: '', year: '', round: '' })
+    setAddForm({ schoolName: '', year: '', round: '', grade: '4年生', relatedUnits: [] })
     setShowAddForm(false)
     toast.success('過去問を追加しました')
   }
@@ -344,12 +362,66 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
               />
             </div>
           </div>
+
+          {/* 学年選択 */}
+          <div className="add-form-section">
+            <label className="section-label">学年（単元選択用）:</label>
+            <div className="grade-selector-inline">
+              {grades.map((grade) => (
+                <button
+                  key={grade}
+                  type="button"
+                  className={`grade-btn-small ${addForm.grade === grade ? 'active' : ''}`}
+                  onClick={() => setAddForm({ ...addForm, grade })}
+                >
+                  {grade}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 関連単元選択 */}
+          <div className="add-form-section">
+            <label className="section-label">関連単元（任意）:</label>
+            <div className="units-checkbox-grid">
+              {/* デフォルト単元 */}
+              {unitsDatabase[selectedSubject]?.[addForm.grade]?.map((unit) => (
+                <label key={unit.id} className="unit-checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={addForm.relatedUnits.includes(unit.id)}
+                    onChange={() => toggleRelatedUnit(unit.id)}
+                  />
+                  <span>{unit.name}</span>
+                </label>
+              ))}
+              {/* カスタム単元 */}
+              {customUnits
+                .filter(u => u.subject === selectedSubject && u.grade === addForm.grade)
+                .map((unit) => (
+                  <label key={unit.id} className="unit-checkbox-label custom">
+                    <input
+                      type="checkbox"
+                      checked={addForm.relatedUnits.includes(unit.id)}
+                      onChange={() => toggleRelatedUnit(unit.id)}
+                    />
+                    <span>⭐ {unit.name}</span>
+                  </label>
+                ))}
+            </div>
+            {addForm.relatedUnits.length > 0 && (
+              <div className="selected-units-summary">
+                選択中: {addForm.relatedUnits.length}個の単元
+              </div>
+            )}
+          </div>
+
           <div className="add-form-actions">
             <button
               className="btn-secondary"
               onClick={() => {
                 setShowAddForm(false)
-                setAddForm({ schoolName: '', year: '', round: '' })
+                setAddForm({ schoolName: '', year: '', round: '', grade: '4年生', relatedUnits: [] })
               }}
             >
               キャンセル
