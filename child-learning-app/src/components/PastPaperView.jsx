@@ -766,9 +766,6 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                           <div className="card-header">
                             <div className="task-title">
                               <span className="task-name">{task.title}</span>
-                              <span className="task-details">
-                                {task.schoolName} {task.year} {task.round}
-                              </span>
                             </div>
                             <div className="card-header-actions">
                               <div className="attempt-count">
