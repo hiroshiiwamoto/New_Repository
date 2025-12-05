@@ -23,21 +23,18 @@
   margin-bottom: 20px;
 }
 
-.form-group {
-  margin-bottom: 20px;
+.form-row.three-cols {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.form-row .form-group {
+  margin-bottom: 0;
   min-width: 0;
 }
 
-.form-group.half {
-  margin-bottom: 0;
-}
-
-.form-group.third {
-  margin-bottom: 0;
-}
-
-.form-row:has(.third) {
-  grid-template-columns: 1fr 1fr 1fr;
+.form-group {
+  margin-bottom: 20px;
+  min-width: 0;
 }
 
 .form-group label {
