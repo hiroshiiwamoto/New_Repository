@@ -803,13 +803,13 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                           {task.relatedUnits && task.relatedUnits.length > 0 && (
                             <div className="related-units">
                               <span className="related-units-label">📚 関連単元:</span>
-                              <div className="related-units-tags">
+                              <span className="related-units-tags">
                                 {task.relatedUnits.map(unitId => (
                                   <span key={unitId} className="unit-tag">
                                     {getUnitName(unitId)}
                                   </span>
                                 ))}
-                              </div>
+                              </span>
                             </div>
                           )}
                         </>
