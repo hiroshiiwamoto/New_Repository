@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import './PastPaperView.css'
-import { subjects } from '../utils/unitsDatabase'
+import { subjects, unitsDatabase } from '../utils/unitsDatabase'
 import {
   getSessionsByTaskId,
   addPastPaperSession,
@@ -94,6 +94,19 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     // customUnitsから検索
     const customUnit = customUnits.find(u => u.id === unitId)
     if (customUnit) return customUnit.name
+
+    // unitsDatabaseから検索
+    for (const subject of subjects) {
+      const gradeData = unitsDatabase[subject]
+      if (gradeData) {
+        for (const grade in gradeData) {
+          const units = gradeData[grade]
+          const unit = units.find(u => u.id === unitId)
+          if (unit) return unit.name
+        }
+      }
+    }
+
     return unitId
   }
 
