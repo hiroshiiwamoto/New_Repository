@@ -75,6 +75,43 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     loadSessions()
   }, [loadSessions])
 
+  // 削除されたカスタム単元への参照をクリーンアップ
+  useEffect(() => {
+    if (!user || !onUpdateTask) return
+
+    // customUnitsに存在しないIDを持つrelatedUnitsを持つタスクを探す
+    const customUnitIds = customUnits.map(u => u.id)
+
+    pastPaperTasks.forEach(task => {
+      if (task.relatedUnits && task.relatedUnits.length > 0) {
+        // 存在しないカスタム単元への参照を削除
+        const invalidUnits = task.relatedUnits.filter(unitId => {
+          // カスタム単元IDの場合のみチェック
+          if (unitId.startsWith('custom_')) {
+            return !customUnitIds.includes(unitId)
+          }
+          return false
+        })
+
+        if (invalidUnits.length > 0) {
+          console.warn(`⚠️ タスク「${task.title}」に削除された単元への参照があります:`, invalidUnits)
+
+          // 有効な単元IDのみ残す
+          const validUnits = task.relatedUnits.filter(unitId => !invalidUnits.includes(unitId))
+
+          console.log(`🔧 修正中: relatedUnitsを更新`, {
+            before: task.relatedUnits,
+            after: validUnits
+          })
+
+          // タスクを更新
+          onUpdateTask(task.id, { relatedUnits: validUnits })
+          toast.info(`「${task.title}」の削除された単元への参照を修正しました`)
+        }
+      }
+    })
+  }, [user, pastPaperTasks, customUnits, onUpdateTask])
+
   // 学校別にグループ化
   const groupBySchool = () => {
     const grouped = {}
