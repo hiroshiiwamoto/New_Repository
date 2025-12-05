@@ -31,11 +31,31 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
 
   // 過去問タスクのみフィルタリング（学年無関係）
   const pastPaperTasks = useMemo(() => {
-    return tasks.filter(
+    const filtered = tasks.filter(
       t => t.taskType === 'pastpaper' &&
            t.subject === selectedSubject
     )
-  }, [tasks, selectedSubject])
+
+    // デバッグ情報を出力
+    console.log('=== 過去問デバッグ情報 ===')
+    console.log('科目:', selectedSubject)
+    console.log('過去問タスク数:', filtered.length)
+    console.log('customUnits:', customUnits)
+    filtered.forEach((task, index) => {
+      console.log(`\n過去問 ${index + 1}:`, {
+        id: task.id,
+        title: task.title,
+        schoolName: task.schoolName || '(空)',
+        year: task.year,
+        round: task.round,
+        relatedUnits: task.relatedUnits,
+        grade: task.grade
+      })
+    })
+    console.log('========================\n')
+
+    return filtered
+  }, [tasks, selectedSubject, customUnits])
 
   // セッションデータを読み込み
   const loadSessions = useCallback(async () => {
@@ -58,21 +78,27 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
   // 学校別にグループ化
   const groupBySchool = () => {
     const grouped = {}
+    console.log('\n=== 学校別グループ化デバッグ ===')
     pastPaperTasks.forEach(task => {
       const school = task.schoolName || '学校名未設定'
+      console.log(`タスク「${task.title}」→ 学校「${school}」`)
       if (!grouped[school]) {
         grouped[school] = []
       }
       grouped[school].push(task)
     })
+    console.log('グループ化結果:', Object.keys(grouped))
+    console.log('===========================\n')
     return grouped
   }
 
   // 単元別にグループ化
   const groupByUnit = () => {
     const grouped = {}
+    console.log('\n=== 単元別グループ化デバッグ ===')
     pastPaperTasks.forEach(task => {
       if (task.relatedUnits && task.relatedUnits.length > 0) {
+        console.log(`タスク「${task.title}」の関連単元:`, task.relatedUnits)
         task.relatedUnits.forEach(unitId => {
           if (!grouped[unitId]) {
             grouped[unitId] = []
@@ -80,12 +106,15 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           grouped[unitId].push(task)
         })
       } else {
+        console.log(`タスク「${task.title}」は未分類（relatedUnitsが空）`)
         if (!grouped['未分類']) {
           grouped['未分類'] = []
         }
         grouped['未分類'].push(task)
       }
     })
+    console.log('グループ化結果:', Object.keys(grouped))
+    console.log('===========================\n')
     return grouped
   }
 
@@ -93,7 +122,10 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
   const getUnitName = (unitId) => {
     // customUnitsから検索
     const customUnit = customUnits.find(u => u.id === unitId)
-    if (customUnit) return customUnit.name
+    if (customUnit) {
+      console.log(`単元ID「${unitId}」→ カスタム単元「${customUnit.name}」`)
+      return customUnit.name
+    }
 
     // unitsDatabaseから検索
     for (const subject of subjects) {
@@ -102,11 +134,15 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
         for (const grade in gradeData) {
           const units = gradeData[grade]
           const unit = units.find(u => u.id === unitId)
-          if (unit) return unit.name
+          if (unit) {
+            console.log(`単元ID「${unitId}」→ デフォルト単元「${unit.name}」`)
+            return unit.name
+          }
         }
       }
     }
 
+    console.warn(`⚠️ 単元ID「${unitId}」が見つかりません！IDをそのまま表示します`)
     return unitId
   }
 
