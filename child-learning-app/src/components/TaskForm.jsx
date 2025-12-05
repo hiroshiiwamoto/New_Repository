@@ -191,8 +191,8 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
     <form className="task-form sapix-form" onSubmit={handleSubmit}>
       <h2>{editingTask ? '✏️ タスクを編集' : '✏️ 学習タスクを追加'}</h2>
 
-      <div className="form-row">
-        <div className="form-group third">
+      <div className="form-row three-cols">
+        <div className="form-group">
           <label htmlFor="subject">科目</label>
           <select
             id="subject"
@@ -208,7 +208,7 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
           </select>
         </div>
 
-        <div className="form-group third">
+        <div className="form-group">
           <label htmlFor="grade">学年</label>
           <select
             id="grade"
@@ -224,7 +224,7 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
           </select>
         </div>
 
-        <div className="form-group third">
+        <div className="form-group">
           <label htmlFor="unit">単元</label>
           <div className="unit-select-container">
             <select

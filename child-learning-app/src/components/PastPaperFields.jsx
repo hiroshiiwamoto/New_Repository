@@ -13,8 +13,8 @@ function PastPaperFields({
 }) {
   return (
     <div className="pastpaper-fields">
-      <div className="form-row">
-        <div className="form-group third">
+      <div className="form-row three-cols">
+        <div className="form-group">
           <label htmlFor="schoolName">学校名</label>
           <input
             type="text"
@@ -24,7 +24,7 @@ function PastPaperFields({
             placeholder="例: 開成"
           />
         </div>
-        <div className="form-group third">
+        <div className="form-group">
           <label htmlFor="year">年度</label>
           <input
             type="text"
@@ -34,7 +34,7 @@ function PastPaperFields({
             placeholder="例: 2023"
           />
         </div>
-        <div className="form-group third">
+        <div className="form-group">
           <label htmlFor="round">回次</label>
           <select
             id="round"
