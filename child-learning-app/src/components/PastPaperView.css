@@ -451,6 +451,37 @@
   white-space: nowrap;
 }
 
+/* 関連単元 */
+.related-units {
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.related-units-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.related-units-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.unit-tag {
+  display: inline-block;
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid #bfdbfe;
+}
+
 /* 最新セッション */
 .last-session {
   display: flex;
