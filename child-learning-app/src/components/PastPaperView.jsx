@@ -31,6 +31,15 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     grade: '4年生',
     relatedUnits: []
   })
+  const [editingTaskId, setEditingTaskId] = useState(null) // 編集中の過去問タスクID
+  const [editForm, setEditForm] = useState({
+    schoolName: '',
+    year: '',
+    round: '',
+    subject: '算数',
+    grade: '4年生',
+    relatedUnits: []
+  })
 
   // 過去問タスクのみフィルタリング（学年無関係）
   const pastPaperTasks = useMemo(() => {
@@ -309,6 +318,69 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     }
   }
 
+  // 過去問タスクの編集を開始
+  const handleStartEdit = (task) => {
+    setEditingTaskId(task.id)
+    setEditForm({
+      schoolName: task.schoolName || '',
+      year: task.year || '',
+      round: task.round || '',
+      subject: task.subject || '算数',
+      grade: task.grade || '4年生',
+      relatedUnits: task.relatedUnits || []
+    })
+  }
+
+  // 過去問タスクの編集をキャンセル
+  const handleCancelEdit = () => {
+    setEditingTaskId(null)
+    setEditForm({
+      schoolName: '',
+      year: '',
+      round: '',
+      subject: '算数',
+      grade: '4年生',
+      relatedUnits: []
+    })
+  }
+
+  // 過去問タスクの編集を保存
+  const handleSaveEdit = async () => {
+    if (!editForm.schoolName || !editForm.year || !editForm.round) {
+      toast.error('学校名、年度、回を入力してください')
+      return
+    }
+
+    const updatedTask = {
+      title: `${editForm.schoolName} ${editForm.year} ${editForm.round}`,
+      schoolName: editForm.schoolName,
+      year: editForm.year,
+      round: editForm.round,
+      subject: editForm.subject,
+      relatedUnits: editForm.relatedUnits
+    }
+
+    await onUpdateTask(editingTaskId, updatedTask)
+    setEditingTaskId(null)
+    toast.success('過去問を更新しました')
+  }
+
+  // 編集フォームで単元をトグル
+  const toggleEditRelatedUnit = (unitId) => {
+    const currentUnits = editForm.relatedUnits || []
+    if (currentUnits.includes(unitId)) {
+      setEditForm({
+        ...editForm,
+        relatedUnits: currentUnits.filter(id => id !== unitId)
+      })
+    } else {
+      setEditForm({
+        ...editForm,
+        relatedUnits: [...currentUnits, unitId]
+      })
+    }
+  }
+
   const groupedData = viewMode === 'school' ? groupBySchool() : groupByUnit()
 
   return (
@@ -531,29 +603,160 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
 
                   return (
                     <div key={task.id} className="pastpaper-card">
-                      <div className="card-header">
-                        <div className="task-title">
-                          <span className="task-name">{task.title}</span>
-                          <span className="task-details">
-                            {task.schoolName} {task.year} {task.round}
-                          </span>
-                        </div>
-                        <div className="card-header-actions">
-                          <div className="attempt-count">
-                            {taskSessions.length}回演習済み
-                          </div>
-                          <button
-                            className="delete-pastpaper-btn"
-                            onClick={() => handleDeletePastPaper(task.id, task.title)}
-                            title="この過去問を削除"
-                          >
-                            🗑️
-                          </button>
-                        </div>
-                      </div>
+                      {editingTaskId === task.id ? (
+                        // 編集モード
+                        <div className="edit-form-container">
+                          <h4>📝 過去問を編集</h4>
 
-                      {/* 最新の学習記録 */}
-                      {lastSession && (
+                          {/* 科目選択 */}
+                          <div className="edit-form-section">
+                            <label className="section-label">科目:</label>
+                            <div className="subject-selector-inline">
+                              {subjects.map((subject) => (
+                                <button
+                                  key={subject}
+                                  type="button"
+                                  className={`subject-btn-form ${editForm.subject === subject ? 'active' : ''}`}
+                                  onClick={() => {
+                                    setEditForm({
+                                      ...editForm,
+                                      subject,
+                                      relatedUnits: []
+                                    })
+                                  }}
+                                  style={{
+                                    borderColor: editForm.subject === subject ? subjectColors[subject] : '#e2e8f0',
+                                    background: editForm.subject === subject ? `${subjectColors[subject]}15` : 'white',
+                                  }}
+                                >
+                                  {subject}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="edit-form-grid">
+                            <div className="edit-form-field">
+                              <label>学校名:</label>
+                              <input
+                                type="text"
+                                value={editForm.schoolName}
+                                onChange={(e) => setEditForm({ ...editForm, schoolName: e.target.value })}
+                              />
+                            </div>
+                            <div className="edit-form-field">
+                              <label>年度:</label>
+                              <input
+                                type="text"
+                                value={editForm.year}
+                                onChange={(e) => setEditForm({ ...editForm, year: e.target.value })}
+                              />
+                            </div>
+                            <div className="edit-form-field">
+                              <label>回:</label>
+                              <input
+                                type="text"
+                                value={editForm.round}
+                                onChange={(e) => setEditForm({ ...editForm, round: e.target.value })}
+                              />
+                            </div>
+                          </div>
+
+                          {/* 学年選択 */}
+                          <div className="edit-form-section">
+                            <label className="section-label">学年（単元選択用）:</label>
+                            <div className="grade-selector-inline">
+                              {grades.map((grade) => (
+                                <button
+                                  key={grade}
+                                  type="button"
+                                  className={`grade-btn-small ${editForm.grade === grade ? 'active' : ''}`}
+                                  onClick={() => setEditForm({ ...editForm, grade })}
+                                >
+                                  {grade}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* 関連単元選択 */}
+                          <div className="edit-form-section">
+                            <label className="section-label">関連単元:</label>
+                            <div className="units-checkbox-grid">
+                              {unitsDatabase[editForm.subject]?.[editForm.grade]?.map((unit) => (
+                                <label key={unit.id} className="unit-checkbox-label">
+                                  <input
+                                    type="checkbox"
+                                    checked={editForm.relatedUnits.includes(unit.id)}
+                                    onChange={() => toggleEditRelatedUnit(unit.id)}
+                                  />
+                                  <span>{unit.name}</span>
+                                </label>
+                              ))}
+                              {customUnits
+                                .filter(u => u.subject === editForm.subject && u.grade === editForm.grade)
+                                .map((unit) => (
+                                  <label key={unit.id} className="unit-checkbox-label custom">
+                                    <input
+                                      type="checkbox"
+                                      checked={editForm.relatedUnits.includes(unit.id)}
+                                      onChange={() => toggleEditRelatedUnit(unit.id)}
+                                    />
+                                    <span>⭐ {unit.name}</span>
+                                  </label>
+                                ))}
+                            </div>
+                            {editForm.relatedUnits.length > 0 && (
+                              <div className="selected-units-summary">
+                                選択中: {editForm.relatedUnits.length}個の単元
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="edit-form-actions">
+                            <button className="btn-secondary" onClick={handleCancelEdit}>
+                              キャンセル
+                            </button>
+                            <button className="btn-primary" onClick={handleSaveEdit}>
+                              ✓ 保存
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        // 通常表示モード
+                        <>
+                          <div className="card-header">
+                            <div className="task-title">
+                              <span className="task-name">{task.title}</span>
+                              <span className="task-details">
+                                {task.schoolName} {task.year} {task.round}
+                              </span>
+                            </div>
+                            <div className="card-header-actions">
+                              <div className="attempt-count">
+                                {taskSessions.length}回演習済み
+                              </div>
+                              <button
+                                className="edit-pastpaper-btn"
+                                onClick={() => handleStartEdit(task)}
+                                title="この過去問を編集"
+                              >
+                                ✏️
+                              </button>
+                              <button
+                                className="delete-pastpaper-btn"
+                                onClick={() => handleDeletePastPaper(task.id, task.title)}
+                                title="この過去問を削除"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      {/* 最新の学習記録（編集モードでない場合のみ表示） */}
+                      {editingTaskId !== task.id && lastSession && (
                         <div className="last-session">
                           <span className="session-label">最新:</span>
                           <span className="session-date">
@@ -567,8 +770,8 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                         </div>
                       )}
 
-                      {/* セッション一覧 */}
-                      {taskSessions.length > 0 && (
+                      {/* セッション一覧（編集モードでない場合のみ表示） */}
+                      {editingTaskId !== task.id && taskSessions.length > 0 && (
                         <div className="sessions-list">
                           {taskSessions.map(session => (
                             <div key={session.firestoreId} className="session-item">
@@ -592,8 +795,8 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                         </div>
                       )}
 
-                      {/* セッション記録フォーム */}
-                      {showSessionForm === task.id ? (
+                      {/* セッション記録フォーム（編集モードでない場合のみ表示） */}
+                      {editingTaskId !== task.id && showSessionForm === task.id ? (
                         <div className="session-form">
                           <h4>📝 学習記録を追加</h4>
                           <div className="form-grid">
@@ -657,14 +860,14 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                             </button>
                           </div>
                         </div>
-                      ) : (
+                      ) : editingTaskId !== task.id ? (
                         <button
                           className="add-session-btn"
                           onClick={() => handleOpenSessionForm(task.id)}
                         >
                           + 学習記録を追加
                         </button>
-                      )}
+                      ) : null}
                     </div>
                   )
                 })}
