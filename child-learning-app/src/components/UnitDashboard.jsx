@@ -10,6 +10,7 @@ import {
 import { subjectEmojis, subjectColors } from '../utils/constants'
 import { getDaysSinceText } from '../utils/dateUtils'
 import { getMasteryStars } from '../utils/displayUtils'
+import { toast } from '../utils/toast'
 
 function UnitDashboard({ tasks, onEditTask, customUnits = [] }) {
   const [selectedGrade, setSelectedGrade] = useState('4年生')
@@ -30,19 +31,33 @@ function UnitDashboard({ tasks, onEditTask, customUnits = [] }) {
   const progress = getGradeProgress(selectedSubject, selectedGrade, currentUnits)
 
   const handleAddSession = (unitId) => {
-    addStudySession({
-      unitId,
-      ...sessionForm,
-    })
-    setShowSessionForm(false)
-    setSessionForm({
-      duration: 30,
-      masteryLevel: 3,
-      notes: '',
-      needsReview: 'medium',
-    })
-    // Force re-render by updating state
-    setSelectedGrade(selectedGrade)
+    console.log('=== handleAddSession 開始 ===')
+    console.log('unitId:', unitId)
+    console.log('sessionForm:', sessionForm)
+
+    try {
+      const result = addStudySession({
+        unitId,
+        ...sessionForm,
+      })
+      console.log('保存結果:', result)
+
+      setShowSessionForm(false)
+      setSessionForm({
+        duration: 30,
+        masteryLevel: 3,
+        notes: '',
+        needsReview: 'medium',
+      })
+      // Force re-render by updating state
+      setSelectedGrade(selectedGrade)
+
+      toast.success('学習記録を保存しました')
+      console.log('=== handleAddSession 完了 ===')
+    } catch (error) {
+      console.error('保存エラー:', error)
+      toast.error('保存に失敗しました: ' + error.message)
+    }
   }
 
   const toggleUnitExpand = (unitId) => {
