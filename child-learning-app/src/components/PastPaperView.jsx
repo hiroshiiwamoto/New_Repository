@@ -4,12 +4,13 @@ import { subjects } from '../utils/unitsDatabase'
 import {
   getSessionsByTaskId,
   addPastPaperSession,
-  getNextAttemptNumber
+  getNextAttemptNumber,
+  deleteSessionsByTaskId
 } from '../utils/pastPaperSessions'
 import { subjectColors } from '../utils/constants'
 import { toast } from '../utils/toast'
 
-function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask }) {
+function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask, onDeleteTask }) {
   const [viewMode, setViewMode] = useState('school') // 'school' or 'unit'
   const [selectedSubject, setSelectedSubject] = useState('算数')
   const [sessions, setSessions] = useState({}) // taskId -> sessions[]
@@ -171,6 +172,38 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask 
     toast.success('過去問を追加しました')
   }
 
+  // 過去問タスクを削除
+  const handleDeletePastPaper = async (taskId, taskTitle) => {
+    if (!user) {
+      toast.error('ログインが必要です')
+      return
+    }
+
+    // 確認ダイアログ
+    const confirmed = window.confirm(
+      `「${taskTitle}」を削除しますか？\n\nこの過去問に関連する学習記録もすべて削除されます。`
+    )
+
+    if (!confirmed) return
+
+    try {
+      // 先に関連するセッションデータを削除
+      const sessionResult = await deleteSessionsByTaskId(user.uid, taskId)
+
+      if (!sessionResult.success) {
+        toast.error('学習記録の削除に失敗しました: ' + sessionResult.error)
+        return
+      }
+
+      // タスクを削除
+      await onDeleteTask(taskId)
+
+      toast.success('過去問を削除しました')
+    } catch (error) {
+      toast.error('削除に失敗しました: ' + error.message)
+    }
+  }
+
   const groupedData = viewMode === 'school' ? groupBySchool() : groupByUnit()
 
   return (
@@ -317,8 +350,17 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask 
                             {task.schoolName} {task.year} {task.round}
                           </span>
                         </div>
-                        <div className="attempt-count">
-                          {taskSessions.length}回演習済み
+                        <div className="card-header-actions">
+                          <div className="attempt-count">
+                            {taskSessions.length}回演習済み
+                          </div>
+                          <button
+                            className="delete-pastpaper-btn"
+                            onClick={() => handleDeletePastPaper(task.id, task.title)}
+                            title="この過去問を削除"
+                          >
+                            🗑️
+                          </button>
                         </div>
                       </div>
 

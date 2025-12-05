@@ -433,6 +433,7 @@ function App() {
             customUnits={customUnits}
             onAddTask={addTask}
             onUpdateTask={updateTask}
+            onDeleteTask={deleteTask}
           />
         ) : view === 'testscore' ? (
           <TestScoreView
