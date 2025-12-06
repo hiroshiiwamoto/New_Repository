@@ -407,33 +407,34 @@
 
 @media (max-width: 480px) {
   .task-form.sapix-form {
-    padding: 8px;
+    padding: 6px;
+    margin-bottom: 12px;
   }
 
   .task-form h2 {
-    font-size: 1rem;
-    margin-bottom: 8px;
+    font-size: 0.95rem;
+    margin-bottom: 6px;
   }
 
   .form-group {
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
 
   .form-group label {
-    font-size: 0.8rem;
-    margin-bottom: 4px;
+    font-size: 0.75rem;
+    margin-bottom: 3px;
   }
 
   .form-group input,
   .form-group select {
-    padding: 6px 8px;
-    font-size: 0.8rem;
-    border-radius: 6px;
+    padding: 5px 6px;
+    font-size: 0.75rem;
+    border-radius: 4px;
   }
 
   .form-row {
-    gap: 6px;
-    margin-bottom: 8px;
+    gap: 4px;
+    margin-bottom: 6px;
   }
 
   .form-row.three-cols {
@@ -442,83 +443,84 @@
 
   .task-type-buttons {
     grid-template-columns: 1fr;
-    gap: 4px;
+    gap: 3px;
   }
 
   .type-btn {
-    padding: 6px;
-    font-size: 0.75rem;
+    padding: 5px;
+    font-size: 0.7rem;
   }
 
   .submit-btn.sapix-btn {
-    padding: 10px;
-    font-size: 0.9rem;
+    padding: 8px;
+    font-size: 0.85rem;
   }
 
   .add-custom-unit-btn {
-    min-width: 36px;
-    height: 36px;
-    font-size: 0.9rem;
-    padding: 5px 8px;
+    min-width: 32px;
+    height: 32px;
+    font-size: 0.85rem;
+    padding: 4px 6px;
   }
 
   .unit-select-container {
-    gap: 4px;
+    gap: 3px;
   }
 
   .custom-unit-form {
-    padding: 8px;
-    margin-top: 8px;
+    padding: 6px;
+    margin-top: 6px;
   }
 
   .custom-unit-form h3 {
-    font-size: 0.85rem;
-    margin-bottom: 8px;
+    font-size: 0.8rem;
+    margin-bottom: 6px;
   }
 
   .custom-unit-actions {
     flex-direction: column;
-    gap: 6px;
-    margin-top: 8px;
+    gap: 4px;
+    margin-top: 6px;
   }
 
   .btn-primary,
   .btn-secondary {
     width: 100%;
-    padding: 8px;
-    font-size: 0.85rem;
-  }
-
-  .pastpaper-fields {
-    padding: 6px;
-    margin-top: 8px;
-  }
-
-  .related-units-checkboxes {
-    grid-template-columns: 1fr;
-    max-height: 120px;
-    padding: 4px;
-    gap: 3px;
-  }
-
-  .unit-checkbox-label {
-    padding: 3px 5px;
-  }
-
-  .unit-checkbox-label span {
-    font-size: 0.75rem;
-  }
-
-  .priority-buttons {
-    gap: 4px;
-  }
-
-  .priority-btn {
     padding: 6px;
     font-size: 0.8rem;
   }
 
+  .pastpaper-fields {
+    padding: 4px;
+    margin-top: 6px;
+  }
+
+  .related-units-checkboxes {
+    grid-template-columns: 1fr;
+    max-height: 100px;
+    padding: 3px;
+    gap: 2px;
+  }
+
+  .unit-checkbox-label {
+    padding: 2px 4px;
+  }
+
+  .unit-checkbox-label span {
+    font-size: 0.7rem;
+  }
+
+  .priority-buttons {
+    gap: 3px;
+  }
+
+  .priority-btn {
+    padding: 5px;
+    font-size: 0.75rem;
+  }
+
   .form-actions {
-    margin-top: 8px;
+    margin-top: 6px;
+    gap: 4px;
   }
 }
