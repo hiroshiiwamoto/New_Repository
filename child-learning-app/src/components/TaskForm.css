@@ -336,7 +336,11 @@
 
   .form-row {
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 15px;
+  }
+
+  .form-row.three-cols {
+    grid-template-columns: 1fr;
   }
 
   .task-type-buttons {
@@ -357,6 +361,10 @@
     min-width: 44px;
     height: 44px;
     font-size: 1.1rem;
+  }
+
+  .unit-select-container {
+    gap: 8px;
   }
 
   .custom-unit-form {
@@ -401,6 +409,14 @@
     font-size: 0.9rem;
   }
 
+  .form-row {
+    gap: 12px;
+  }
+
+  .form-row.three-cols {
+    grid-template-columns: 1fr;
+  }
+
   .task-type-buttons {
     grid-template-columns: 1fr;
   }
@@ -419,6 +435,10 @@
     height: 40px;
     font-size: 1rem;
     padding: 8px 12px;
+  }
+
+  .unit-select-container {
+    gap: 6px;
   }
 
   .custom-unit-form {
