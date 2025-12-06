@@ -326,7 +326,7 @@
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .task-form.sapix-form {
-    padding: 20px;
+    padding: 15px;
     border-radius: 12px;
   }
 
@@ -360,7 +360,7 @@
   }
 
   .custom-unit-form {
-    padding: 15px;
+    padding: 12px;
   }
 
   .custom-unit-form h3 {
@@ -368,17 +368,23 @@
   }
 
   .pastpaper-fields {
-    padding: 15px;
+    padding: 12px;
   }
 
   .related-units-checkboxes {
     grid-template-columns: 1fr;
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .unit-checkbox-label {
+    padding: 6px 10px;
   }
 }
 
 @media (max-width: 480px) {
   .task-form.sapix-form {
-    padding: 15px;
+    padding: 12px;
   }
 
   .task-form h2 {
@@ -434,16 +440,18 @@
   }
 
   .pastpaper-fields {
-    padding: 12px;
+    padding: 10px;
   }
 
   .related-units-checkboxes {
     grid-template-columns: 1fr;
     max-height: 150px;
+    padding: 8px;
+    gap: 6px;
   }
 
   .unit-checkbox-label {
-    padding: 6px 10px;
+    padding: 5px 8px;
   }
 
   .unit-checkbox-label span {
