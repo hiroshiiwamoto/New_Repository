@@ -29,7 +29,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     round: '',
     subject: '算数',  // フォーム内で独立して科目を管理
     grade: '4年生',
-    relatedUnits: [],
+    unitId: '',  // 単一の単元ID
     fileUrl: ''  // GoogleドライブやPDFのURL
   })
   const [editingTaskId, setEditingTaskId] = useState(null) // 編集中の過去問タスクID
@@ -39,7 +39,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     round: '',
     subject: '算数',
     grade: '4年生',
-    relatedUnits: [],
+    unitId: '',  // 単一の単元ID
     fileUrl: ''  // GoogleドライブやPDFのURL
   })
 
@@ -62,7 +62,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
         schoolName: task.schoolName || '(空)',
         year: task.year,
         round: task.round,
-        relatedUnits: task.relatedUnits,
+        unitId: task.unitId,
         grade: task.grade
       })
     })
@@ -93,33 +93,17 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
   useEffect(() => {
     if (!user || !onUpdateTask) return
 
-    // customUnitsに存在しないIDを持つrelatedUnitsを持つタスクを探す
+    // customUnitsに存在しないIDを持つunitIdを持つタスクを探す
     const customUnitIds = customUnits.map(u => u.id)
 
     pastPaperTasks.forEach(task => {
-      if (task.relatedUnits && task.relatedUnits.length > 0) {
-        // 存在しないカスタム単元への参照を削除
-        const invalidUnits = task.relatedUnits.filter(unitId => {
-          // カスタム単元IDの場合のみチェック
-          if (unitId.startsWith('custom_')) {
-            return !customUnitIds.includes(unitId)
-          }
-          return false
-        })
+      if (task.unitId && task.unitId.startsWith('custom_')) {
+        // カスタム単元が削除されている場合
+        if (!customUnitIds.includes(task.unitId)) {
+          console.warn(`⚠️ タスク「${task.title}」に削除された単元への参照があります:`, task.unitId)
 
-        if (invalidUnits.length > 0) {
-          console.warn(`⚠️ タスク「${task.title}」に削除された単元への参照があります:`, invalidUnits)
-
-          // 有効な単元IDのみ残す
-          const validUnits = task.relatedUnits.filter(unitId => !invalidUnits.includes(unitId))
-
-          console.log(`🔧 修正中: relatedUnitsを更新`, {
-            before: task.relatedUnits,
-            after: validUnits
-          })
-
-          // タスクを更新
-          onUpdateTask(task.id, { relatedUnits: validUnits })
+          // 単元IDをクリア
+          onUpdateTask(task.id, { unitId: '' })
           toast.info(`「${task.title}」の削除された単元への参照を修正しました`)
         }
       }
@@ -148,16 +132,14 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     const grouped = {}
     console.log('\n=== 単元別グループ化デバッグ ===')
     pastPaperTasks.forEach(task => {
-      if (task.relatedUnits && task.relatedUnits.length > 0) {
-        console.log(`タスク「${task.title}」の関連単元:`, task.relatedUnits)
-        task.relatedUnits.forEach(unitId => {
-          if (!grouped[unitId]) {
-            grouped[unitId] = []
-          }
-          grouped[unitId].push(task)
-        })
+      if (task.unitId) {
+        console.log(`タスク「${task.title}」の単元:`, task.unitId)
+        if (!grouped[task.unitId]) {
+          grouped[task.unitId] = []
+        }
+        grouped[task.unitId].push(task)
       } else {
-        console.log(`タスク「${task.title}」は未分類（relatedUnitsが空）`)
+        console.log(`タスク「${task.title}」は未分類（unitIdが空）`)
         if (!grouped['未分類']) {
           grouped['未分類'] = []
         }
@@ -246,20 +228,12 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     return null
   }
 
-  // 単元選択をトグル
-  const toggleRelatedUnit = (unitId) => {
-    const currentUnits = addForm.relatedUnits || []
-    if (currentUnits.includes(unitId)) {
-      setAddForm({
-        ...addForm,
-        relatedUnits: currentUnits.filter(id => id !== unitId)
-      })
-    } else {
-      setAddForm({
-        ...addForm,
-        relatedUnits: [...currentUnits, unitId]
-      })
-    }
+  // 単元を選択
+  const selectUnit = (unitId) => {
+    setAddForm({
+      ...addForm,
+      unitId: unitId
+    })
   }
 
   // 過去問タスクを追加
@@ -277,14 +251,14 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       schoolName: addForm.schoolName,
       year: addForm.year,
       round: addForm.round,
-      relatedUnits: addForm.relatedUnits,
+      unitId: addForm.unitId,  // 単一の単元ID
       fileUrl: addForm.fileUrl,  // 問題ファイルのURL
       dueDate: '',
       priority: 'medium'
     }
 
     await onAddTask(newTask)
-    setAddForm({ schoolName: '', year: '', round: '', subject: '算数', grade: '4年生', relatedUnits: [], fileUrl: '' })
+    setAddForm({ schoolName: '', year: '', round: '', subject: '算数', grade: '4年生', unitId: '', fileUrl: '' })
     setShowAddForm(false)
     toast.success('過去問を追加しました')
   }
@@ -330,7 +304,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       round: task.round || '',
       subject: task.subject || '算数',
       grade: task.grade || '4年生',
-      relatedUnits: task.relatedUnits || [],
+      unitId: task.unitId || '',
       fileUrl: task.fileUrl || ''
     })
   }
@@ -344,7 +318,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       round: '',
       subject: '算数',
       grade: '4年生',
-      relatedUnits: [],
+      unitId: '',
       fileUrl: ''
     })
   }
@@ -362,7 +336,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       year: editForm.year,
       round: editForm.round,
       subject: editForm.subject,
-      relatedUnits: editForm.relatedUnits,
+      unitId: editForm.unitId,
       fileUrl: editForm.fileUrl
     }
 
@@ -371,20 +345,12 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     toast.success('過去問を更新しました')
   }
 
-  // 編集フォームで単元をトグル
-  const toggleEditRelatedUnit = (unitId) => {
-    const currentUnits = editForm.relatedUnits || []
-    if (currentUnits.includes(unitId)) {
-      setEditForm({
-        ...editForm,
-        relatedUnits: currentUnits.filter(id => id !== unitId)
-      })
-    } else {
-      setEditForm({
-        ...editForm,
-        relatedUnits: [...currentUnits, unitId]
-      })
-    }
+  // 編集フォームで単元を選択
+  const selectEditUnit = (unitId) => {
+    setEditForm({
+      ...editForm,
+      unitId: unitId
+    })
   }
 
   const groupedData = viewMode === 'school' ? groupBySchool() : groupByUnit()
@@ -504,17 +470,18 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
             </div>
           </div>
 
-          {/* 関連単元選択 */}
+          {/* 単元選択 */}
           <div className="add-form-section">
-            <label className="section-label">関連単元（任意）:</label>
+            <label className="section-label">単元（任意）:</label>
             <div className="units-checkbox-grid">
               {/* デフォルト単元 */}
               {unitsDatabase[addForm.subject]?.[addForm.grade]?.map((unit) => (
                 <label key={unit.id} className="unit-checkbox-label">
                   <input
-                    type="checkbox"
-                    checked={addForm.relatedUnits.includes(unit.id)}
-                    onChange={() => toggleRelatedUnit(unit.id)}
+                    type="radio"
+                    name="unitId"
+                    checked={addForm.unitId === unit.id}
+                    onChange={() => selectUnit(unit.id)}
                   />
                   <span>{unit.name}</span>
                 </label>
@@ -525,17 +492,18 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                 .map((unit) => (
                   <label key={unit.id} className="unit-checkbox-label custom">
                     <input
-                      type="checkbox"
-                      checked={addForm.relatedUnits.includes(unit.id)}
-                      onChange={() => toggleRelatedUnit(unit.id)}
+                      type="radio"
+                      name="unitId"
+                      checked={addForm.unitId === unit.id}
+                      onChange={() => selectUnit(unit.id)}
                     />
                     <span>⭐ {unit.name}</span>
                   </label>
                 ))}
             </div>
-            {addForm.relatedUnits.length > 0 && (
+            {addForm.unitId && (
               <div className="selected-units-summary">
-                選択中: {addForm.relatedUnits.length}個の単元
+                選択中: {getUnitName(addForm.unitId)}
               </div>
             )}
           </div>
@@ -545,7 +513,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
               className="btn-secondary"
               onClick={() => {
                 setShowAddForm(false)
-                setAddForm({ schoolName: '', year: '', round: '', subject: '算数', grade: '4年生', relatedUnits: [], fileUrl: '' })
+                setAddForm({ schoolName: '', year: '', round: '', subject: '算数', grade: '4年生', unitId: '', fileUrl: '' })
               }}
             >
               キャンセル
@@ -643,7 +611,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                                     setEditForm({
                                       ...editForm,
                                       subject,
-                                      relatedUnits: []
+                                      unitId: ''
                                     })
                                   }}
                                   style={{
@@ -717,16 +685,17 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                             </div>
                           </div>
 
-                          {/* 関連単元選択 */}
+                          {/* 単元選択 */}
                           <div className="edit-form-section">
-                            <label className="section-label">関連単元:</label>
+                            <label className="section-label">単元:</label>
                             <div className="units-checkbox-grid">
                               {unitsDatabase[editForm.subject]?.[editForm.grade]?.map((unit) => (
                                 <label key={unit.id} className="unit-checkbox-label">
                                   <input
-                                    type="checkbox"
-                                    checked={editForm.relatedUnits.includes(unit.id)}
-                                    onChange={() => toggleEditRelatedUnit(unit.id)}
+                                    type="radio"
+                                    name="editUnitId"
+                                    checked={editForm.unitId === unit.id}
+                                    onChange={() => selectEditUnit(unit.id)}
                                   />
                                   <span>{unit.name}</span>
                                 </label>
@@ -736,17 +705,18 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                                 .map((unit) => (
                                   <label key={unit.id} className="unit-checkbox-label custom">
                                     <input
-                                      type="checkbox"
-                                      checked={editForm.relatedUnits.includes(unit.id)}
-                                      onChange={() => toggleEditRelatedUnit(unit.id)}
+                                      type="radio"
+                                      name="editUnitId"
+                                      checked={editForm.unitId === unit.id}
+                                      onChange={() => selectEditUnit(unit.id)}
                                     />
                                     <span>⭐ {unit.name}</span>
                                   </label>
                                 ))}
                             </div>
-                            {editForm.relatedUnits.length > 0 && (
+                            {editForm.unitId && (
                               <div className="selected-units-summary">
-                                選択中: {editForm.relatedUnits.length}個の単元
+                                選択中: {getUnitName(editForm.unitId)}
                               </div>
                             )}
                           </div>
@@ -765,7 +735,14 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                         <>
                           <div className="card-header">
                             <div className="task-title">
-                              <span className="task-name">{task.title}</span>
+                              <span className="task-name">
+                                {task.title}
+                                {task.unitId && (
+                                  <span className="unit-tag" style={{ marginLeft: '8px' }}>
+                                    {getUnitName(task.unitId)}
+                                  </span>
+                                )}
+                              </span>
                             </div>
                             <div className="card-header-actions">
                               <div className="attempt-count">
@@ -798,20 +775,6 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                               </button>
                             </div>
                           </div>
-
-                          {/* 関連単元の表示 */}
-                          {task.relatedUnits && task.relatedUnits.length > 0 && (
-                            <div className="related-units">
-                              <span className="related-units-label">📚 関連単元:</span>
-                              <span className="related-units-tags">
-                                {task.relatedUnits.map(unitId => (
-                                  <span key={unitId} className="unit-tag">
-                                    {getUnitName(unitId)}
-                                  </span>
-                                ))}
-                              </span>
-                            </div>
-                          )}
                         </>
                       )}
 
