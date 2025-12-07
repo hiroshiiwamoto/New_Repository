@@ -53,6 +53,9 @@
   margin-bottom: 30px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border: 2px solid #e0e7ff;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .add-pastpaper-form h3 {
@@ -66,12 +69,15 @@
   grid-template-columns: 1fr 1fr;
   gap: 15px;
   margin-bottom: 20px;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .add-form-field {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
 }
 
 .add-form-field label {
@@ -394,6 +400,9 @@
   border-radius: 8px;
   padding: 12px;
   transition: all 0.3s ease;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .pastpaper-card:hover {
@@ -596,6 +605,9 @@
   border-radius: 10px;
   margin-top: 15px;
   border: 2px solid #e0e7ff;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .session-form h4 {
@@ -609,12 +621,15 @@
   grid-template-columns: 1fr;
   gap: 15px;
   margin-bottom: 15px;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .form-field {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 
 .form-field.full {
@@ -634,6 +649,9 @@
   border-radius: 8px;
   font-size: 0.95rem;
   transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .form-field input:focus,
@@ -720,6 +738,9 @@
 /* 編集フォーム */
 .edit-form-container {
   padding: 12px;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .edit-form-container h4 {
@@ -739,12 +760,15 @@
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   margin-bottom: 12px;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .edit-form-field {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 
 .edit-form-field label {
