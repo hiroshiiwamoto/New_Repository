@@ -543,20 +543,18 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
         <div className="filter-row">
           <div className="filter-group">
             <label>表示モード:</label>
-            <div className="mode-buttons">
-              <button
-                className={`mode-btn ${viewMode === 'school' ? 'active' : ''}`}
-                onClick={() => setViewMode('school')}
-              >
-                🏫 学校別
-              </button>
-              <button
-                className={`mode-btn ${viewMode === 'unit' ? 'active' : ''}`}
-                onClick={() => setViewMode('unit')}
-              >
-                📚 単元別
-              </button>
-            </div>
+            <button
+              className={`mode-btn ${viewMode === 'school' ? 'active' : ''}`}
+              onClick={() => setViewMode('school')}
+            >
+              🏫 学校別
+            </button>
+            <button
+              className={`mode-btn ${viewMode === 'unit' ? 'active' : ''}`}
+              onClick={() => setViewMode('unit')}
+            >
+              📚 単元別
+            </button>
           </div>
 
           <div className="subject-buttons">
