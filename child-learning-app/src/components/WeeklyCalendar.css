@@ -1,7 +1,7 @@
 .weekly-calendar {
   background: white;
   border-radius: 20px;
-  padding: 25px;
+  padding: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   margin-bottom: 20px;
 }
@@ -376,7 +376,7 @@
 
 @media (max-width: 768px) {
   .weekly-calendar {
-    padding: 15px;
+    padding: 6px;
     border-radius: 15px;
   }
 
@@ -432,7 +432,7 @@
 
 @media (max-width: 480px) {
   .weekly-calendar {
-    padding: 12px;
+    padding: 4px;
   }
 
   .calendar-title h2 {

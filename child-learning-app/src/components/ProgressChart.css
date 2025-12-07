@@ -1,7 +1,7 @@
 .progress-chart {
   background: white;
   border-radius: 16px;
-  padding: 25px;
+  padding: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   margin-bottom: 20px;
 }
@@ -89,7 +89,7 @@
 /* モバイル対応 */
 @media (max-width: 768px) {
   .progress-chart {
-    padding: 20px 15px;
+    padding: 6px;
   }
 
   .chart-legend {
@@ -109,7 +109,7 @@
 
 @media (max-width: 480px) {
   .progress-chart {
-    padding: 15px 10px;
+    padding: 4px;
   }
 
   .chart-legend {
