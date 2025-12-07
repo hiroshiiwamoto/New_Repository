@@ -293,7 +293,11 @@
 }
 
 .filter-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
 .filter-group:last-child {
@@ -301,10 +305,8 @@
 }
 
 .filter-group label {
-  display: block;
   font-weight: 600;
   color: #1d1d1f;
-  margin-bottom: 12px;
   font-size: 0.9375rem;
   letter-spacing: -0.01em;
 }
@@ -963,8 +965,8 @@
     padding: 4px;
   }
 
-  .filter-group label {
-    margin-bottom: 8px;
+  .filter-group {
+    gap: 8px;
   }
 
   .subject-buttons,
