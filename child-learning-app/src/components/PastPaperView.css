@@ -953,7 +953,19 @@
   .subject-buttons,
   .subject-selector-inline {
     grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
+    gap: 8px;
+  }
+
+  .subject-btn {
+    padding: 10px 6px;
+    font-size: 0.8rem;
+    gap: 4px;
+    flex-direction: row;
+    white-space: nowrap;
+  }
+
+  .subject-emoji {
+    font-size: 1rem;
   }
 
   .view-header h2 {
