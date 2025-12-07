@@ -322,29 +322,31 @@
 
 .mode-btn,
 .filter-btn {
-  padding: 10px 20px;
-  border: 2px solid #e2e8f0;
+  padding: 10px 18px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
   background: white;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 0.9375rem;
   font-weight: 600;
-  transition: all 0.3s ease;
-  color: #475569;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #86868b;
+  letter-spacing: -0.01em;
 }
 
 .mode-btn:hover,
 .filter-btn:hover {
-  border-color: #cbd5e1;
-  transform: translateY(-2px);
+  border-color: #007AFF;
+  background: rgba(0, 122, 255, 0.08);
+  transform: scale(1.02);
 }
 
 .mode-btn.active,
 .filter-btn.active {
-  background: #3b82f6;
+  border-color: #007AFF;
+  background: #007AFF;
   color: white;
-  border-color: #3b82f6;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
 }
 
 /* コンテンツ */
@@ -983,8 +985,8 @@
 
   .mode-btn,
   .filter-btn {
-    padding: 8px 16px;
-    font-size: 0.9rem;
+    padding: 6px 12px;
+    font-size: 0.85rem;
   }
 
   .session-form {
