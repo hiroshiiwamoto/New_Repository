@@ -1,7 +1,7 @@
 .dashboard {
   background: white;
   border-radius: 16px;
-  padding: 25px;
+  padding: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   margin-bottom: 25px;
 }
@@ -94,7 +94,7 @@
 
 @media (max-width: 768px) {
   .dashboard {
-    padding: 20px;
+    padding: 6px;
   }
 
   .dashboard-title {
@@ -128,7 +128,7 @@
 
 @media (max-width: 480px) {
   .dashboard {
-    padding: 15px;
+    padding: 4px;
   }
 
   .subject-progress-grid {

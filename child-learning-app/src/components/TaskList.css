@@ -395,7 +395,7 @@
 .empty-state {
   background: white;
   border-radius: 20px;
-  padding: 48px 24px;
+  padding: 12px;
   text-align: center;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
   border: 1px solid rgba(0, 0, 0, 0.04);
@@ -476,7 +476,7 @@
   }
 
   .empty-state {
-    padding: 30px 15px;
+    padding: 6px;
     border-radius: 15px;
   }
 
@@ -579,7 +579,7 @@
   }
 
   .empty-state {
-    padding: 25px 10px;
+    padding: 4px;
   }
 
   .empty-state p:first-child {

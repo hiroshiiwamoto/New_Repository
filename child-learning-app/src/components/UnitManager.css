@@ -89,7 +89,7 @@
 .units-section {
   background: white;
   border-radius: 12px;
-  padding: 25px;
+  padding: 12px;
   margin-bottom: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -111,7 +111,7 @@
 
 .no-units {
   text-align: center;
-  padding: 40px 20px;
+  padding: 12px;
   color: #94a3b8;
   font-size: 1rem;
 }

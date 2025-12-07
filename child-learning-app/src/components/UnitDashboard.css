@@ -6,7 +6,7 @@
 .dashboard-header {
   background: white;
   border-radius: 20px;
-  padding: 28px;
+  padding: 12px;
   margin-bottom: 24px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.06);
   border: 1px solid rgba(0, 0, 0, 0.04);
@@ -92,7 +92,7 @@
 .subject-achievement {
   background: white;
   border-radius: 16px;
-  padding: 25px;
+  padding: 12px;
   margin-bottom: 20px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
@@ -185,7 +185,7 @@
 .summary-card {
   background: white;
   border-radius: 16px;
-  padding: 24px;
+  padding: 12px;
   text-align: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -222,7 +222,7 @@
 .unit-card {
   background: white;
   border-radius: 16px;
-  padding: 24px;
+  padding: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid rgba(0, 0, 0, 0.06);
@@ -641,7 +641,7 @@
 
 @media (max-width: 768px) {
   .dashboard-header {
-    padding: 20px;
+    padding: 6px;
   }
 
   .grade-selector {
@@ -678,7 +678,7 @@
 
 @media (max-width: 480px) {
   .dashboard-header {
-    padding: 15px;
+    padding: 4px;
   }
 
   .grade-selector {
@@ -696,7 +696,7 @@
   }
 
   .subject-achievement {
-    padding: 15px;
+    padding: 4px;
   }
 
   .achievement-title {
@@ -723,7 +723,7 @@
   }
 
   .summary-card {
-    padding: 15px;
+    padding: 4px;
   }
 
   .summary-value {
