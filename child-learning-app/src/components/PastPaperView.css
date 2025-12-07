@@ -285,23 +285,16 @@
 }
 
 .filter-row {
-  margin-bottom: 20px;
-}
-
-.filter-row:last-child {
-  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .filter-group {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 20px;
   flex-wrap: wrap;
-}
-
-.filter-group:last-child {
-  margin-bottom: 0;
 }
 
 .filter-group label {
@@ -965,8 +958,12 @@
     padding: 4px;
   }
 
-  .filter-group {
+  .filter-row {
     gap: 8px;
+  }
+
+  .filter-group {
+    gap: 6px;
   }
 
   .subject-buttons,
