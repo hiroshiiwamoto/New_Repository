@@ -7,7 +7,7 @@ import {
   getNextAttemptNumber,
   deleteSessionsByTaskId
 } from '../utils/pastPaperSessions'
-import { subjectColors } from '../utils/constants'
+import { subjectColors, subjectEmojis } from '../utils/constants'
 import { toast } from '../utils/toast'
 
 function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask, onDeleteTask }) {
@@ -396,7 +396,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                 <button
                   key={subject}
                   type="button"
-                  className={`subject-btn-form ${addForm.subject === subject ? 'active' : ''}`}
+                  className={`subject-btn ${addForm.subject === subject ? 'active' : ''}`}
                   onClick={() => {
                     // 科目変更時に単元選択をクリア
                     setAddForm({
@@ -410,7 +410,8 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                     background: addForm.subject === subject ? `${subjectColors[subject]}15` : 'white',
                   }}
                 >
-                  {subject}
+                  <span className="subject-emoji">{subjectEmojis[subject]}</span>
+                  <span>{subject}</span>
                 </button>
               ))}
             </div>
@@ -564,14 +565,15 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
               {subjects.map((subject) => (
                 <button
                   key={subject}
-                  className={`filter-btn subject ${selectedSubject === subject ? 'active' : ''}`}
+                  className={`subject-btn ${selectedSubject === subject ? 'active' : ''}`}
                   onClick={() => setSelectedSubject(subject)}
                   style={{
                     borderColor: selectedSubject === subject ? subjectColors[subject] : '#e2e8f0',
                     background: selectedSubject === subject ? `${subjectColors[subject]}15` : 'white',
                   }}
                 >
-                  {subject}
+                  <span className="subject-emoji">{subjectEmojis[subject]}</span>
+                  <span>{subject}</span>
                 </button>
               ))}
             </div>
@@ -615,7 +617,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                                 <button
                                   key={subject}
                                   type="button"
-                                  className={`subject-btn-form ${editForm.subject === subject ? 'active' : ''}`}
+                                  className={`subject-btn ${editForm.subject === subject ? 'active' : ''}`}
                                   onClick={() => {
                                     setEditForm({
                                       ...editForm,
@@ -628,7 +630,8 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                                     background: editForm.subject === subject ? `${subjectColors[subject]}15` : 'white',
                                   }}
                                 >
-                                  {subject}
+                                  <span className="subject-emoji">{subjectEmojis[subject]}</span>
+                                  <span>{subject}</span>
                                 </button>
                               ))}
                             </div>

@@ -149,33 +149,39 @@
 
 /* 科目選択（フォーム内） */
 .subject-selector-inline {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
   margin-bottom: 15px;
 }
 
-.subject-btn-form {
-  padding: 8px 18px;
-  border: 2px solid #e2e8f0;
+.subject-btn {
+  padding: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
   background: white;
-  border-radius: 8px;
   cursor: pointer;
-  font-size: 0.9rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
   font-weight: 600;
-  transition: all 0.3s ease;
-  color: #475569;
+  font-size: 0.9375rem;
+  color: #1d1d1f;
+  letter-spacing: -0.01em;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-.subject-btn-form:hover {
-  border-color: #cbd5e1;
+.subject-btn:hover {
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.12);
 }
 
-.subject-btn-form.active {
-  color: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  font-weight: 700;
+.subject-emoji {
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 .grade-selector-inline {
@@ -302,11 +308,16 @@
 }
 
 .mode-buttons,
-.grade-buttons,
-.subject-buttons {
+.grade-buttons {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.subject-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
 }
 
 .mode-btn,
@@ -334,10 +345,6 @@
   color: white;
   border-color: #3b82f6;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-
-.filter-btn.subject.active {
-  /* Color set inline */
 }
 
 /* コンテンツ */
@@ -823,7 +830,18 @@
 }
 
 /* レスポンシブ */
+@media (max-width: 1024px) {
+  .subject-buttons,
+  .subject-selector-inline {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
+  .subject-btn {
+    padding: 12px;
+    font-size: 0.9rem;
+  }
   .pastpaper-view {
     padding: 15px;
   }
@@ -932,6 +950,12 @@
 }
 
 @media (max-width: 480px) {
+  .subject-buttons,
+  .subject-selector-inline {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
   .view-header h2 {
     font-size: 1.3rem;
   }
@@ -941,8 +965,7 @@
   }
 
   .mode-buttons,
-  .grade-buttons,
-  .subject-buttons {
+  .grade-buttons {
     gap: 8px;
   }
 
