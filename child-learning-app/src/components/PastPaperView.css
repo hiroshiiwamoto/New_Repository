@@ -277,10 +277,11 @@
 /* フィルター */
 .view-filters {
   background: white;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 30px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  padding: 12px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .filter-row {
@@ -292,7 +293,7 @@
 }
 
 .filter-group {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .filter-group:last-child {
@@ -302,9 +303,10 @@
 .filter-group label {
   display: block;
   font-weight: 600;
-  color: #1e293b;
-  margin-bottom: 10px;
-  font-size: 0.95rem;
+  color: #1d1d1f;
+  margin-bottom: 12px;
+  font-size: 0.9375rem;
+  letter-spacing: -0.01em;
 }
 
 .mode-buttons,
@@ -840,10 +842,15 @@
 }
 
 @media (max-width: 768px) {
+  .view-filters {
+    padding: 6px;
+  }
+
   .subject-btn {
     padding: 12px;
     font-size: 0.9rem;
   }
+
   .pastpaper-view {
     padding: 15px;
   }
@@ -952,6 +959,14 @@
 }
 
 @media (max-width: 480px) {
+  .view-filters {
+    padding: 4px;
+  }
+
+  .filter-group label {
+    margin-bottom: 8px;
+  }
+
   .subject-buttons,
   .subject-selector-inline {
     grid-template-columns: repeat(4, 1fr);
