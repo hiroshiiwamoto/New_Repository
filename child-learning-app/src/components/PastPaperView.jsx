@@ -42,6 +42,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     unitId: '',  // 単一の単元ID
     fileUrl: ''  // GoogleドライブやPDFのURL
   })
+  const [expandedSessions, setExpandedSessions] = useState({}) // 学習記録の展開状態 (taskId -> boolean)
 
   // 過去問タスクのみフィルタリング（学年無関係）
   const pastPaperTasks = useMemo(() => {
@@ -351,6 +352,14 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       ...editForm,
       unitId: unitId
     })
+  }
+
+  // 学習記録の展開/折りたたみをトグル
+  const toggleSessionExpanded = (taskId) => {
+    setExpandedSessions(prev => ({
+      ...prev,
+      [taskId]: !prev[taskId]
+    }))
   }
 
   const groupedData = viewMode === 'school' ? groupBySchool() : groupByUnit()
@@ -793,8 +802,18 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                         </div>
                       )}
 
-                      {/* セッション一覧（編集モードでない場合のみ表示） */}
+                      {/* 学習記録の展開/折りたたみボタン（編集モードでなく、セッションがある場合のみ表示） */}
                       {editingTaskId !== task.id && taskSessions.length > 0 && (
+                        <button
+                          className="toggle-sessions-btn"
+                          onClick={() => toggleSessionExpanded(task.id)}
+                        >
+                          {expandedSessions[task.id] ? '▼' : '▶'} 学習記録 ({taskSessions.length}回)
+                        </button>
+                      )}
+
+                      {/* セッション一覧（編集モードでなく、展開されている場合のみ表示） */}
+                      {editingTaskId !== task.id && expandedSessions[task.id] && taskSessions.length > 0 && (
                         <div className="sessions-list">
                           {taskSessions.map(session => (
                             <div key={session.firestoreId} className="session-item">
