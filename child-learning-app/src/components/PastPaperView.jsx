@@ -559,24 +559,21 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
             </div>
           </div>
 
-          <div className="filter-group">
-            <label>科目:</label>
-            <div className="subject-buttons">
-              {subjects.map((subject) => (
-                <button
-                  key={subject}
-                  className={`subject-btn ${selectedSubject === subject ? 'active' : ''}`}
-                  onClick={() => setSelectedSubject(subject)}
-                  style={{
-                    borderColor: selectedSubject === subject ? subjectColors[subject] : '#e2e8f0',
-                    background: selectedSubject === subject ? `${subjectColors[subject]}15` : 'white',
-                  }}
-                >
-                  <span className="subject-emoji">{subjectEmojis[subject]}</span>
-                  <span>{subject}</span>
-                </button>
-              ))}
-            </div>
+          <div className="subject-buttons">
+            {subjects.map((subject) => (
+              <button
+                key={subject}
+                className={`subject-btn ${selectedSubject === subject ? 'active' : ''}`}
+                onClick={() => setSelectedSubject(subject)}
+                style={{
+                  borderColor: selectedSubject === subject ? subjectColors[subject] : '#e2e8f0',
+                  background: selectedSubject === subject ? `${subjectColors[subject]}15` : 'white',
+                }}
+              >
+                <span className="subject-emoji">{subjectEmojis[subject]}</span>
+                <span>{subject}</span>
+              </button>
+            ))}
           </div>
         </div>
       </div>
