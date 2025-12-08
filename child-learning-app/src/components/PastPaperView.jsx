@@ -388,13 +388,13 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
             className={`mode-btn ${viewMode === 'school' ? 'active' : ''}`}
             onClick={() => setViewMode('school')}
           >
-            🏫 学校別
+            学校別
           </button>
           <button
             className={`mode-btn ${viewMode === 'unit' ? 'active' : ''}`}
             onClick={() => setViewMode('unit')}
           >
-            📚 単元別
+            単元別
           </button>
         </div>
 
