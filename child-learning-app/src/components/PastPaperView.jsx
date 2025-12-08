@@ -382,17 +382,40 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           gap: '12px',
           marginBottom: '40px',
           flexWrap: 'wrap',
+          minHeight: '40px',
         }}>
-          <label>表示モード:</label>
+          <label style={{
+            fontWeight: '600',
+            color: '#1d1d1f',
+            fontSize: '0.9375rem',
+            letterSpacing: '-0.01em',
+            margin: '0',
+            padding: '0',
+            lineHeight: '1.5',
+          }}>表示モード:</label>
           <button
             className={`mode-btn ${viewMode === 'school' ? 'active' : ''}`}
             onClick={() => setViewMode('school')}
+            style={{
+              padding: '8px 16px',
+              fontSize: '0.9rem',
+              fontWeight: '600',
+              lineHeight: '1.5',
+              margin: '0',
+            }}
           >
             学校別
           </button>
           <button
             className={`mode-btn ${viewMode === 'unit' ? 'active' : ''}`}
             onClick={() => setViewMode('unit')}
+            style={{
+              padding: '8px 16px',
+              fontSize: '0.9rem',
+              fontWeight: '600',
+              lineHeight: '1.5',
+              margin: '0',
+            }}
           >
             単元別
           </button>

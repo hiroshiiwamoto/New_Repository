@@ -87,13 +87,29 @@ function UnitDashboard({ tasks, onEditTask, customUnits = [] }) {
           gap: '12px',
           marginBottom: '40px',
           flexWrap: 'wrap',
+          minHeight: '40px',
         }}>
-          <label>学年:</label>
+          <label style={{
+            fontWeight: '600',
+            color: '#1d1d1f',
+            fontSize: '0.9375rem',
+            letterSpacing: '-0.01em',
+            margin: '0',
+            padding: '0',
+            lineHeight: '1.5',
+          }}>学年:</label>
           {grades.map((grade) => (
             <button
               key={grade}
               className={`grade-btn ${selectedGrade === grade ? 'active' : ''}`}
               onClick={() => setSelectedGrade(grade)}
+              style={{
+                padding: '8px 16px',
+                fontSize: '0.9rem',
+                fontWeight: '600',
+                lineHeight: '1.5',
+                margin: '0',
+              }}
             >
               {grade}
             </button>
