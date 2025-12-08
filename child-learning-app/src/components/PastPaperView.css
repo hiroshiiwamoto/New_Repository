@@ -1,7 +1,5 @@
 .pastpaper-view {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 20px;
+  padding: 24px 0;
 }
 
 .view-header {
@@ -839,10 +837,6 @@
   .subject-btn {
     padding: 12px;
     font-size: 0.9rem;
-  }
-
-  .pastpaper-view {
-    padding: 15px;
   }
 
   .header-title-row {
