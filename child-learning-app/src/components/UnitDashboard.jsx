@@ -85,10 +85,8 @@ function UnitDashboard({ tasks, onEditTask, customUnits = [] }) {
           alignItems: 'center',
           justifyContent: 'center',
           gap: '12px',
-          marginBottom: '40px',
+          marginBottom: '0',
           flexWrap: 'wrap',
-          height: '80px',
-          alignContent: 'center',
         }}>
           <label style={{
             fontWeight: '600',
@@ -121,6 +119,7 @@ function UnitDashboard({ tasks, onEditTask, customUnits = [] }) {
           display: 'grid',
           gridTemplateColumns: 'repeat(4, 1fr)',
           gap: '12px',
+          marginTop: '40px',
         }}>
           {subjects.map((subject) => (
             <button
