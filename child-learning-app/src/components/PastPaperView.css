@@ -274,7 +274,7 @@
   font-weight: 600;
 }
 
-/* フィルター */
+/* フィルター - Dashboard完全移植 */
 .view-filters {
   background: white;
   border-radius: 20px;
@@ -284,17 +284,12 @@
   border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
-.filter-row {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
 .filter-group {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
@@ -305,39 +300,36 @@
   letter-spacing: -0.01em;
 }
 
-.subject-buttons {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-}
-
-.mode-btn,
-.filter-btn {
+.mode-btn {
   padding: 10px 18px;
   border: 1px solid rgba(0, 0, 0, 0.1);
-  background: white;
   border-radius: 10px;
-  cursor: pointer;
+  background: white;
   font-size: 0.9375rem;
   font-weight: 600;
+  cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   color: #86868b;
   letter-spacing: -0.01em;
 }
 
-.mode-btn:hover,
-.filter-btn:hover {
+.mode-btn:hover {
   border-color: #007AFF;
   background: rgba(0, 122, 255, 0.08);
   transform: scale(1.02);
 }
 
-.mode-btn.active,
-.filter-btn.active {
+.mode-btn.active {
   border-color: #007AFF;
   background: #007AFF;
   color: white;
   box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
+}
+
+.subject-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
 }
 
 /* コンテンツ */
@@ -835,6 +827,15 @@
     padding: 6px;
   }
 
+  .filter-group {
+    flex-wrap: wrap;
+  }
+
+  .mode-btn {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+  }
+
   .subject-btn {
     padding: 12px;
     font-size: 0.9rem;
@@ -952,18 +953,19 @@
     padding: 4px;
   }
 
-  .filter-row {
-    gap: 20px;
-  }
-
   .filter-group {
     gap: 8px;
+  }
+
+  .mode-btn {
+    padding: 6px 12px;
+    font-size: 0.85rem;
   }
 
   .subject-buttons,
   .subject-selector-inline {
     grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
+    gap: 10px;
   }
 
   .subject-btn {
@@ -984,12 +986,6 @@
 
   .group-title {
     font-size: 1.2rem;
-  }
-
-  .mode-btn,
-  .filter-btn {
-    padding: 6px 12px;
-    font-size: 0.85rem;
   }
 
   .session-form {
