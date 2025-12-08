@@ -382,7 +382,8 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           gap: '12px',
           marginBottom: '40px',
           flexWrap: 'wrap',
-          minHeight: '40px',
+          height: '80px',
+          alignContent: 'center',
         }}>
           <label style={{
             fontWeight: '600',
