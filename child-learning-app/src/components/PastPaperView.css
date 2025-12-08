@@ -966,6 +966,18 @@
     gap: 10px;
   }
 
+  .subject-btn {
+    padding: 10px 6px;
+    font-size: 0.8rem;
+    gap: 4px;
+    flex-direction: row;
+    white-space: nowrap;
+  }
+
+  .subject-emoji {
+    font-size: 1rem;
+  }
+
   .view-header h2 {
     font-size: 1.3rem;
   }
