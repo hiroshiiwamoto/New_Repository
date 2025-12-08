@@ -153,7 +153,9 @@
   margin-bottom: 15px;
 }
 
-.subject-btn {
+/* 共通の科目ボタンスタイル */
+.subject-btn,
+.pastpaper-subject-btn {
   padding: 16px;
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 14px;
@@ -171,7 +173,8 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-.subject-btn:hover {
+.subject-btn:hover,
+.pastpaper-subject-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   border-color: rgba(0, 0, 0, 0.12);
@@ -834,7 +837,8 @@
     font-size: 0.9rem;
   }
 
-  .subject-btn {
+  .subject-btn,
+  .pastpaper-subject-btn {
     padding: 12px;
     font-size: 0.9rem;
   }
