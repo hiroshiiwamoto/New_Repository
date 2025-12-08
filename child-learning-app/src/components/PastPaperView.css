@@ -823,7 +823,7 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 2000px) {
   .view-filters {
     padding: 6px;
   }

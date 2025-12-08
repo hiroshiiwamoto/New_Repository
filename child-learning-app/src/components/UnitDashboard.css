@@ -640,7 +640,7 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 2000px) {
   .dashboard-header {
     padding: 6px;
   }
