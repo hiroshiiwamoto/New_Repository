@@ -375,7 +375,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
         boxShadow: '0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.06)',
         border: '1px solid rgba(0, 0, 0, 0.04)',
       }}>
-        <div className="filter-group" style={{
+        <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -383,6 +383,8 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           marginBottom: '0',
           flexWrap: 'wrap',
           border: '2px solid red',
+          boxSizing: 'border-box',
+          padding: '0',
         }}>
           <label style={{
             fontWeight: '600',
@@ -421,12 +423,15 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           </button>
         </div>
 
-        <div className="subject-buttons" style={{
+        <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(4, 1fr)',
           gap: '12px',
           marginTop: '40px',
           border: '2px solid blue',
+          boxSizing: 'border-box',
+          padding: '0',
+          marginBottom: '0',
         }}>
           {subjects.map((subject) => (
             <button

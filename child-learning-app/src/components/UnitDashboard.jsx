@@ -80,7 +80,7 @@ function UnitDashboard({ tasks, onEditTask, customUnits = [] }) {
         boxShadow: '0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.06)',
         border: '1px solid rgba(0, 0, 0, 0.04)',
       }}>
-        <div className="grade-selector" style={{
+        <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -88,6 +88,8 @@ function UnitDashboard({ tasks, onEditTask, customUnits = [] }) {
           marginBottom: '0',
           flexWrap: 'wrap',
           border: '2px solid red',
+          boxSizing: 'border-box',
+          padding: '0',
         }}>
           <label style={{
             fontWeight: '600',
@@ -116,12 +118,15 @@ function UnitDashboard({ tasks, onEditTask, customUnits = [] }) {
           ))}
         </div>
 
-        <div className="subject-selector" style={{
+        <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(4, 1fr)',
           gap: '12px',
           marginTop: '40px',
           border: '2px solid blue',
+          boxSizing: 'border-box',
+          padding: '0',
+          marginBottom: '0',
         }}>
           {subjects.map((subject) => (
             <button
