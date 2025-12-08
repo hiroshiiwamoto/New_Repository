@@ -380,7 +380,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           alignItems: 'center',
           justifyContent: 'center',
           gap: '12px',
-          marginBottom: '20px',
+          marginBottom: '40px',
           flexWrap: 'wrap',
         }}>
           <label>表示モード:</label>
