@@ -375,7 +375,14 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
         boxShadow: '0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.06)',
         border: '1px solid rgba(0, 0, 0, 0.04)',
       }}>
-        <div className="filter-group">
+        <div className="filter-group" style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '12px',
+          marginBottom: '20px',
+          flexWrap: 'wrap',
+        }}>
           <label>表示モード:</label>
           <button
             className={`mode-btn ${viewMode === 'school' ? 'active' : ''}`}
@@ -391,7 +398,11 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           </button>
         </div>
 
-        <div className="subject-buttons">
+        <div className="subject-buttons" style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: '12px',
+        }}>
           {subjects.map((subject) => (
             <button
               key={subject}
