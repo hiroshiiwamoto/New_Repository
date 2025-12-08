@@ -85,7 +85,7 @@ function UnitDashboard({ tasks, onEditTask, customUnits = [] }) {
           alignItems: 'center',
           justifyContent: 'center',
           gap: '12px',
-          marginBottom: '20px',
+          marginBottom: '40px',
           flexWrap: 'wrap',
         }}>
           <label>学年:</label>
