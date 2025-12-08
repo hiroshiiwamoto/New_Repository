@@ -382,6 +382,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           gap: '12px',
           marginBottom: '0',
           flexWrap: 'wrap',
+          border: '2px solid red',
         }}>
           <label style={{
             fontWeight: '600',
@@ -425,6 +426,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           gridTemplateColumns: 'repeat(4, 1fr)',
           gap: '12px',
           marginTop: '40px',
+          border: '2px solid blue',
         }}>
           {subjects.map((subject) => (
             <button
