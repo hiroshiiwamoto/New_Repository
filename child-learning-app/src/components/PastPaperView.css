@@ -290,7 +290,7 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 0;
   flex-wrap: wrap;
 }
 
@@ -331,6 +331,7 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
+  margin-top: 40px;
 }
 
 /* コンテンツ */
