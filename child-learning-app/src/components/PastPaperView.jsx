@@ -429,10 +429,11 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           display: 'grid',
           gridTemplateColumns: 'repeat(4, 1fr)',
           gap: '12px',
-          marginTop: '40px',
+          paddingTop: '40px',
+          marginTop: '0',
           border: '2px solid blue',
           boxSizing: 'border-box',
-          padding: '0',
+          padding: '40px 0 0 0',
           marginBottom: '0',
         }}>
           {subjects.map((subject) => (
