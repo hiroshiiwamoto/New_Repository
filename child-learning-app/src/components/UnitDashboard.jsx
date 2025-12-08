@@ -90,7 +90,7 @@ function UnitDashboard({ tasks, onEditTask, customUnits = [] }) {
           {subjects.map((subject) => (
             <button
               key={subject}
-              className={`subject-btn ${selectedSubject === subject ? 'active' : ''}`}
+              className={`dashboard-subject-btn ${selectedSubject === subject ? 'active' : ''}`}
               onClick={() => setSelectedSubject(subject)}
               style={{
                 borderColor: selectedSubject === subject ? subjectColors[subject] : '#e2e8f0',

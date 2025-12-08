@@ -388,7 +388,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           {subjects.map((subject) => (
             <button
               key={subject}
-              className={`subject-btn ${selectedSubject === subject ? 'active' : ''}`}
+              className={`pastpaper-subject-btn ${selectedSubject === subject ? 'active' : ''}`}
               onClick={() => setSelectedSubject(subject)}
               style={{
                 borderColor: selectedSubject === subject ? subjectColors[subject] : '#e2e8f0',
