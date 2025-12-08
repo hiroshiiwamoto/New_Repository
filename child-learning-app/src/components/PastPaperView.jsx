@@ -540,39 +540,37 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
 
       {/* フィルター */}
       <div className="view-filters">
-        <div className="filter-row">
-          <div className="filter-group">
-            <label>表示モード:</label>
-            <button
-              className={`mode-btn ${viewMode === 'school' ? 'active' : ''}`}
-              onClick={() => setViewMode('school')}
-            >
-              🏫 学校別
-            </button>
-            <button
-              className={`mode-btn ${viewMode === 'unit' ? 'active' : ''}`}
-              onClick={() => setViewMode('unit')}
-            >
-              📚 単元別
-            </button>
-          </div>
+        <div className="filter-group">
+          <label>表示モード:</label>
+          <button
+            className={`mode-btn ${viewMode === 'school' ? 'active' : ''}`}
+            onClick={() => setViewMode('school')}
+          >
+            🏫 学校別
+          </button>
+          <button
+            className={`mode-btn ${viewMode === 'unit' ? 'active' : ''}`}
+            onClick={() => setViewMode('unit')}
+          >
+            📚 単元別
+          </button>
+        </div>
 
-          <div className="subject-buttons">
-            {subjects.map((subject) => (
-              <button
-                key={subject}
-                className={`subject-btn ${selectedSubject === subject ? 'active' : ''}`}
-                onClick={() => setSelectedSubject(subject)}
-                style={{
-                  borderColor: selectedSubject === subject ? subjectColors[subject] : '#e2e8f0',
-                  background: selectedSubject === subject ? `${subjectColors[subject]}15` : 'white',
-                }}
-              >
-                <span className="subject-emoji">{subjectEmojis[subject]}</span>
-                <span>{subject}</span>
-              </button>
-            ))}
-          </div>
+        <div className="subject-buttons">
+          {subjects.map((subject) => (
+            <button
+              key={subject}
+              className={`subject-btn ${selectedSubject === subject ? 'active' : ''}`}
+              onClick={() => setSelectedSubject(subject)}
+              style={{
+                borderColor: selectedSubject === subject ? subjectColors[subject] : '#e2e8f0',
+                background: selectedSubject === subject ? `${subjectColors[subject]}15` : 'white',
+              }}
+            >
+              <span className="subject-emoji">{subjectEmojis[subject]}</span>
+              <span>{subject}</span>
+            </button>
+          ))}
         </div>
       </div>
 
