@@ -367,7 +367,14 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
   return (
     <div className="pastpaper-view">
       {/* フィルター */}
-      <div className="view-filters">
+      <div className="view-filters" style={{
+        background: 'white',
+        borderRadius: '20px',
+        padding: '12px',
+        marginBottom: '24px',
+        boxShadow: '0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.06)',
+        border: '1px solid rgba(0, 0, 0, 0.04)',
+      }}>
         <div className="filter-group">
           <label>表示モード:</label>
           <button
