@@ -113,12 +113,14 @@ function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
           <div className="units-grid">
             {defaultUnits.map((unit) => (
               <div key={unit.id} className="unit-card">
-                <div className="unit-title">
-                  <span className="unit-name">{unit.name}</span>
-                  <span className="unit-category">{unit.category}</span>
-                </div>
-                <div className="unit-actions">
-                  <span className="default-badge">標準</span>
+                <div className="unit-header">
+                  <div className="unit-title">
+                    <span className="unit-name">{unit.name}</span>
+                    <span className="unit-category">{unit.category}</span>
+                  </div>
+                  <div className="unit-actions">
+                    <span className="default-badge">標準</span>
+                  </div>
                 </div>
               </div>
             ))}
@@ -175,7 +177,7 @@ function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
                   </div>
                 ) : (
                   // 表示モード
-                  <>
+                  <div className="unit-header">
                     <div className="unit-title">
                       <span className="unit-name">{unit.name}</span>
                       <span className="unit-category">{unit.category}</span>
@@ -196,7 +198,7 @@ function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
                         🗑️
                       </button>
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
             ))}

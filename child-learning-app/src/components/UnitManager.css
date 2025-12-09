@@ -145,13 +145,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid rgba(0, 0, 0, 0.06);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
+  position: relative;
 }
 
 .unit-card:hover {
@@ -165,10 +159,14 @@
   border-color: #fde047;
 }
 
+.unit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
 .unit-title {
   flex: 1;
-  min-width: 0;
-  overflow: hidden;
 }
 
 .unit-title .unit-name {
@@ -178,9 +176,6 @@
   color: #1d1d1f;
   margin-bottom: 6px;
   letter-spacing: -0.01em;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  word-break: break-word;
 }
 
 .unit-title .unit-category {
@@ -190,8 +185,8 @@
   background: #f5f5f7;
   padding: 4px 10px;
   border-radius: 8px;
-  font-weight: 500;
-  white-space: nowrap;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 /* アクション */
