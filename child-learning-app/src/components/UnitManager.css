@@ -134,9 +134,8 @@
 /* 単元グリッド */
 .units-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-  width: 100%;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
 }
 
 .unit-card {
@@ -326,6 +325,16 @@
   .dashboard-subject-btn {
     padding: 12px;
     font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .subject-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .units-grid {
+    grid-template-columns: 1fr;
   }
 }
 
