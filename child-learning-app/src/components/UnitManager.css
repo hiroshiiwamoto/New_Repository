@@ -178,17 +178,13 @@
 
 /* 単元セクション */
 .units-section {
-  background: white;
-  border-radius: 12px;
-  padding: 12px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .section-title {
   color: #1e40af;
   font-size: 1.3rem;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   display: flex;
   align-items: center;
   gap: 10px;
