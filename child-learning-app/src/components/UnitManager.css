@@ -2,21 +2,6 @@
   padding: 24px 0;
 }
 
-.manager-header {
-  margin-bottom: 30px;
-}
-
-.manager-header h2 {
-  color: #1e40af;
-  font-size: 1.8rem;
-  margin-bottom: 10px;
-}
-
-.manager-description {
-  color: #64748b;
-  font-size: 0.95rem;
-}
-
 /* 共有スタイル（Dashboard、PastPaperと統一） */
 .dashboard-header {
   background: white;
@@ -108,72 +93,6 @@
 .subject-emoji {
   font-size: 1.25rem;
   line-height: 1;
-}
-
-/* 旧フィルタースタイル（後方互換性のため保持） */
-.manager-filters {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 30px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.filter-group {
-  margin-bottom: 15px;
-}
-
-.filter-group:last-child {
-  margin-bottom: 0;
-}
-
-.filter-group label {
-  display: block;
-  font-weight: 600;
-  color: #1e293b;
-  margin-bottom: 10px;
-  font-size: 0.95rem;
-}
-
-.grade-buttons,
-.subject-buttons {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.filter-btn {
-  padding: 10px 20px;
-  border: 2px solid #e2e8f0;
-  background: white;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  color: #475569;
-}
-
-.filter-btn:hover {
-  border-color: #cbd5e1;
-  transform: translateY(-2px);
-}
-
-.filter-btn.active {
-  background: #3b82f6;
-  color: white;
-  border-color: #3b82f6;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-
-.filter-btn.subject {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.subject-emoji {
-  font-size: 1.2rem;
 }
 
 /* 単元セクション */
@@ -403,31 +322,6 @@
     padding: 15px;
   }
 
-  .manager-header h2 {
-    font-size: 1.5rem;
-  }
-
-  .grade-buttons,
-  .subject-buttons {
-    gap: 8px;
-  }
-
-  .filter-btn {
-    padding: 8px 16px;
-    font-size: 0.9rem;
-  }
-
-  .unit-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .unit-actions {
-    width: 100%;
-    justify-content: flex-end;
-  }
-
   .edit-fields {
     flex-direction: column;
   }
@@ -439,16 +333,8 @@
 }
 
 @media (max-width: 480px) {
-  .manager-header h2 {
-    font-size: 1.3rem;
-  }
-
   .section-title {
     font-size: 1.1rem;
-  }
-
-  .unit-name {
-    font-size: 0.95rem;
   }
 
   .edit-actions {
