@@ -72,15 +72,8 @@ function UnitDashboard({ tasks, onEditTask, customUnits = [] }) {
   return (
     <div className="unit-dashboard">
       {/* ヘッダー：学年・科目選択 */}
-      <div className="dashboard-header" style={{
-        background: 'white',
-        borderRadius: '20px',
-        padding: '12px',
-        marginBottom: '24px',
-        boxShadow: '0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.06)',
-        border: '1px solid rgba(0, 0, 0, 0.04)',
-      }}>
-        <div className="grade-selector">
+      <div className="dashboard-header">
+        <div className="selection-area">
           <label>学年:</label>
           {grades.map((grade) => (
             <button
@@ -93,7 +86,7 @@ function UnitDashboard({ tasks, onEditTask, customUnits = [] }) {
           ))}
         </div>
 
-        <div className="subject-selector">
+        <div className="subject-grid">
           {subjects.map((subject) => (
             <button
               key={subject}
