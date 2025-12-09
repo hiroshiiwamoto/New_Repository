@@ -95,9 +95,10 @@
   line-height: 1;
 }
 
-/* 単元セクション - 透明なコンテナ（Dashboardと統一） */
+/* 単元セクション - フィルタと同じpaddingで揃える */
 .units-section {
   margin-bottom: 32px;
+  padding: 0 12px;
 }
 
 .section-title {
@@ -316,6 +317,10 @@
 @media (max-width: 2000px) {
   .dashboard-header {
     padding: 6px;
+  }
+
+  .units-section {
+    padding: 0 6px;
   }
 
   .grade-btn {
