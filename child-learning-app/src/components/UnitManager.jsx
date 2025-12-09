@@ -69,40 +69,43 @@ function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
       </div>
 
       {/* フィルター */}
-      <div className="manager-filters">
-        <div className="filter-group">
+      <div className="dashboard-header">
+        <div className="selection-area">
           <label>学年:</label>
-          <div className="grade-buttons">
-            {grades.map((grade) => (
-              <button
-                key={grade}
-                className={`filter-btn ${selectedGrade === grade ? 'active' : ''}`}
-                onClick={() => setSelectedGrade(grade)}
-              >
-                {grade}
-              </button>
-            ))}
-          </div>
+          {grades.map((grade) => (
+            <button
+              key={grade}
+              className={`grade-btn ${selectedGrade === grade ? 'active' : ''}`}
+              onClick={() => setSelectedGrade(grade)}
+            >
+              {grade}
+            </button>
+          ))}
         </div>
 
-        <div className="filter-group">
-          <label>科目:</label>
-          <div className="subject-buttons">
-            {subjects.map((subject) => (
-              <button
-                key={subject}
-                className={`filter-btn subject ${selectedSubject === subject ? 'active' : ''}`}
-                onClick={() => setSelectedSubject(subject)}
-                style={{
-                  borderColor: selectedSubject === subject ? subjectColors[subject] : '#e2e8f0',
-                  background: selectedSubject === subject ? `${subjectColors[subject]}15` : 'white',
-                }}
-              >
-                <span className="subject-emoji">{subjectEmojis[subject]}</span>
-                <span>{subject}</span>
-              </button>
-            ))}
-          </div>
+        <div className="subject-grid">
+          {subjects.map((subject) => (
+            <button
+              key={subject}
+              className={`dashboard-subject-btn ${selectedSubject === subject ? 'active' : ''}`}
+              onClick={() => setSelectedSubject(subject)}
+              style={{
+                borderColor: selectedSubject === subject ? subjectColors[subject] : '#e2e8f0',
+                background: selectedSubject === subject ? `${subjectColors[subject]}15` : 'white',
+                padding: '12px',
+                fontSize: '0.9rem',
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <span className="subject-emoji">{subjectEmojis[subject]}</span>
+              <span>{subject}</span>
+            </button>
+          ))}
         </div>
       </div>
 
