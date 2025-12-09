@@ -61,13 +61,6 @@ function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
 
   return (
     <div className="unit-manager">
-      <div className="manager-header">
-        <h2>📚 単元管理</h2>
-        <p className="manager-description">
-          デフォルト単元とカスタム単元を管理できます。カスタム単元のみ編集・削除が可能です。
-        </p>
-      </div>
-
       {/* フィルター */}
       <div className="dashboard-header">
         <div className="selection-area">
