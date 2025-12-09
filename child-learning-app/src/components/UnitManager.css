@@ -129,11 +129,12 @@
   color: #cbd5e1;
 }
 
-/* 単元グリッド（Dashboardと同じ） */
+/* 単元グリッド */
 .units-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 16px;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  width: 100%;
 }
 
 .unit-card {
@@ -143,10 +144,13 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid rgba(0, 0, 0, 0.06);
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .unit-card:hover {
@@ -162,6 +166,8 @@
 
 .unit-title {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .unit-title .unit-name {
@@ -171,6 +177,9 @@
   color: #1d1d1f;
   margin-bottom: 6px;
   letter-spacing: -0.01em;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .unit-title .unit-category {
@@ -181,6 +190,7 @@
   padding: 4px 10px;
   border-radius: 8px;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 /* アクション */
