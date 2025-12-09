@@ -95,10 +95,14 @@
   line-height: 1;
 }
 
-/* 単元セクション */
+/* 単元セクション - Dashboardと完全統一 */
 .units-section {
-  margin-bottom: 20px;
-  padding: 0 12px;
+  background: white;
+  border-radius: 20px;
+  padding: 12px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .section-title {
@@ -313,7 +317,8 @@
 
 /* レスポンシブ */
 @media (max-width: 2000px) {
-  .dashboard-header {
+  .dashboard-header,
+  .units-section {
     padding: 6px;
   }
 
