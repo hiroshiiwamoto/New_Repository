@@ -61,48 +61,44 @@ function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
 
   return (
     <div className="unit-manager">
-      <div className="manager-header">
-        <h2>📚 単元管理</h2>
-        <p className="manager-description">
-          デフォルト単元とカスタム単元を管理できます。カスタム単元のみ編集・削除が可能です。
-        </p>
-      </div>
-
       {/* フィルター */}
-      <div className="manager-filters">
-        <div className="filter-group">
+      <div className="dashboard-header">
+        <div className="selection-area">
           <label>学年:</label>
-          <div className="grade-buttons">
-            {grades.map((grade) => (
-              <button
-                key={grade}
-                className={`filter-btn ${selectedGrade === grade ? 'active' : ''}`}
-                onClick={() => setSelectedGrade(grade)}
-              >
-                {grade}
-              </button>
-            ))}
-          </div>
+          {grades.map((grade) => (
+            <button
+              key={grade}
+              className={`grade-btn ${selectedGrade === grade ? 'active' : ''}`}
+              onClick={() => setSelectedGrade(grade)}
+            >
+              {grade}
+            </button>
+          ))}
         </div>
 
-        <div className="filter-group">
-          <label>科目:</label>
-          <div className="subject-buttons">
-            {subjects.map((subject) => (
-              <button
-                key={subject}
-                className={`filter-btn subject ${selectedSubject === subject ? 'active' : ''}`}
-                onClick={() => setSelectedSubject(subject)}
-                style={{
-                  borderColor: selectedSubject === subject ? subjectColors[subject] : '#e2e8f0',
-                  background: selectedSubject === subject ? `${subjectColors[subject]}15` : 'white',
-                }}
-              >
-                <span className="subject-emoji">{subjectEmojis[subject]}</span>
-                <span>{subject}</span>
-              </button>
-            ))}
-          </div>
+        <div className="subject-grid">
+          {subjects.map((subject) => (
+            <button
+              key={subject}
+              className={`dashboard-subject-btn ${selectedSubject === subject ? 'active' : ''}`}
+              onClick={() => setSelectedSubject(subject)}
+              style={{
+                borderColor: selectedSubject === subject ? subjectColors[subject] : '#e2e8f0',
+                background: selectedSubject === subject ? `${subjectColors[subject]}15` : 'white',
+                padding: '12px',
+                fontSize: '0.9rem',
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <span className="subject-emoji">{subjectEmojis[subject]}</span>
+              <span>{subject}</span>
+            </button>
+          ))}
         </div>
       </div>
 
@@ -114,10 +110,10 @@ function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
         {defaultUnits.length === 0 ? (
           <div className="no-units">標準単元がありません</div>
         ) : (
-          <div className="units-list">
+          <div className="units-grid">
             {defaultUnits.map((unit) => (
-              <div key={unit.id} className="unit-item default">
-                <div className="unit-info">
+              <div key={unit.id} className="unit-card">
+                <div className="unit-title">
                   <span className="unit-name">{unit.name}</span>
                   <span className="unit-category">{unit.category}</span>
                 </div>
@@ -142,9 +138,9 @@ function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
             <small>タスク追加画面の「➕」ボタンから追加できます</small>
           </div>
         ) : (
-          <div className="units-list">
+          <div className="units-grid">
             {filteredCustomUnits.map((unit) => (
-              <div key={unit.id} className="unit-item custom">
+              <div key={unit.id} className="unit-card custom">
                 {editingUnit && editingUnit.id === unit.id ? (
                   // 編集モード
                   <div className="unit-edit-form">
@@ -180,7 +176,7 @@ function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
                 ) : (
                   // 表示モード
                   <>
-                    <div className="unit-info">
+                    <div className="unit-title">
                       <span className="unit-name">{unit.name}</span>
                       <span className="unit-category">{unit.category}</span>
                     </div>
