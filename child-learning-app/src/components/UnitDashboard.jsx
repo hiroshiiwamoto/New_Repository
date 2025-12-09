@@ -72,65 +72,21 @@ function UnitDashboard({ tasks, onEditTask, customUnits = [] }) {
   return (
     <div className="unit-dashboard">
       {/* ヘッダー：学年・科目選択 */}
-      <div className="dashboard-header" style={{
-        background: 'white',
-        borderRadius: '20px',
-        padding: '12px',
-        marginBottom: '24px',
-        boxShadow: '0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.06)',
-        border: '1px solid rgba(0, 0, 0, 0.04)',
-      }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '12px',
-          marginBottom: '0',
-          flexWrap: 'wrap',
-          border: '2px solid red',
-          boxSizing: 'border-box',
-          padding: '8px 0',
-          height: '70px',
-          alignContent: 'center',
-        }}>
-          <label style={{
-            fontWeight: '600',
-            color: '#1d1d1f',
-            fontSize: '0.9375rem',
-            letterSpacing: '-0.01em',
-            margin: '0',
-            padding: '0',
-            lineHeight: '1.5',
-          }}>学年:</label>
+      <div className="dashboard-header">
+        <div className="selection-area">
+          <label>学年:</label>
           {grades.map((grade) => (
             <button
               key={grade}
               className={`grade-btn ${selectedGrade === grade ? 'active' : ''}`}
               onClick={() => setSelectedGrade(grade)}
-              style={{
-                padding: '8px 16px',
-                fontSize: '0.9rem',
-                fontWeight: '600',
-                lineHeight: '1.5',
-                margin: '0',
-              }}
             >
               {grade}
             </button>
           ))}
         </div>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: '12px',
-          paddingTop: '40px',
-          marginTop: '0',
-          border: '2px solid blue',
-          boxSizing: 'border-box',
-          padding: '40px 0 0 0',
-          marginBottom: '0',
-        }}>
+        <div className="subject-grid">
           {subjects.map((subject) => (
             <button
               key={subject}

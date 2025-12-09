@@ -367,75 +367,24 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
   return (
     <div className="pastpaper-view">
       {/* フィルター */}
-      <div className="view-filters" style={{
-        background: 'white',
-        borderRadius: '20px',
-        padding: '12px',
-        marginBottom: '24px',
-        boxShadow: '0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.06)',
-        border: '1px solid rgba(0, 0, 0, 0.04)',
-      }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '12px',
-          marginBottom: '0',
-          flexWrap: 'wrap',
-          border: '2px solid red',
-          boxSizing: 'border-box',
-          padding: '8px 0',
-          height: '70px',
-          alignContent: 'center',
-        }}>
-          <label style={{
-            fontWeight: '600',
-            color: '#1d1d1f',
-            fontSize: '0.9375rem',
-            letterSpacing: '-0.01em',
-            margin: '0',
-            padding: '0',
-            lineHeight: '1.5',
-          }}>表示モード:</label>
+      <div className="view-filters">
+        <div className="selection-area">
+          <label>表示モード:</label>
           <button
             className={`mode-btn ${viewMode === 'school' ? 'active' : ''}`}
             onClick={() => setViewMode('school')}
-            style={{
-              padding: '8px 16px',
-              fontSize: '0.9rem',
-              fontWeight: '600',
-              lineHeight: '1.5',
-              margin: '0',
-            }}
           >
             学校別
           </button>
           <button
             className={`mode-btn ${viewMode === 'unit' ? 'active' : ''}`}
             onClick={() => setViewMode('unit')}
-            style={{
-              padding: '8px 16px',
-              fontSize: '0.9rem',
-              fontWeight: '600',
-              lineHeight: '1.5',
-              margin: '0',
-            }}
           >
             単元別
           </button>
         </div>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: '12px',
-          paddingTop: '40px',
-          marginTop: '0',
-          border: '2px solid blue',
-          boxSizing: 'border-box',
-          padding: '40px 0 0 0',
-          marginBottom: '0',
-        }}>
+        <div className="subject-grid">
           {subjects.map((subject) => (
             <button
               key={subject}
