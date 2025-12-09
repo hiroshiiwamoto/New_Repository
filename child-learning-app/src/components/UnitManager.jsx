@@ -110,10 +110,10 @@ function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
         {defaultUnits.length === 0 ? (
           <div className="no-units">標準単元がありません</div>
         ) : (
-          <div className="units-list">
+          <div className="units-grid">
             {defaultUnits.map((unit) => (
-              <div key={unit.id} className="unit-item default">
-                <div className="unit-info">
+              <div key={unit.id} className="unit-card">
+                <div className="unit-title">
                   <span className="unit-name">{unit.name}</span>
                   <span className="unit-category">{unit.category}</span>
                 </div>
@@ -138,9 +138,9 @@ function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
             <small>タスク追加画面の「➕」ボタンから追加できます</small>
           </div>
         ) : (
-          <div className="units-list">
+          <div className="units-grid">
             {filteredCustomUnits.map((unit) => (
-              <div key={unit.id} className="unit-item custom">
+              <div key={unit.id} className="unit-card custom">
                 {editingUnit && editingUnit.id === unit.id ? (
                   // 編集モード
                   <div className="unit-edit-form">
@@ -176,7 +176,7 @@ function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
                 ) : (
                   // 表示モード
                   <>
-                    <div className="unit-info">
+                    <div className="unit-title">
                       <span className="unit-name">{unit.name}</span>
                       <span className="unit-category">{unit.category}</span>
                     </div>
