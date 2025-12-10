@@ -675,13 +675,17 @@
     padding: 6px;
   }
 
-  .grade-selector {
+  .selection-area {
     flex-wrap: wrap;
   }
 
   .grade-btn {
     padding: 8px 16px;
     font-size: 0.9rem;
+  }
+
+  .subject-grid {
+    gap: 10px;
   }
 
   .dashboard-subject-btn {
@@ -712,7 +716,7 @@
     padding: 4px;
   }
 
-  .grade-selector {
+  .selection-area {
     gap: 8px;
   }
 
@@ -721,9 +725,9 @@
     font-size: 0.85rem;
   }
 
-  .subject-selector {
+  .subject-grid {
     grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
+    gap: 8px;
   }
 
   .subject-achievement {
