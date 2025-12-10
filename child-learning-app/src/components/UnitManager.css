@@ -12,20 +12,23 @@
   border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
-.grade-selector {
+.selection-area {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  margin-bottom: 20px;
+  margin: 0;
+  padding: 0;
   flex-wrap: wrap;
 }
 
-.grade-selector label {
+.selection-area label {
   font-weight: 600;
   color: #1d1d1f;
   font-size: 0.9375rem;
   letter-spacing: -0.01em;
+  margin: 0;
+  padding: 0;
 }
 
 .grade-btn {
@@ -54,10 +57,13 @@
   box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
 }
 
-.subject-selector {
+.subject-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
+  margin-top: 20px;
+  margin-bottom: 0;
+  padding: 0;
 }
 
 .dashboard-subject-btn {
@@ -302,7 +308,7 @@
 
 /* レスポンシブ */
 @media (max-width: 1024px) {
-  .subject-selector {
+  .subject-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
@@ -331,7 +337,7 @@
     padding: 4px;
   }
 
-  .grade-selector {
+  .selection-area {
     gap: 8px;
   }
 
@@ -340,7 +346,7 @@
     font-size: 0.85rem;
   }
 
-  .subject-selector {
+  .subject-grid {
     grid-template-columns: repeat(4, 1fr);
     gap: 10px;
   }
