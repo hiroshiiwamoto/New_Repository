@@ -329,7 +329,17 @@
   border-color: #cbd5e1;
 }
 
-/* レスポンシブ */
+/* レスポンシブ - Dashboardから完全移植 */
+@media (max-width: 1024px) {
+  .subject-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .units-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 2000px) {
   .dashboard-header {
     padding: 6px;
@@ -351,16 +361,6 @@
   .dashboard-subject-btn {
     padding: 12px;
     font-size: 0.9rem;
-  }
-}
-
-@media (max-width: 1024px) {
-  .subject-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .units-grid {
-    grid-template-columns: 1fr;
   }
 }
 
