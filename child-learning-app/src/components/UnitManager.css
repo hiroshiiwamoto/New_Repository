@@ -2,42 +2,23 @@
   padding: 24px 0;
 }
 
-/* ヘッダー */
+/* ヘッダー - Dashboardと完全統一 */
 .dashboard-header {
   background: white;
   border-radius: 20px;
-  padding: 12px;
+  padding: 24px;
   margin-bottom: 24px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.06);
   border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
-/* 共通スタイル */
-.selection-area {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin: 0;
-  padding: 0;
-  flex-wrap: wrap;
-}
-
-.selection-area label {
-  font-weight: 600;
-  color: #1d1d1f;
-  font-size: 0.9375rem;
-  letter-spacing: -0.01em;
-  margin: 0;
-  padding: 0;
-}
-
+/* 学年選択 - Dashboardと完全統一 */
 .grade-selector {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  margin-bottom: 0;
+  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
@@ -74,20 +55,11 @@
   box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
 }
 
-.subject-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-top: 20px;
-  margin-bottom: 0;
-  padding: 0;
-}
-
+/* 科目選択 - Dashboardと完全統一 */
 .subject-selector {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
-  margin-top: 40px;
 }
 
 .dashboard-subject-btn {
@@ -121,24 +93,26 @@
 
 /* 単元セクション */
 .units-section {
-  margin-bottom: 32px;
+  background: white;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .section-title {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #1d1d1f;
-  margin-bottom: 16px;
+  color: #1e40af;
+  font-size: 1.3rem;
+  margin-bottom: 20px;
   display: flex;
   align-items: center;
   gap: 10px;
-  letter-spacing: -0.01em;
 }
 
 .unit-count {
-  font-size: 0.875rem;
-  color: #86868b;
-  font-weight: 500;
+  font-size: 0.9rem;
+  color: #64748b;
+  font-weight: 400;
 }
 
 .no-units {
@@ -155,62 +129,63 @@
   color: #cbd5e1;
 }
 
-/* 単元グリッド */
-.units-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 16px;
+/* 単元リスト */
+.units-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.unit-card {
+.unit-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 20px;
+  border-radius: 10px;
+  border: 2px solid #e2e8f0;
   background: white;
-  border-radius: 16px;
-  padding: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  position: relative;
+  transition: all 0.3s ease;
 }
 
-.unit-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.06);
-  border-color: rgba(0, 0, 0, 0.1);
+.unit-item:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.unit-card.custom {
+.unit-item.default {
+  background: #f8fafc;
+}
+
+.unit-item.custom {
   background: #fefce8;
   border-color: #fde047;
 }
 
-.unit-header {
+.unit-info {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-
-.unit-title {
+  align-items: center;
+  gap: 15px;
   flex: 1;
 }
 
 .unit-name {
-  display: block;
-  font-size: 1.0625rem;
   font-weight: 600;
-  color: #1d1d1f;
-  margin-bottom: 6px;
-  letter-spacing: -0.01em;
+  color: #1e293b;
+  font-size: 1rem;
 }
 
 .unit-category {
-  display: inline-block;
-  font-size: 0.75rem;
-  color: #86868b;
-  background: #f5f5f7;
-  padding: 4px 10px;
-  border-radius: 8px;
+  padding: 4px 12px;
+  background: #e0e7ff;
+  color: #4338ca;
+  border-radius: 12px;
+  font-size: 0.85rem;
   font-weight: 600;
-  letter-spacing: -0.01em;
+}
+
+.unit-item.custom .unit-category {
+  background: #fef3c7;
+  color: #92400e;
 }
 
 /* アクション */
@@ -330,10 +305,20 @@
   border-color: #cbd5e1;
 }
 
-/* レスポンシブ */
-@media (max-width: 2000px) {
-  .dashboard-header {
-    padding: 6px;
+/* レスポンシブ - Dashboardと統一 */
+@media (max-width: 1024px) {
+  .subject-selector {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .unit-manager {
+    padding: 15px;
+  }
+
+  .grade-selector {
+    gap: 8px;
   }
 
   .grade-btn {
@@ -341,25 +326,24 @@
     font-size: 0.9rem;
   }
 
-  .dashboard-subject-btn {
-    padding: 12px;
-    font-size: 0.9rem;
-  }
-}
-
-@media (max-width: 1024px) {
   .subject-selector {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .units-grid {
-    grid-template-columns: 1fr;
+  .dashboard-subject-btn {
+    padding: 12px;
+    font-size: 0.875rem;
   }
-}
 
-@media (max-width: 768px) {
-  .unit-manager {
-    padding: 15px;
+  .unit-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .unit-actions {
+    width: 100%;
+    justify-content: flex-end;
   }
 
   .edit-fields {
@@ -374,11 +358,11 @@
 
 @media (max-width: 480px) {
   .dashboard-header {
-    padding: 4px;
+    padding: 16px;
   }
 
   .grade-selector {
-    gap: 8px;
+    gap: 6px;
   }
 
   .grade-btn {
@@ -388,41 +372,20 @@
 
   .subject-selector {
     grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
+    gap: 8px;
   }
 
   .dashboard-subject-btn {
-    padding: 8px;
-    font-size: 0.85rem;
+    padding: 10px;
+    font-size: 0.8rem;
   }
 
   .section-title {
-    font-size: 1rem;
-    margin-bottom: 12px;
-  }
-
-  .unit-card {
-    padding: 8px;
+    font-size: 1.1rem;
   }
 
   .unit-name {
-    font-size: 1rem;
-  }
-
-  .unit-category {
-    font-size: 0.7rem;
-    padding: 3px 8px;
-  }
-
-  .default-badge {
-    padding: 4px 10px;
-    font-size: 0.75rem;
-  }
-
-  .edit-btn,
-  .delete-btn {
-    padding: 6px 10px;
-    font-size: 1rem;
+    font-size: 0.95rem;
   }
 
   .edit-actions {
@@ -433,6 +396,5 @@
   .save-btn,
   .cancel-btn {
     width: 100%;
-    padding: 12px;
   }
 }

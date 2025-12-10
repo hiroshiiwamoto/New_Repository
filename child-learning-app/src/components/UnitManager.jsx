@@ -63,7 +63,7 @@ function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
     <div className="unit-manager">
       {/* ヘッダー：学年・科目選択 */}
       <div className="dashboard-header">
-        <div className="selection-area">
+        <div className="grade-selector">
           <label>学年:</label>
           {grades.map((grade) => (
             <button
@@ -76,7 +76,7 @@ function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
           ))}
         </div>
 
-        <div className="subject-grid">
+        <div className="subject-selector">
           {subjects.map((subject) => (
             <button
               key={subject}
@@ -87,12 +87,6 @@ function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
                 background: selectedSubject === subject ? `${subjectColors[subject]}15` : 'white',
                 padding: '12px',
                 fontSize: '0.9rem',
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '10px',
-                whiteSpace: 'nowrap',
               }}
             >
               <span className="subject-emoji">{subjectEmojis[subject]}</span>
@@ -110,17 +104,15 @@ function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
         {defaultUnits.length === 0 ? (
           <div className="no-units">標準単元がありません</div>
         ) : (
-          <div className="units-grid">
+          <div className="units-list">
             {defaultUnits.map((unit) => (
-              <div key={unit.id} className="unit-card">
-                <div className="unit-header">
-                  <div className="unit-title">
-                    <span className="unit-name">{unit.name}</span>
-                    <span className="unit-category">{unit.category}</span>
-                  </div>
-                  <div className="unit-actions">
-                    <span className="default-badge">標準</span>
-                  </div>
+              <div key={unit.id} className="unit-item default">
+                <div className="unit-info">
+                  <span className="unit-name">{unit.name}</span>
+                  <span className="unit-category">{unit.category}</span>
+                </div>
+                <div className="unit-actions">
+                  <span className="default-badge">標準</span>
                 </div>
               </div>
             ))}
@@ -140,9 +132,9 @@ function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
             <small>タスク追加画面の「➕」ボタンから追加できます</small>
           </div>
         ) : (
-          <div className="units-grid">
+          <div className="units-list">
             {filteredCustomUnits.map((unit) => (
-              <div key={unit.id} className="unit-card custom">
+              <div key={unit.id} className="unit-item custom">
                 {editingUnit && editingUnit.id === unit.id ? (
                   // 編集モード
                   <div className="unit-edit-form">
@@ -177,8 +169,8 @@ function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
                   </div>
                 ) : (
                   // 表示モード
-                  <div className="unit-header">
-                    <div className="unit-title">
+                  <>
+                    <div className="unit-info">
                       <span className="unit-name">{unit.name}</span>
                       <span className="unit-category">{unit.category}</span>
                     </div>
@@ -198,7 +190,7 @@ function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
                         🗑️
                       </button>
                     </div>
-                  </div>
+                  </>
                 )}
               </div>
             ))}
