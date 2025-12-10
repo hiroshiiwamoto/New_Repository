@@ -63,7 +63,7 @@ function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
     <div className="unit-manager">
       {/* ヘッダー：学年・科目選択 */}
       <div className="dashboard-header">
-        <div className="grade-selector">
+        <div className="selection-area">
           <label>学年:</label>
           {grades.map((grade) => (
             <button
@@ -76,7 +76,7 @@ function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
           ))}
         </div>
 
-        <div className="subject-selector">
+        <div className="subject-grid">
           {subjects.map((subject) => (
             <button
               key={subject}
