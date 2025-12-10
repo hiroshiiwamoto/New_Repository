@@ -367,31 +367,24 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
   return (
     <div className="pastpaper-view">
       {/* フィルター */}
-      <div className="view-filters" style={{
-        background: 'white',
-        borderRadius: '20px',
-        padding: '12px',
-        marginBottom: '24px',
-        boxShadow: '0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.06)',
-        border: '1px solid rgba(0, 0, 0, 0.04)',
-      }}>
-        <div className="filter-group">
+      <div className="dashboard-header">
+        <div className="selection-area">
           <label>表示モード:</label>
           <button
-            className={`mode-btn ${viewMode === 'school' ? 'active' : ''}`}
+            className={`grade-btn ${viewMode === 'school' ? 'active' : ''}`}
             onClick={() => setViewMode('school')}
           >
-            🏫 学校別
+            学校別
           </button>
           <button
-            className={`mode-btn ${viewMode === 'unit' ? 'active' : ''}`}
+            className={`grade-btn ${viewMode === 'unit' ? 'active' : ''}`}
             onClick={() => setViewMode('unit')}
           >
-            📚 単元別
+            単元別
           </button>
         </div>
 
-        <div className="subject-buttons">
+        <div className="subject-grid">
           {subjects.map((subject) => (
             <button
               key={subject}
