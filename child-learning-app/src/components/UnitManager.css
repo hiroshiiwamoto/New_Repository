@@ -330,6 +330,26 @@
 }
 
 /* レスポンシブ */
+@media (max-width: 2000px) {
+  .dashboard-header {
+    padding: 6px;
+  }
+
+  .grade-selector {
+    flex-wrap: wrap;
+  }
+
+  .grade-btn {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+  }
+
+  .dashboard-subject-btn {
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+}
+
 @media (max-width: 1024px) {
   .subject-grid {
     grid-template-columns: repeat(2, 1fr);
