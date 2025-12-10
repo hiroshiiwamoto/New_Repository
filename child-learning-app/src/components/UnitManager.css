@@ -2,7 +2,7 @@
   padding: 24px 0;
 }
 
-/* ヘッダー - Dashboardと完全統一 */
+/* ヘッダー - Dashboardから完全コピー */
 .dashboard-header {
   background: white;
   border-radius: 20px;
@@ -12,13 +12,40 @@
   border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
-/* 学年選択 - Dashboardと完全統一 */
+.selection-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  flex-wrap: wrap;
+}
+
+.selection-area label {
+  font-weight: 600;
+  color: #1d1d1f;
+  font-size: 0.9375rem;
+  letter-spacing: -0.01em;
+  margin: 0;
+  padding: 0;
+}
+
+.subject-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 20px;
+  margin-bottom: 0;
+  padding: 0;
+}
+
 .grade-selector {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 0;
   flex-wrap: wrap;
 }
 
@@ -55,11 +82,11 @@
   box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
 }
 
-/* 科目選択 - Dashboardと完全統一 */
 .subject-selector {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
+  margin-top: 40px;
 }
 
 .dashboard-subject-btn {
@@ -307,7 +334,7 @@
 
 /* レスポンシブ - Dashboardと統一 */
 @media (max-width: 1024px) {
-  .subject-selector {
+  .subject-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
@@ -317,7 +344,7 @@
     padding: 15px;
   }
 
-  .grade-selector {
+  .selection-area {
     gap: 8px;
   }
 
@@ -326,7 +353,7 @@
     font-size: 0.9rem;
   }
 
-  .subject-selector {
+  .subject-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
@@ -361,7 +388,7 @@
     padding: 16px;
   }
 
-  .grade-selector {
+  .selection-area {
     gap: 6px;
   }
 
@@ -370,7 +397,7 @@
     font-size: 0.85rem;
   }
 
-  .subject-selector {
+  .subject-grid {
     grid-template-columns: repeat(4, 1fr);
     gap: 8px;
   }

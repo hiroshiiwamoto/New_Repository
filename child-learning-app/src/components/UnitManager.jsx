@@ -63,7 +63,7 @@ function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
     <div className="unit-manager">
       {/* ヘッダー：学年・科目選択 */}
       <div className="dashboard-header">
-        <div className="grade-selector">
+        <div className="selection-area">
           <label>学年:</label>
           {grades.map((grade) => (
             <button
@@ -76,7 +76,7 @@ function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
           ))}
         </div>
 
-        <div className="subject-selector">
+        <div className="subject-grid">
           {subjects.map((subject) => (
             <button
               key={subject}
@@ -85,6 +85,14 @@ function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
               style={{
                 borderColor: selectedSubject === subject ? subjectColors[subject] : '#e2e8f0',
                 background: selectedSubject === subject ? `${subjectColors[subject]}15` : 'white',
+                padding: '12px',
+                fontSize: '0.9rem',
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+                whiteSpace: 'nowrap',
               }}
             >
               <span className="subject-emoji">{subjectEmojis[subject]}</span>
