@@ -2,7 +2,7 @@
   padding: 24px 0;
 }
 
-/* 共有スタイル（Dashboard、PastPaperと統一） */
+/* ヘッダー */
 .dashboard-header {
   background: white;
   border-radius: 20px;
@@ -12,32 +12,21 @@
   border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
-.selection-area {
+/* 共通スタイル */
+.grade-selector {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  margin: 0;
-  padding: 0;
+  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
-.selection-area label {
+.grade-selector label {
   font-weight: 600;
   color: #1d1d1f;
   font-size: 0.9375rem;
   letter-spacing: -0.01em;
-  margin: 0;
-  padding: 0;
-}
-
-.subject-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-top: 20px;
-  margin-bottom: 0;
-  padding: 0;
 }
 
 .grade-btn {
@@ -64,6 +53,12 @@
   background: #007AFF;
   color: white;
   box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
+}
+
+.subject-selector {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
 }
 
 .dashboard-subject-btn {
@@ -169,7 +164,7 @@
   flex: 1;
 }
 
-.unit-title .unit-name {
+.unit-name {
   display: block;
   font-size: 1.0625rem;
   font-weight: 600;
@@ -178,7 +173,7 @@
   letter-spacing: -0.01em;
 }
 
-.unit-title .unit-category {
+.unit-category {
   display: inline-block;
   font-size: 0.75rem;
   color: #86868b;
@@ -324,7 +319,7 @@
 }
 
 @media (max-width: 1024px) {
-  .subject-grid {
+  .subject-selector {
     grid-template-columns: repeat(2, 1fr);
   }
 
@@ -349,8 +344,56 @@
 }
 
 @media (max-width: 480px) {
+  .dashboard-header {
+    padding: 4px;
+  }
+
+  .grade-selector {
+    gap: 8px;
+  }
+
+  .grade-btn {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+
+  .subject-selector {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  .dashboard-subject-btn {
+    padding: 8px;
+    font-size: 0.85rem;
+  }
+
   .section-title {
-    font-size: 1.1rem;
+    font-size: 1rem;
+    margin-bottom: 12px;
+  }
+
+  .unit-card {
+    padding: 8px;
+  }
+
+  .unit-name {
+    font-size: 1rem;
+  }
+
+  .unit-category {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+  }
+
+  .default-badge {
+    padding: 4px 10px;
+    font-size: 0.75rem;
+  }
+
+  .edit-btn,
+  .delete-btn {
+    padding: 6px 10px;
+    font-size: 1rem;
   }
 
   .edit-actions {
@@ -361,5 +404,6 @@
   .save-btn,
   .cancel-btn {
     width: 100%;
+    padding: 12px;
   }
 }
