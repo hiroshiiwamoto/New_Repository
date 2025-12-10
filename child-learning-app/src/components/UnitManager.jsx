@@ -87,6 +87,12 @@ function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
                 background: selectedSubject === subject ? `${subjectColors[subject]}15` : 'white',
                 padding: '12px',
                 fontSize: '0.9rem',
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+                whiteSpace: 'nowrap',
               }}
             >
               <span className="subject-emoji">{subjectEmojis[subject]}</span>
