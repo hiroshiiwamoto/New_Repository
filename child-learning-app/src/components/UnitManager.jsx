@@ -85,8 +85,6 @@ function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
               style={{
                 borderColor: selectedSubject === subject ? subjectColors[subject] : '#e2e8f0',
                 background: selectedSubject === subject ? `${subjectColors[subject]}15` : 'white',
-                padding: '12px',
-                fontSize: '0.9rem',
               }}
             >
               <span className="subject-emoji">{subjectEmojis[subject]}</span>
