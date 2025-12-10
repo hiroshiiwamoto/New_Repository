@@ -1,88 +1,94 @@
 .unit-manager {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
+  padding: 24px 0;
 }
 
-.manager-header {
-  margin-bottom: 30px;
-}
-
-.manager-header h2 {
-  color: #1e40af;
-  font-size: 1.8rem;
-  margin-bottom: 10px;
-}
-
-.manager-description {
-  color: #64748b;
-  font-size: 0.95rem;
-}
-
-/* フィルター */
-.manager-filters {
+/* ヘッダー - Dashboardと完全統一 */
+.dashboard-header {
   background: white;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 30px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
-.filter-group {
-  margin-bottom: 15px;
-}
-
-.filter-group:last-child {
-  margin-bottom: 0;
-}
-
-.filter-group label {
-  display: block;
-  font-weight: 600;
-  color: #1e293b;
-  margin-bottom: 10px;
-  font-size: 0.95rem;
-}
-
-.grade-buttons,
-.subject-buttons {
+/* 学年選択 - Dashboardと完全統一 */
+.grade-selector {
   display: flex;
-  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
-.filter-btn {
-  padding: 10px 20px;
-  border: 2px solid #e2e8f0;
-  background: white;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.95rem;
+.grade-selector label {
   font-weight: 600;
-  transition: all 0.3s ease;
-  color: #475569;
+  color: #1d1d1f;
+  font-size: 0.9375rem;
+  letter-spacing: -0.01em;
 }
 
-.filter-btn:hover {
-  border-color: #cbd5e1;
-  transform: translateY(-2px);
+.grade-btn {
+  padding: 10px 18px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  background: white;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #86868b;
+  letter-spacing: -0.01em;
 }
 
-.filter-btn.active {
-  background: #3b82f6;
+.grade-btn:hover {
+  border-color: #007AFF;
+  background: rgba(0, 122, 255, 0.08);
+  transform: scale(1.02);
+}
+
+.grade-btn.active {
+  border-color: #007AFF;
+  background: #007AFF;
   color: white;
-  border-color: #3b82f6;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
 }
 
-.filter-btn.subject {
+/* 科目選択 - Dashboardと完全統一 */
+.subject-selector {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.dashboard-subject-btn {
+  padding: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: #1d1d1f;
+  letter-spacing: -0.01em;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.dashboard-subject-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.12);
 }
 
 .subject-emoji {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 /* 単元セクション */
