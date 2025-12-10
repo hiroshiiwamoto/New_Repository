@@ -6,6 +6,7 @@ on:
       - claude/child-learning-app-0193qjNGAcEJmWi7UiEE95c2
       - claude/review-web-app-01E94VBPVKUGLGAExxCEVgF4
       - master
+  workflow_dispatch:
 
 permissions:
   contents: read
