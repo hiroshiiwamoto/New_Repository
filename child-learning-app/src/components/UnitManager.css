@@ -2,7 +2,7 @@
   padding: 24px 0;
 }
 
-/* ヘッダー - Dashboardから完全コピー */
+/* ヘッダー */
 .dashboard-header {
   background: white;
   border-radius: 20px;
@@ -12,6 +12,7 @@
   border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
+/* 共通スタイル */
 .selection-area {
   display: flex;
   align-items: center;
@@ -118,40 +119,42 @@
   line-height: 1;
 }
 
-/* 単元セクション */
-.units-section {
-  margin-bottom: 32px;
+/* 進捗サマリー */
+.progress-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
 }
 
-.section-title {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #1d1d1f;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.summary-card {
+  background: white;
+  border-radius: 16px;
+  padding: 12px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.summary-label {
+  font-size: 0.875rem;
+  color: #86868b;
+  margin-bottom: 8px;
+  font-weight: 600;
   letter-spacing: -0.01em;
 }
 
-.unit-count {
-  font-size: 0.875rem;
-  color: #86868b;
-  font-weight: 500;
-}
-
-.no-units {
-  text-align: center;
-  padding: 12px;
-  color: #94a3b8;
-  font-size: 1rem;
-}
-
-.no-units small {
-  display: block;
-  margin-top: 8px;
-  font-size: 0.85rem;
-  color: #cbd5e1;
+.summary-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1d1d1f;
+  letter-spacing: -0.02em;
 }
 
 /* 単元グリッド */
@@ -210,6 +213,42 @@
   border-radius: 8px;
   font-weight: 600;
   letter-spacing: -0.01em;
+}
+
+/* 単元セクション */
+.units-section {
+  margin-bottom: 32px;
+}
+
+.section-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1d1d1f;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: -0.01em;
+}
+
+.unit-count {
+  font-size: 0.875rem;
+  color: #86868b;
+  font-weight: 500;
+}
+
+.no-units {
+  text-align: center;
+  padding: 12px;
+  color: #94a3b8;
+  font-size: 1rem;
+}
+
+.no-units small {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #cbd5e1;
 }
 
 /* アクション */
@@ -338,6 +377,10 @@
   .units-grid {
     grid-template-columns: 1fr;
   }
+
+  .progress-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 2000px) {
@@ -361,6 +404,14 @@
   .dashboard-subject-btn {
     padding: 12px;
     font-size: 0.9rem;
+  }
+
+  .summary-value {
+    font-size: 1.6rem;
+  }
+
+  .unit-name {
+    font-size: 1rem;
   }
 }
 
@@ -440,6 +491,18 @@
   .save-btn,
   .cancel-btn {
     width: 100%;
-    padding: 12px;
+  }
+
+  .progress-summary {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  .summary-card {
+    padding: 4px;
+  }
+
+  .summary-value {
+    font-size: 1.4rem;
   }
 }
