@@ -305,24 +305,34 @@
   border-color: #cbd5e1;
 }
 
-/* レスポンシブ */
+/* レスポンシブ - Dashboardと統一 */
+@media (max-width: 1024px) {
+  .subject-selector {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .unit-manager {
     padding: 15px;
   }
 
-  .manager-header h2 {
-    font-size: 1.5rem;
-  }
-
-  .grade-buttons,
-  .subject-buttons {
+  .grade-selector {
     gap: 8px;
   }
 
-  .filter-btn {
+  .grade-btn {
     padding: 8px 16px;
     font-size: 0.9rem;
+  }
+
+  .subject-selector {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard-subject-btn {
+    padding: 12px;
+    font-size: 0.875rem;
   }
 
   .unit-item {
@@ -347,8 +357,27 @@
 }
 
 @media (max-width: 480px) {
-  .manager-header h2 {
-    font-size: 1.3rem;
+  .dashboard-header {
+    padding: 16px;
+  }
+
+  .grade-selector {
+    gap: 6px;
+  }
+
+  .grade-btn {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+
+  .subject-selector {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  .dashboard-subject-btn {
+    padding: 10px;
+    font-size: 0.8rem;
   }
 
   .section-title {
