@@ -119,6 +119,92 @@
   line-height: 1;
 }
 
+/* 科目別達成率 */
+.subject-achievement {
+  background: white;
+  border-radius: 16px;
+  padding: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.achievement-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.achievement-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+}
+
+.achievement-card {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.2s ease;
+  border: 2px solid #e2e8f0;
+}
+
+.achievement-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.achievement-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.achievement-emoji {
+  font-size: 1.3rem;
+}
+
+.achievement-name {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #1e293b;
+}
+
+.achievement-info {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.achievement-percentage {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.achievement-count {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.achievement-bar {
+  background: #e2e8f0;
+  border-radius: 8px;
+  height: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.achievement-fill {
+  height: 100%;
+  border-radius: 8px;
+  transition: width 0.5s ease;
+}
+
 /* 進捗サマリー */
 .progress-summary {
   display: grid;
@@ -180,15 +266,21 @@
   border-color: rgba(0, 0, 0, 0.1);
 }
 
-.unit-card.custom {
-  background: #fefce8;
-  border-color: #fde047;
+.unit-card.unstudied {
+  background: #f5f5f7;
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+.unit-card.needs-review {
+  border-color: #FFCC00;
+  background: rgba(255, 204, 0, 0.06);
 }
 
 .unit-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  margin-bottom: 15px;
 }
 
 .unit-title {
@@ -215,171 +307,366 @@
   letter-spacing: -0.01em;
 }
 
-/* 単元セクション */
-.units-section {
-  margin-bottom: 32px;
-}
-
-.section-title {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #1d1d1f;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.unit-badge {
+  background: #007AFF;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
   letter-spacing: -0.01em;
+  box-shadow: 0 2px 6px rgba(0, 122, 255, 0.25);
 }
 
-.unit-count {
-  font-size: 0.875rem;
-  color: #86868b;
-  font-weight: 500;
+/* 単元統計 */
+.unit-stats {
+  margin-bottom: 15px;
 }
 
-.no-units {
-  text-align: center;
-  padding: 12px;
-  color: #94a3b8;
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.stat-value {
+  font-size: 0.9rem;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.stat-value.mastery {
+  color: #f59e0b;
   font-size: 1rem;
 }
 
-.no-units small {
+.unit-unstudied {
+  text-align: center;
+  padding: 20px;
+  color: #94a3b8;
+  font-size: 0.95rem;
+}
+
+.review-alert {
+  background: rgba(255, 204, 0, 0.1);
+  color: #1d1d1f;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 12px;
+  border: 1px solid rgba(255, 204, 0, 0.3);
+  letter-spacing: -0.01em;
+}
+
+/* ボタン */
+.add-session-btn {
+  width: 100%;
+  padding: 12px;
+  background: #007AFF;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.9375rem;
+  letter-spacing: -0.01em;
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
+}
+
+.add-session-btn:hover {
+  background: #0071e3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.35);
+}
+
+.add-session-btn:active {
+  transform: scale(0.98);
+}
+
+/* 学習記録フォーム */
+.session-form {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 2px solid #e2e8f0;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
   display: block;
-  margin-top: 8px;
-  font-size: 0.85rem;
-  color: #cbd5e1;
-}
-
-/* アクション */
-.unit-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.default-badge {
-  padding: 6px 14px;
-  background: #e0e7ff;
-  color: #4338ca;
-  border-radius: 8px;
   font-size: 0.85rem;
   font-weight: 600;
+  color: #475569;
+  margin-bottom: 8px;
 }
 
-.edit-btn,
-.delete-btn {
-  padding: 8px 12px;
-  border: none;
-  background: white;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1.1rem;
-  transition: all 0.2s ease;
-  border: 2px solid #e2e8f0;
+.form-group input[type="number"] {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #f5f5f7;
+  color: #1d1d1f;
 }
 
-.edit-btn:hover {
-  background: #eff6ff;
-  border-color: #3b82f6;
-  transform: scale(1.1);
-}
-
-.delete-btn:hover {
-  background: #fef2f2;
-  border-color: #ef4444;
-  transform: scale(1.1);
-}
-
-/* 編集フォーム */
-.unit-edit-form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  flex: 1;
-}
-
-.edit-fields {
-  display: flex;
-  gap: 12px;
-  flex: 1;
-}
-
-.edit-input,
-.edit-select {
-  padding: 10px 15px;
-  border: 2px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  transition: all 0.3s ease;
-}
-
-.edit-input {
-  flex: 2;
-}
-
-.edit-select {
-  flex: 1;
-}
-
-.edit-input:focus,
-.edit-select:focus {
+.form-group input:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #007AFF;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+  background: white;
 }
 
-.edit-actions {
+.form-group textarea {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #f5f5f7;
+  color: #1d1d1f;
+}
+
+.form-group textarea:focus {
+  outline: none;
+  border-color: #007AFF;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+  background: white;
+}
+
+.mastery-buttons {
   display: flex;
   gap: 10px;
 }
 
-.save-btn,
-.cancel-btn {
-  padding: 10px 20px;
+.mastery-btn {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 600;
+  color: #1d1d1f;
+  letter-spacing: -0.01em;
+}
+
+.mastery-btn:hover {
+  border-color: #FFCC00;
+  background: rgba(255, 204, 0, 0.08);
+  transform: scale(1.02);
+}
+
+.mastery-btn.active {
+  border-color: #FFCC00;
+  background: #FFCC00;
+  color: #1d1d1f;
+  box-shadow: 0 2px 8px rgba(255, 204, 0, 0.25);
+}
+
+.save-session-btn {
+  width: 100%;
+  padding: 12px;
+  background: #34C759;
+  color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.95rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.9375rem;
+  letter-spacing: -0.01em;
+  box-shadow: 0 2px 8px rgba(52, 199, 89, 0.25);
 }
 
-.save-btn {
-  background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-  color: white;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+.save-session-btn:hover {
+  background: #30B350;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(52, 199, 89, 0.35);
 }
 
-.save-btn:hover {
-  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+.save-session-btn:active {
+  transform: scale(0.98);
 }
 
-.cancel-btn {
-  background: white;
+/* 学習履歴 */
+.session-history {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 2px solid #f1f5f9;
+}
+
+.history-header {
+  font-size: 0.85rem;
+  font-weight: 700;
   color: #64748b;
-  border: 2px solid #e2e8f0;
+  margin-bottom: 10px;
 }
 
-.cancel-btn:hover {
+.session-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
   background: #f8fafc;
-  border-color: #cbd5e1;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
 }
 
-/* レスポンシブ - Dashboardから完全移植 */
+.session-date {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.session-mastery {
+  color: #f59e0b;
+  font-size: 0.8rem;
+}
+
+.session-duration {
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+.more-sessions {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  margin-top: 8px;
+}
+
+/* 関連タスク */
+.related-tasks {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 2px solid #f1f5f9;
+}
+
+.related-header {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 10px;
+}
+
+.related-task-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(0, 122, 255, 0.06);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  font-size: 0.875rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(0, 122, 255, 0.1);
+}
+
+.related-task-item:hover {
+  background: rgba(0, 122, 255, 0.1);
+  border-color: rgba(0, 122, 255, 0.2);
+  transform: translateX(2px);
+}
+
+.related-task-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.task-status {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #007AFF;
+}
+
+.task-status.completed {
+  color: #34C759;
+}
+
+.related-task-title {
+  color: #1e293b;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.edit-task-btn {
+  background: #007AFF;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 10px 14px;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 122, 255, 0.25);
+}
+
+.edit-task-btn:hover {
+  background: #0071e3;
+  transform: scale(1.05);
+  box-shadow: 0 3px 10px rgba(0, 122, 255, 0.35);
+}
+
+.edit-task-btn:active {
+  transform: scale(0.95);
+}
+
+.more-tasks-link {
+  text-align: center;
+  color: #007AFF;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  margin-top: 8px;
+  letter-spacing: -0.01em;
+}
+
+/* モバイル対応 */
 @media (max-width: 1024px) {
-  .subject-grid {
+  .subject-selector {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .achievement-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .progress-summary {
     grid-template-columns: repeat(2, 1fr);
   }
 
   .units-grid {
     grid-template-columns: 1fr;
-  }
-
-  .progress-summary {
-    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -413,20 +700,14 @@
   .unit-name {
     font-size: 1rem;
   }
-}
 
-@media (max-width: 768px) {
-  .unit-manager {
-    padding: 15px;
+  .edit-task-btn {
+    font-size: 1.1rem;
+    padding: 10px 14px;
   }
 
-  .edit-fields {
-    flex-direction: column;
-  }
-
-  .edit-input,
-  .edit-select {
-    width: 100%;
+  .related-task-item {
+    padding: 10px 14px;
   }
 }
 
@@ -454,43 +735,26 @@
     font-size: 0.85rem !important;
   }
 
-  .section-title {
+  .subject-achievement {
+    padding: 4px;
+  }
+
+  .achievement-title {
     font-size: 1rem;
-    margin-bottom: 12px;
+    margin-bottom: 15px;
   }
 
-  .unit-card {
-    padding: 8px;
+  .achievement-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
   }
 
-  .unit-name {
-    font-size: 1rem;
+  .achievement-card {
+    padding: 15px;
   }
 
-  .unit-category {
-    font-size: 0.7rem;
-    padding: 3px 8px;
-  }
-
-  .default-badge {
-    padding: 4px 10px;
-    font-size: 0.75rem;
-  }
-
-  .edit-btn,
-  .delete-btn {
-    padding: 6px 10px;
-    font-size: 1rem;
-  }
-
-  .edit-actions {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .save-btn,
-  .cancel-btn {
-    width: 100%;
+  .achievement-percentage {
+    font-size: 1.5rem;
   }
 
   .progress-summary {
@@ -505,4 +769,88 @@
   .summary-value {
     font-size: 1.4rem;
   }
+
+  .mastery-buttons {
+    flex-direction: column;
+  }
+
+  .related-task-item {
+    padding: 12px 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .related-task-info {
+    width: 100%;
+  }
+
+  .edit-task-btn {
+    font-size: 1.2rem;
+    padding: 12px 16px;
+    min-width: 48px;
+    min-height: 48px;
+    align-self: flex-end;
+  }
+}
+
+/* 新しいクリック可能な単元カードのスタイル */
+.unit-header.clickable {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+}
+
+.unit-header.clickable:hover {
+  opacity: 0.8;
+}
+
+.unit-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.expand-icon {
+  font-size: 0.9rem;
+  color: #64748b;
+  transition: transform 0.2s ease;
+}
+
+.unit-card.expanded .expand-icon {
+  transform: rotate(90deg);
+}
+
+/* コンパクト表示 */
+.unit-compact {
+  padding: 10px 0;
+}
+
+.compact-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+}
+
+.compact-mastery {
+  color: #f59e0b;
+}
+
+.compact-last-study {
+  color: #64748b;
+}
+
+.compact-alert {
+  color: #ef4444;
+  font-size: 1.1rem;
+}
+
+/* 詳細表示 */
+.unit-details {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
