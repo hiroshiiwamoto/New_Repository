@@ -1,18 +1,11 @@
 import { useState } from 'react'
 import './UnitManager.css'
-import { unitsDatabase, subjects, grades } from '../utils/unitsDatabase'
+import { subjects, grades } from '../utils/unitsDatabase'
 import { subjectEmojis, subjectColors } from '../utils/constants'
 
 function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
   const [selectedGrade, setSelectedGrade] = useState('4年生')
   const [selectedSubject, setSelectedSubject] = useState('算数')
-
-  // デフォルト単元とカスタム単元を統合
-  const defaultUnits = unitsDatabase[selectedSubject]?.[selectedGrade] || []
-  const filteredCustomUnits = customUnits.filter(
-    u => u.subject === selectedSubject && u.grade === selectedGrade
-  )
-  const currentUnits = [...defaultUnits, ...filteredCustomUnits]
 
   return (
     <div className="unit-manager">
@@ -57,27 +50,7 @@ function UnitManager({ customUnits, onUpdateUnit, onDeleteUnit }) {
         </div>
       </div>
 
-      {/* 単元グリッド - Dashboardから完全コピー */}
-      <div className="units-grid">
-        {currentUnits.map((unit) => {
-          const unitBackgroundColor = `${subjectColors[selectedSubject]}26`
-
-          return (
-            <div
-              key={unit.id}
-              className="unit-card"
-              style={{ backgroundColor: unitBackgroundColor }}
-            >
-              <div className="unit-header">
-                <div className="unit-title">
-                  <span className="unit-name">{unit.name}</span>
-                  <span className="unit-category">{unit.category}</span>
-                </div>
-              </div>
-            </div>
-          )
-        })}
-      </div>
+      {/* 単元表示は完全削除 - ヘッダーのみ検証 */}
     </div>
   )
 }
