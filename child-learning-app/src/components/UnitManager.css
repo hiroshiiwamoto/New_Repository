@@ -327,8 +327,22 @@
 }
 
 @media (max-width: 480px) {
+  .dashboard-header {
+    padding: 4px;
+  }
+
+  .grade-selector {
+    gap: 8px;
+  }
+
+  .grade-btn {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+
   .subject-selector {
     grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
   }
 
   .section-title {
