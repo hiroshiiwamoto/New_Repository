@@ -138,7 +138,7 @@ function TestScoreView({ user }) {
             {grades.map((grade) => (
               <button
                 key={grade}
-                className={`filter-btn ${selectedGrade === grade ? 'active' : ''}`}
+                className={`grade-btn ${selectedGrade === grade ? 'active' : ''}`}
                 onClick={() => setSelectedGrade(grade)}
               >
                 {grade}
