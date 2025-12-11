@@ -123,13 +123,6 @@ function TestScoreView({ user }) {
 
   return (
     <div className="testscore-view">
-      <div className="view-header">
-        <h2>📊 テスト成績管理</h2>
-        <p className="view-description">
-          SAPIX各種テストの成績を記録・管理します
-        </p>
-      </div>
-
       {/* フィルター */}
       <div className="view-filters">
         <div className="filter-group">
