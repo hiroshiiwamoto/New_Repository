@@ -22,10 +22,11 @@
 /* フィルター */
 .view-filters {
   background: white;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 30px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  padding: 12px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.04);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -38,9 +39,10 @@
 .filter-group label {
   display: block;
   font-weight: 600;
-  color: #1e293b;
+  color: #1d1d1f;
   margin-bottom: 10px;
-  font-size: 0.95rem;
+  font-size: 0.9375rem;
+  letter-spacing: -0.01em;
 }
 
 .grade-buttons {
@@ -78,21 +80,26 @@
 
 .add-score-btn {
   padding: 12px 24px;
-  background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+  background: #007AFF;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-  font-size: 1rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
+  font-size: 0.9375rem;
+  letter-spacing: -0.01em;
 }
 
 .add-score-btn:hover {
-  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  background: #0071e3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.35);
+}
+
+.add-score-btn:active {
+  transform: scale(0.98);
 }
 
 /* コンテンツ */
@@ -106,10 +113,11 @@
   text-align: center;
   padding: 60px 20px;
   background: white;
-  border-radius: 12px;
+  border-radius: 16px;
   color: #94a3b8;
-  font-size: 1.1rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  font-size: 0.95rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .no-data small {
@@ -128,16 +136,17 @@
 
 .score-card {
   background: white;
-  border: 2px solid #e0e7ff;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .score-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.06);
   transform: translateY(-2px);
+  border-color: rgba(0, 0, 0, 0.1);
 }
 
 .card-header {
@@ -154,10 +163,11 @@
 }
 
 .test-name {
-  color: #1e40af;
-  font-size: 1.2rem;
-  margin: 0 0 8px 0;
-  font-weight: 700;
+  color: #1d1d1f;
+  font-size: 1.0625rem;
+  margin: 0 0 6px 0;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 .test-date {
@@ -172,26 +182,36 @@
 
 .edit-btn,
 .delete-btn {
-  padding: 8px 12px;
+  padding: 10px 14px;
   border: none;
   background: white;
-  border-radius: 6px;
+  border-radius: 10px;
   cursor: pointer;
-  font-size: 1.1rem;
-  transition: all 0.2s ease;
-  border: 2px solid #e2e8f0;
+  font-size: 1rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .edit-btn:hover {
-  background: #eff6ff;
-  border-color: #3b82f6;
-  transform: scale(1.1);
+  background: rgba(0, 122, 255, 0.08);
+  border-color: #007AFF;
+  transform: scale(1.05);
 }
 
 .delete-btn:hover {
-  background: #fef2f2;
-  border-color: #ef4444;
-  transform: scale(1.1);
+  background: rgba(255, 59, 48, 0.08);
+  border-color: #FF3B30;
+  transform: scale(1.05);
+}
+
+.edit-btn:active,
+.delete-btn:active {
+  transform: scale(0.95);
 }
 
 /* サマリー */
@@ -317,7 +337,7 @@
 
 .form-container {
   background: white;
-  border-radius: 12px;
+  border-radius: 20px;
   padding: 12px;
   max-width: 900px;
   width: 100%;
@@ -414,19 +434,22 @@
 .form-field input,
 .form-field select,
 .form-field textarea {
-  padding: 10px 12px;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  transition: all 0.3s ease;
+  padding: 11px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #f5f5f7;
+  color: #1d1d1f;
 }
 
 .form-field input:focus,
 .form-field select:focus,
 .form-field textarea:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #007AFF;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+  background: white;
 }
 
 .score-input-group {
@@ -467,26 +490,30 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  background: #007AFF;
   color: white;
-  box-shadow: 0 2px 8px rgba(30, 64, 175, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.4);
+  background: #0071e3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.35);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
 }
 
 .btn-secondary {
   background: white;
   color: #64748b;
-  border: 2px solid #e2e8f0;
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .btn-secondary:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
+  background: #f5f5f7;
+  border-color: rgba(0, 0, 0, 0.2);
 }
 
 /* レスポンシブ */
