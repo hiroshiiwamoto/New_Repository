@@ -123,10 +123,6 @@ function TestScoreView({ user }) {
 
   return (
     <div className="testscore-view">
-      <div className="view-header">
-        <h2>📊 テスト成績管理</h2>
-      </div>
-
       {/* フィルター */}
       <div className="view-filters">
         <div className="filter-group">
