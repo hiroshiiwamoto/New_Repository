@@ -5,6 +5,7 @@ on:
     branches:
       - claude/child-learning-app-0193qjNGAcEJmWi7UiEE95c2
       - claude/review-web-app-01E94VBPVKUGLGAExxCEVgF4
+      - claude/continue-work-updates-01TZZeBewkmqNZ1wmUepL36P
       - master
   workflow_dispatch:
 
