@@ -423,6 +423,7 @@ function App() {
         ) : view === 'unitManager' ? (
           <UnitManager
             customUnits={customUnits}
+            onAddCustomUnit={addCustomUnit}
             onUpdateUnit={updateCustomUnit}
             onDeleteUnit={deleteCustomUnit}
           />
