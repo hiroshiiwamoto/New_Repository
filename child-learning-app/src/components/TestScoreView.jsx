@@ -123,27 +123,25 @@ function TestScoreView({ user }) {
 
   return (
     <div className="testscore-view">
-      {/* フィルター */}
-      <div className="view-filters">
-        <div className="filter-group">
+      {/* ヘッダー */}
+      <div className="dashboard-header">
+        <div className="selection-area">
           <label>学年:</label>
-          <div className="grade-buttons">
-            {grades.map((grade) => (
-              <button
-                key={grade}
-                className={`grade-btn ${selectedGrade === grade ? 'active' : ''}`}
-                onClick={() => setSelectedGrade(grade)}
-              >
-                {grade}
-              </button>
-            ))}
-          </div>
+          {grades.map((grade) => (
+            <button
+              key={grade}
+              className={`grade-btn ${selectedGrade === grade ? 'active' : ''}`}
+              onClick={() => setSelectedGrade(grade)}
+            >
+              {grade}
+            </button>
+          ))}
         </div>
-
-        <button className="add-score-btn" onClick={handleOpenForm}>
-          + 成績を追加
-        </button>
       </div>
+
+      <button className="add-score-btn" onClick={handleOpenForm}>
+        + 成績を追加
+      </button>
 
       {/* 成績一覧 */}
       <div className="scores-content">
