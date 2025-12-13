@@ -49,55 +49,55 @@
 }
 
 .testscore-view .grade-btn {
-  padding: 10px 18px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
-  background: white;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  color: #86868b;
-  letter-spacing: -0.01em;
+  padding: 10px 18px !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  border-radius: 10px !important;
+  background: white !important;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  color: #86868b !important;
+  letter-spacing: -0.01em !important;
 }
 
 .testscore-view .grade-btn:hover {
-  border-color: #007AFF;
-  background: rgba(0, 122, 255, 0.08);
-  transform: scale(1.02);
+  border-color: #007AFF !important;
+  background: rgba(0, 122, 255, 0.08) !important;
+  transform: scale(1.02) !important;
 }
 
 .testscore-view .grade-btn.active {
   border-color: #007AFF !important;
   background: #007AFF !important;
   color: white !important;
-  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25) !important;
 }
 
 .add-score-btn {
-  width: 100%;
-  padding: 12px;
-  background: #007AFF;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  font-size: 0.9375rem;
-  letter-spacing: -0.01em;
-  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
-  margin-top: 20px;
+  width: 100% !important;
+  padding: 12px !important;
+  background: #007AFF !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  font-size: 0.9375rem !important;
+  letter-spacing: -0.01em !important;
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25) !important;
+  margin-top: 20px !important;
 }
 
 .add-score-btn:hover {
-  background: #0071e3;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.35);
+  background: #0071e3 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.35) !important;
 }
 
 .add-score-btn:active {
-  transform: scale(0.98);
+  transform: scale(0.98) !important;
 }
 
 /* コンテンツ */
