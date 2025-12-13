@@ -144,28 +144,6 @@ function TestScoreView({ user }) {
         + 成績を追加
       </button>
 
-      {/* 成績一覧 */}
-      <div className="scores-content">
-        {filteredScores.length === 0 ? (
-          <div className="no-data">
-            📝 この学年のテスト成績がありません
-            <br />
-            <small>「+ 成績を追加」ボタンから記録してください</small>
-          </div>
-        ) : (
-          <div className="scores-list">
-            {filteredScores.map(score => (
-              <ScoreCard
-                key={score.firestoreId}
-                score={score}
-                onEdit={handleEditScore}
-                onDelete={handleDelete}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
       {/* 成績入力フォーム */}
       {showForm && (
         <div className="form-overlay" onClick={() => setShowForm(false)}>

@@ -515,6 +515,21 @@
 }
 
 /* レスポンシブ */
+@media (max-width: 2000px) {
+  .testscore-view .dashboard-header {
+    padding: 6px !important;
+  }
+
+  .testscore-view .selection-area {
+    flex-wrap: wrap !important;
+  }
+
+  .testscore-view .grade-btn {
+    padding: 8px 16px !important;
+    font-size: 0.9rem !important;
+  }
+}
+
 @media (max-width: 768px) {
   .testscore-view {
     padding: 15px;
@@ -555,6 +570,19 @@
 }
 
 @media (max-width: 480px) {
+  .testscore-view .dashboard-header {
+    padding: 4px !important;
+  }
+
+  .testscore-view .selection-area {
+    gap: 8px !important;
+  }
+
+  .testscore-view .grade-btn {
+    padding: 6px 12px !important;
+    font-size: 0.85rem !important;
+  }
+
   .view-header h2 {
     font-size: 1.3rem;
   }
