@@ -123,7 +123,7 @@ function TestScoreView({ user }) {
 
   return (
     <div className="testscore-view">
-      {/* ヘッダー */}
+      {/* ヘッダー - ダッシュボードと統一 */}
       <div className="dashboard-header">
         <div className="selection-area">
           <label>学年:</label>
@@ -139,6 +139,7 @@ function TestScoreView({ user }) {
         </div>
       </div>
 
+      {/* 成績追加ボタン */}
       <button className="add-score-btn" onClick={handleOpenForm}>
         + 成績を追加
       </button>

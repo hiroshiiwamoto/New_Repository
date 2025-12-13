@@ -3,33 +3,33 @@
 }
 
 /* ヘッダー */
-.dashboard-header {
-  background: white;
-  border-radius: 20px;
-  padding: 12px;
-  margin-bottom: 24px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.04);
+.testscore-view .dashboard-header {
+  background: white !important;
+  border-radius: 20px !important;
+  padding: 12px !important;
+  margin-bottom: 24px !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.06) !important;
+  border: 1px solid rgba(0, 0, 0, 0.04) !important;
 }
 
 /* 共通スタイル */
-.selection-area {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin: 0;
-  padding: 0;
-  flex-wrap: wrap;
+.testscore-view .selection-area {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  flex-wrap: wrap !important;
 }
 
-.selection-area label {
-  font-weight: 600;
-  color: #1d1d1f;
-  font-size: 0.9375rem;
-  letter-spacing: -0.01em;
-  margin: 0;
-  padding: 0;
+.testscore-view .selection-area label {
+  font-weight: 600 !important;
+  color: #1d1d1f !important;
+  font-size: 0.9375rem !important;
+  letter-spacing: -0.01em !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .grade-selector {
@@ -49,55 +49,55 @@
 }
 
 .testscore-view .grade-btn {
-  padding: 10px 18px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
-  background: white;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  color: #86868b;
-  letter-spacing: -0.01em;
+  padding: 10px 18px !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  border-radius: 10px !important;
+  background: white !important;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  color: #86868b !important;
+  letter-spacing: -0.01em !important;
 }
 
 .testscore-view .grade-btn:hover {
-  border-color: #007AFF;
-  background: rgba(0, 122, 255, 0.08);
-  transform: scale(1.02);
+  border-color: #007AFF !important;
+  background: rgba(0, 122, 255, 0.08) !important;
+  transform: scale(1.02) !important;
 }
 
 .testscore-view .grade-btn.active {
   border-color: #007AFF !important;
   background: #007AFF !important;
   color: white !important;
-  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25) !important;
 }
 
 .add-score-btn {
-  width: 100%;
-  padding: 12px;
-  background: #007AFF;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  font-size: 0.9375rem;
-  letter-spacing: -0.01em;
-  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
-  margin-top: 20px;
+  width: 100% !important;
+  padding: 12px !important;
+  background: #007AFF !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  font-size: 0.9375rem !important;
+  letter-spacing: -0.01em !important;
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25) !important;
+  margin-top: 20px !important;
 }
 
 .add-score-btn:hover {
-  background: #0071e3;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.35);
+  background: #0071e3 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.35) !important;
 }
 
 .add-score-btn:active {
-  transform: scale(0.98);
+  transform: scale(0.98) !important;
 }
 
 /* コンテンツ */
