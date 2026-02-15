@@ -1,0 +1,46 @@
+import { useState } from 'react'
+import './ScheduleView.css'
+import WeeklyCalendar from './WeeklyCalendar'
+import TaskList from './TaskList'
+
+function ScheduleView({ tasks, onToggleTask, onDeleteTask, onBulkDeleteTasks, onEditTask }) {
+  const [subView, setSubView] = useState('calendar') // 'calendar' or 'tasks'
+
+  return (
+    <div className="schedule-view">
+      <div className="sub-tab-switcher">
+        <button
+          className={subView === 'calendar' ? 'active' : ''}
+          onClick={() => setSubView('calendar')}
+        >
+          カレンダー
+        </button>
+        <button
+          className={subView === 'tasks' ? 'active' : ''}
+          onClick={() => setSubView('tasks')}
+        >
+          タスク一覧
+        </button>
+      </div>
+
+      {subView === 'calendar' ? (
+        <WeeklyCalendar
+          tasks={tasks}
+          onToggleTask={onToggleTask}
+          onDeleteTask={onDeleteTask}
+          onEditTask={onEditTask}
+        />
+      ) : (
+        <TaskList
+          tasks={tasks}
+          onToggleTask={onToggleTask}
+          onDeleteTask={onDeleteTask}
+          onBulkDeleteTasks={onBulkDeleteTasks}
+          onEditTask={onEditTask}
+        />
+      )}
+    </div>
+  )
+}
+
+export default ScheduleView

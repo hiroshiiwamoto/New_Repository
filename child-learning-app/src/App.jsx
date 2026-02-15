@@ -4,11 +4,8 @@ import './utils/toast.css'
 import Auth from './components/Auth'
 import TodayAndWeekView from './components/TodayAndWeekView'
 import TaskForm from './components/TaskForm'
-import TaskList from './components/TaskList'
-import WeeklyCalendar from './components/WeeklyCalendar'
-import UnitDashboard from './components/UnitDashboard'
-import Analytics from './components/Analytics'
-import UnitManager from './components/UnitManager'
+import ScheduleView from './components/ScheduleView'
+import UnitAnalysisView from './components/UnitAnalysisView'
 import PastPaperView from './components/PastPaperView'
 import TestScoreView from './components/TestScoreView'
 import { generateSAPIXScheduleByGrade } from './utils/sampleData'
@@ -31,8 +28,8 @@ import { toast } from './utils/toast'
 function App() {
   const [user, setUser] = useState(null)
   const [tasks, setTasks] = useState([])
-  const [view, setView] = useState('calendar') // subject, calendar, analytics, tasks, edit, unitManager, pastpaper, testscore
-  const [previousView, setPreviousView] = useState('calendar') // Store previous view for returning after edit
+  const [view, setView] = useState('schedule') // schedule, unitAnalysis, pastpaper, testscore, edit
+  const [previousView, setPreviousView] = useState('schedule') // Store previous view for returning after edit
   const [editingTask, setEditingTask] = useState(null)
   const [customUnits, setCustomUnits] = useState([]) // カスタム単元
   const taskFormRef = useRef(null)
@@ -330,34 +327,16 @@ function App() {
             {/* 2. ビュー切り替え */}
             <div className="view-switcher">
           <button
-            className={view === 'subject' ? 'active' : ''}
-            onClick={() => setView('subject')}
+            className={view === 'schedule' ? 'active' : ''}
+            onClick={() => setView('schedule')}
           >
-            📊 ダッシュボード
+            📅 スケジュール
           </button>
           <button
-            className={view === 'analytics' ? 'active' : ''}
-            onClick={() => setView('analytics')}
+            className={view === 'unitAnalysis' ? 'active' : ''}
+            onClick={() => setView('unitAnalysis')}
           >
-            📈 分析
-          </button>
-          <button
-            className={view === 'calendar' ? 'active' : ''}
-            onClick={() => setView('calendar')}
-          >
-            📅 カレンダー
-          </button>
-          <button
-            className={view === 'tasks' ? 'active' : ''}
-            onClick={() => setView('tasks')}
-          >
-            📋 タスク
-          </button>
-          <button
-            className={view === 'unitManager' ? 'active' : ''}
-            onClick={() => setView('unitManager')}
-          >
-            📚 単元管理
+            📊 単元分析
           </button>
           <button
             className={view === 'pastpaper' ? 'active' : ''}
@@ -369,35 +348,22 @@ function App() {
             className={view === 'testscore' ? 'active' : ''}
             onClick={() => setView('testscore')}
           >
-            📊 テスト成績
+            📈 テスト成績
           </button>
         </div>
 
-        {view === 'subject' ? (
-          <UnitDashboard
-            tasks={tasks}
-            onEditTask={handleEditTask}
-            customUnits={customUnits}
-          />
-        ) : view === 'analytics' ? (
-          <Analytics tasks={tasks} />
-        ) : view === 'calendar' ? (
-          <WeeklyCalendar
-            tasks={tasks}
-            onToggleTask={toggleTask}
-            onDeleteTask={deleteTask}
-            onEditTask={handleEditTask}
-          />
-        ) : view === 'tasks' ? (
-          <TaskList
+        {view === 'schedule' ? (
+          <ScheduleView
             tasks={tasks}
             onToggleTask={toggleTask}
             onDeleteTask={deleteTask}
             onBulkDeleteTasks={bulkDeleteTasks}
             onEditTask={handleEditTask}
           />
-        ) : view === 'unitManager' ? (
-          <UnitManager
+        ) : view === 'unitAnalysis' ? (
+          <UnitAnalysisView
+            tasks={tasks}
+            onEditTask={handleEditTask}
             customUnits={customUnits}
             onAddCustomUnit={addCustomUnit}
             onUpdateUnit={updateCustomUnit}
@@ -420,8 +386,8 @@ function App() {
           </>
         )}
 
-        {/* 3. タスク追加フォーム（一番下） - only show when not in edit view, unitManager view, pastpaper view, or testscore view */}
-        {view !== 'edit' && view !== 'unitManager' && view !== 'pastpaper' && view !== 'testscore' && (
+        {/* 3. タスク追加フォーム（一番下） - show only on schedule view */}
+        {view === 'schedule' && (
           <div ref={taskFormRef}>
             <TaskForm
               onAddTask={addTask}
