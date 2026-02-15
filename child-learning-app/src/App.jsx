@@ -11,8 +11,6 @@ import Analytics from './components/Analytics'
 import UnitManager from './components/UnitManager'
 import PastPaperView from './components/PastPaperView'
 import TestScoreView from './components/TestScoreView'
-import TargetSchoolView from './components/TargetSchoolView'
-import StudyTimer from './components/StudyTimer'
 import { generateSAPIXScheduleByGrade } from './utils/sampleData'
 import {
   addTaskToFirestore,
@@ -20,8 +18,6 @@ import {
   deleteTaskFromFirestore,
   bulkDeleteTasksFromFirestore,
   subscribeToTasks,
-  saveTargetSchools as saveTargetSchoolsToFirestore,
-  getTargetSchools as getTargetSchoolsFromFirestore,
   migrateLocalStorageToFirestore,
 } from './utils/firestore'
 import {
@@ -35,10 +31,9 @@ import { toast } from './utils/toast'
 function App() {
   const [user, setUser] = useState(null)
   const [tasks, setTasks] = useState([])
-  const [view, setView] = useState('calendar') // subject, calendar, analytics, tasks, edit, unitManager, pastpaper, testscore, targetschool, timer
+  const [view, setView] = useState('calendar') // subject, calendar, analytics, tasks, edit, unitManager, pastpaper, testscore
   const [previousView, setPreviousView] = useState('calendar') // Store previous view for returning after edit
   const [editingTask, setEditingTask] = useState(null)
-  const [targetSchools, setTargetSchools] = useState([])
   const [customUnits, setCustomUnits] = useState([]) // カスタム単元
   const taskFormRef = useRef(null)
   const [migrated, setMigrated] = useState(false)
@@ -50,10 +45,6 @@ function App() {
       const savedTasks = localStorage.getItem('sapixTasks')
       if (savedTasks) {
         setTasks(JSON.parse(savedTasks))
-      }
-      const savedSchools = localStorage.getItem('targetSchools')
-      if (savedSchools) {
-        setTargetSchools(JSON.parse(savedSchools))
       }
       return
     }
@@ -70,13 +61,6 @@ function App() {
       }
     }
 
-    // 目標学校を取得
-    getTargetSchoolsFromFirestore(user.uid).then(result => {
-      if (result.success && result.data.length > 0) {
-        setTargetSchools(result.data)
-      }
-    })
-
     // カスタム単元を取得
     getCustomUnits(user.uid).then(result => {
       if (result.success) {
@@ -91,16 +75,6 @@ function App() {
 
     return () => unsubscribe()
   }, [user, migrated])
-
-  // 目標学校が変更されたらFirestoreに保存
-  useEffect(() => {
-    if (user) {
-      saveTargetSchoolsToFirestore(user.uid, targetSchools)
-    } else {
-      // ユーザーがログインしていない場合は、localStorageに保存
-      localStorage.setItem('targetSchools', JSON.stringify(targetSchools))
-    }
-  }, [targetSchools, user])
 
 
   const addTask = async (task) => {
@@ -397,18 +371,6 @@ function App() {
           >
             📊 テスト成績
           </button>
-          <button
-            className={view === 'targetschool' ? 'active' : ''}
-            onClick={() => setView('targetschool')}
-          >
-            🏫 志望校
-          </button>
-          <button
-            className={view === 'timer' ? 'active' : ''}
-            onClick={() => setView('timer')}
-          >
-            ⏱️ タイマー
-          </button>
         </div>
 
         {view === 'subject' ? (
@@ -454,18 +416,12 @@ function App() {
           <TestScoreView
             user={user}
           />
-        ) : view === 'targetschool' ? (
-          <TargetSchoolView
-            user={user}
-          />
-        ) : view === 'timer' ? (
-          <StudyTimer />
         ) : null}
           </>
         )}
 
         {/* 3. タスク追加フォーム（一番下） - only show when not in edit view, unitManager view, pastpaper view, or testscore view */}
-        {view !== 'edit' && view !== 'unitManager' && view !== 'pastpaper' && view !== 'testscore' && view !== 'targetschool' && view !== 'timer' && (
+        {view !== 'edit' && view !== 'unitManager' && view !== 'pastpaper' && view !== 'testscore' && (
           <div ref={taskFormRef}>
             <TaskForm
               onAddTask={addTask}
