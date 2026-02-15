@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import './PastPaperView.css'
 import { subjects, unitsDatabase, grades } from '../utils/unitsDatabase'
 import {
@@ -9,6 +9,8 @@ import {
 } from '../utils/pastPaperSessions'
 import { subjectColors, subjectEmojis } from '../utils/constants'
 import { toast } from '../utils/toast'
+import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
+import { refreshGoogleAccessToken } from './Auth'
 
 function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask, onDeleteTask }) {
   const [viewMode, setViewMode] = useState('school') // 'school' or 'unit'
@@ -43,6 +45,52 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     fileUrl: ''  // GoogleドライブやPDFのURL
   })
   const [expandedSessions, setExpandedSessions] = useState({}) // 学習記録の展開状態 (taskId -> boolean)
+  const [uploading, setUploading] = useState(false)
+  const [uploadTarget, setUploadTarget] = useState(null) // 'add' | taskId (for edit)
+  const addFileInputRef = useRef(null)
+  const editFileInputRef = useRef(null)
+
+  // PDF を Google Drive にアップロードする共通処理
+  const handlePDFUpload = async (file, target) => {
+    if (!file) return
+    if (file.type !== 'application/pdf') {
+      toast.error('PDFファイルのみアップロード可能です')
+      return
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error('ファイルサイズは20MB以下にしてください')
+      return
+    }
+
+    // Google Drive 接続確認
+    const hasAccess = await checkDriveAccess()
+    if (!hasAccess) {
+      const token = await refreshGoogleAccessToken()
+      if (!token) {
+        toast.error('Google Drive に接続してからアップロードしてください')
+        return
+      }
+    }
+
+    setUploading(true)
+    setUploadTarget(target)
+    try {
+      const result = await uploadPDFToDrive(file, () => {})
+      const viewUrl = `https://drive.google.com/file/d/${result.driveFileId}/view`
+
+      if (target === 'add') {
+        setAddForm(prev => ({ ...prev, fileUrl: viewUrl }))
+      } else {
+        setEditForm(prev => ({ ...prev, fileUrl: viewUrl }))
+      }
+      toast.success('PDFをGoogle Driveにアップロードしました')
+    } catch (error) {
+      toast.error('アップロードエラー: ' + error.message)
+    } finally {
+      setUploading(false)
+      setUploadTarget(null)
+    }
+  }
 
   // 過去問タスクのみフィルタリング（学年無関係）
   const pastPaperTasks = useMemo(() => {
@@ -492,18 +540,53 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
             </div>
           </div>
 
-          {/* 問題ファイルURL */}
+          {/* 問題ファイル */}
           <div className="add-form-section">
-            <label className="section-label">📎 問題ファイル（任意）:</label>
-            <input
-              type="url"
-              className="file-url-input"
-              placeholder="GoogleドライブやPDFのURLを貼り付け"
-              value={addForm.fileUrl}
-              onChange={(e) => setAddForm({ ...addForm, fileUrl: e.target.value })}
-            />
+            <label className="section-label">問題ファイル（任意）:</label>
+            <div className="file-upload-area">
+              <input
+                ref={addFileInputRef}
+                type="file"
+                accept="application/pdf"
+                style={{ display: 'none' }}
+                onChange={(e) => {
+                  handlePDFUpload(e.target.files[0], 'add')
+                  e.target.value = ''
+                }}
+              />
+              <button
+                type="button"
+                className="pdf-upload-btn"
+                onClick={() => addFileInputRef.current?.click()}
+                disabled={uploading && uploadTarget === 'add'}
+              >
+                {uploading && uploadTarget === 'add' ? 'アップロード中...' : 'PDFをアップロード'}
+              </button>
+              <span className="file-or-divider">または</span>
+              <input
+                type="url"
+                className="file-url-input"
+                placeholder="URLを貼り付け"
+                value={addForm.fileUrl}
+                onChange={(e) => setAddForm({ ...addForm, fileUrl: e.target.value })}
+              />
+            </div>
+            {addForm.fileUrl && (
+              <div className="file-url-preview">
+                <a href={addForm.fileUrl} target="_blank" rel="noopener noreferrer">
+                  {addForm.fileUrl.includes('drive.google.com') ? 'Google Drive のファイル' : addForm.fileUrl}
+                </a>
+                <button
+                  type="button"
+                  className="clear-url-btn"
+                  onClick={() => setAddForm({ ...addForm, fileUrl: '' })}
+                >
+                  &times;
+                </button>
+              </div>
+            )}
             <small className="input-hint">
-              Googleドライブの共有リンクやPDFのURLを入力してください
+              PDFを直接アップロード（Google Driveに保存）、またはURLを入力
             </small>
           </div>
 
@@ -666,18 +749,53 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                             </div>
                           </div>
 
-                          {/* 問題ファイルURL */}
+                          {/* 問題ファイル */}
                           <div className="edit-form-section">
-                            <label className="section-label">📎 問題ファイル（任意）:</label>
-                            <input
-                              type="url"
-                              className="file-url-input"
-                              placeholder="GoogleドライブやPDFのURLを貼り付け"
-                              value={editForm.fileUrl}
-                              onChange={(e) => setEditForm({ ...editForm, fileUrl: e.target.value })}
-                            />
+                            <label className="section-label">問題ファイル（任意）:</label>
+                            <div className="file-upload-area">
+                              <input
+                                ref={editFileInputRef}
+                                type="file"
+                                accept="application/pdf"
+                                style={{ display: 'none' }}
+                                onChange={(e) => {
+                                  handlePDFUpload(e.target.files[0], task.id)
+                                  e.target.value = ''
+                                }}
+                              />
+                              <button
+                                type="button"
+                                className="pdf-upload-btn"
+                                onClick={() => editFileInputRef.current?.click()}
+                                disabled={uploading && uploadTarget === task.id}
+                              >
+                                {uploading && uploadTarget === task.id ? 'アップロード中...' : 'PDFをアップロード'}
+                              </button>
+                              <span className="file-or-divider">または</span>
+                              <input
+                                type="url"
+                                className="file-url-input"
+                                placeholder="URLを貼り付け"
+                                value={editForm.fileUrl}
+                                onChange={(e) => setEditForm({ ...editForm, fileUrl: e.target.value })}
+                              />
+                            </div>
+                            {editForm.fileUrl && (
+                              <div className="file-url-preview">
+                                <a href={editForm.fileUrl} target="_blank" rel="noopener noreferrer">
+                                  {editForm.fileUrl.includes('drive.google.com') ? 'Google Drive のファイル' : editForm.fileUrl}
+                                </a>
+                                <button
+                                  type="button"
+                                  className="clear-url-btn"
+                                  onClick={() => setEditForm({ ...editForm, fileUrl: '' })}
+                                >
+                                  &times;
+                                </button>
+                              </div>
+                            )}
                             <small className="input-hint">
-                              Googleドライブの共有リンクやPDFのURLを入力してください
+                              PDFを直接アップロード（Google Driveに保存）、またはURLを入力
                             </small>
                           </div>
 
