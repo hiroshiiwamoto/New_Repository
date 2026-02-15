@@ -3,14 +3,14 @@ import { getAuth, GoogleAuthProvider } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 import { getStorage } from 'firebase/storage'
 
-// Firebase configuration
+// Firebase configuration（環境変数から読み込み）
 const firebaseConfig = {
-  apiKey: "AIzaSyA4Dg6dUSUljW3lRZGMndbzSnsbcwkEuv8",
-  authDomain: "studyapp-28e08.firebaseapp.com",
-  projectId: "studyapp-28e08",
-  storageBucket: "studyapp-28e08.firebasestorage.app",
-  messagingSenderId: "929036775806",
-  appId: "1:929036775806:web:50c21242a761566e31c32f"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 }
 
 // Initialize Firebase
