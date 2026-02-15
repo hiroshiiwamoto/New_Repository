@@ -527,6 +527,35 @@
   border-color: #ef4444;
 }
 
+/* ストレージ使用状況 */
+.storage-usage-info {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: #f5f5f7;
+  border-radius: 8px;
+}
+
+.storage-usage-info small {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.usage-bar-container {
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.usage-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #059669);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
 /* No data */
 .no-data {
   text-align: center;

@@ -19,11 +19,71 @@ import {
 } from 'firebase/storage'
 import { db, storage } from '../firebase'
 
+// アップロード制限
+const MAX_FILE_SIZE = 10 * 1024 * 1024       // 1ファイル: 10MB
+const MAX_TOTAL_STORAGE = 500 * 1024 * 1024  // 合計: 500MB
+const MAX_PDF_COUNT = 50                      // 最大ファイル数: 50個
+
+/**
+ * ユーザーのストレージ使用状況を取得
+ */
+export async function getStorageUsage(userId) {
+  try {
+    const pdfRef = collection(db, 'users', userId, 'pdfDocuments')
+    const snapshot = await getDocs(pdfRef)
+
+    let totalSize = 0
+    let fileCount = 0
+    snapshot.forEach((doc) => {
+      const data = doc.data()
+      totalSize += data.fileSize || 0
+      fileCount++
+    })
+
+    return {
+      totalSize,
+      fileCount,
+      maxTotalSize: MAX_TOTAL_STORAGE,
+      maxFileCount: MAX_PDF_COUNT,
+      maxFileSize: MAX_FILE_SIZE
+    }
+  } catch (error) {
+    console.error('Error getting storage usage:', error)
+    return null
+  }
+}
+
 /**
  * PDFファイルをアップロード
  */
 export async function uploadPDF(userId, file, metadata, onProgress) {
   try {
+    // ファイルサイズチェック
+    if (file.size > MAX_FILE_SIZE) {
+      return {
+        success: false,
+        error: `ファイルサイズが上限（${MAX_FILE_SIZE / (1024 * 1024)}MB）を超えています`
+      }
+    }
+
+    // ユーザーの使用状況をチェック
+    const usage = await getStorageUsage(userId)
+    if (usage) {
+      if (usage.fileCount >= MAX_PDF_COUNT) {
+        return {
+          success: false,
+          error: `PDF数が上限（${MAX_PDF_COUNT}個）に達しています。不要なPDFを削除してください`
+        }
+      }
+      if (usage.totalSize + file.size > MAX_TOTAL_STORAGE) {
+        const remainingMB = Math.max(0, (MAX_TOTAL_STORAGE - usage.totalSize) / (1024 * 1024)).toFixed(1)
+        return {
+          success: false,
+          error: `ストレージ容量の上限（500MB）に達します。残り${remainingMB}MBです。不要なPDFを削除してください`
+        }
+      }
+    }
+
     // ファイル名を安全にする
     const timestamp = Date.now()
     const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')

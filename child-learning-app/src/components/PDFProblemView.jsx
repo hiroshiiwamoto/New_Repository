@@ -7,7 +7,8 @@ import {
   updatePDF,
   saveProblemRecord,
   getProblemRecords,
-  getPDFStatistics
+  getPDFStatistics,
+  getStorageUsage
 } from '../utils/pdfStorage'
 import { toast } from '../utils/toast'
 
@@ -20,6 +21,7 @@ function PDFProblemView({ user }) {
   const [uploadProgress, setUploadProgress] = useState(0)
   const [showUploadForm, setShowUploadForm] = useState(false)
   const [filter, setFilter] = useState({ subject: '', schoolName: '' })
+  const [storageUsage, setStorageUsage] = useState(null)
   const [uploadMetadata, setUploadMetadata] = useState({
     subject: '算数',
     schoolName: '',
@@ -33,6 +35,7 @@ function PDFProblemView({ user }) {
     if (!user) return
     loadPDFs()
     loadStatistics()
+    loadStorageUsage()
   }, [user])
 
   const loadPDFs = async () => {
@@ -46,6 +49,13 @@ function PDFProblemView({ user }) {
     const result = await getPDFStatistics(user.uid)
     if (result.success) {
       setStatistics(result.data)
+    }
+  }
+
+  const loadStorageUsage = async () => {
+    const usage = await getStorageUsage(user.uid)
+    if (usage) {
+      setStorageUsage(usage)
     }
   }
 
@@ -65,8 +75,8 @@ function PDFProblemView({ user }) {
       return
     }
 
-    if (file.size > 50 * 1024 * 1024) {
-      toast.error('ファイルサイズは50MB以下にしてください')
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('ファイルサイズは10MB以下にしてください')
       return
     }
 
@@ -84,6 +94,7 @@ function PDFProblemView({ user }) {
       if (result.success) {
         toast.success('PDFをアップロードしました')
         await loadPDFs()
+        await loadStorageUsage()
         setShowUploadForm(false)
         setUploadMetadata({
           subject: '算数',
@@ -113,6 +124,7 @@ function PDFProblemView({ user }) {
       toast.success('削除しました')
       await loadPDFs()
       await loadStatistics()
+      await loadStorageUsage()
       if (selectedPDF?.firestoreId === pdf.firestoreId) {
         setSelectedPDF(null)
         setProblems([])
@@ -345,8 +357,23 @@ function PDFProblemView({ user }) {
                 onChange={handleFileSelect}
                 disabled={uploading}
               />
-              <small>最大50MB</small>
+              <small>最大10MB / PDF</small>
             </div>
+
+            {storageUsage && (
+              <div className="storage-usage-info">
+                <div className="usage-bar-container">
+                  <div
+                    className="usage-bar-fill"
+                    style={{ width: `${Math.min(100, (storageUsage.totalSize / storageUsage.maxTotalSize) * 100)}%` }}
+                  ></div>
+                </div>
+                <small>
+                  ストレージ: {(storageUsage.totalSize / (1024 * 1024)).toFixed(1)}MB / {storageUsage.maxTotalSize / (1024 * 1024)}MB
+                  ({storageUsage.fileCount} / {storageUsage.maxFileCount}個)
+                </small>
+              </div>
+            )}
 
             {uploading && (
               <div className="upload-progress">
