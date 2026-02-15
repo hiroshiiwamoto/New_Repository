@@ -1,7 +1,28 @@
 import { useState, useEffect } from 'react'
 import { auth, googleProvider } from '../firebase'
-import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth'
+import { signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider } from 'firebase/auth'
 import './Auth.css'
+
+// Google Drive アクセストークンを管理
+let _googleAccessToken = null
+
+export function getGoogleAccessToken() {
+  return _googleAccessToken
+}
+
+export async function refreshGoogleAccessToken() {
+  try {
+    const result = await signInWithPopup(auth, googleProvider)
+    const credential = GoogleAuthProvider.credentialFromResult(result)
+    if (credential) {
+      _googleAccessToken = credential.accessToken
+    }
+    return _googleAccessToken
+  } catch (error) {
+    console.error('Error refreshing Google token:', error)
+    return null
+  }
+}
 
 function Auth({ onAuthChange }) {
   const [user, setUser] = useState(null)
@@ -11,6 +32,9 @@ function Auth({ onAuthChange }) {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser)
       setLoading(false)
+      if (!currentUser) {
+        _googleAccessToken = null
+      }
       if (onAuthChange) {
         onAuthChange(currentUser)
       }
@@ -21,7 +45,11 @@ function Auth({ onAuthChange }) {
 
   const handleGoogleSignIn = async () => {
     try {
-      await signInWithPopup(auth, googleProvider)
+      const result = await signInWithPopup(auth, googleProvider)
+      const credential = GoogleAuthProvider.credentialFromResult(result)
+      if (credential) {
+        _googleAccessToken = credential.accessToken
+      }
     } catch (error) {
       console.error('Error signing in with Google:', error)
       alert('ログインに失敗しました: ' + error.message)
@@ -30,6 +58,7 @@ function Auth({ onAuthChange }) {
 
   const handleSignOut = async () => {
     try {
+      _googleAccessToken = null
       await signOut(auth)
     } catch (error) {
       console.error('Error signing out:', error)

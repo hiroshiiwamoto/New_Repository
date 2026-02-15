@@ -1,4 +1,4 @@
-// PDF管理（Firestore + Firebase Storage）
+// PDF管理（Google Drive + Firestore メタデータ）
 
 import {
   collection,
@@ -11,24 +11,24 @@ import {
   orderBy,
   where
 } from 'firebase/firestore'
+import { db } from '../firebase'
 import {
-  ref,
-  uploadBytesResumable,
-  getDownloadURL,
-  deleteObject
-} from 'firebase/storage'
-import { db, storage } from '../firebase'
+  uploadPDFToDrive,
+  deleteFileFromDrive,
+  getDriveStorageInfo,
+  checkDriveAccess
+} from './googleDriveStorage'
 
-// アップロード制限
-const MAX_FILE_SIZE = 10 * 1024 * 1024       // 1ファイル: 10MB
-const MAX_TOTAL_STORAGE = 500 * 1024 * 1024  // 合計: 500MB
-const MAX_PDF_COUNT = 50                      // 最大ファイル数: 50個
+// アップロード制限（アプリ側）
+const MAX_FILE_SIZE = 20 * 1024 * 1024       // 1ファイル: 20MB（Google Driveは大容量OK）
+const MAX_PDF_COUNT = 100                     // 最大ファイル数: 100個
 
 /**
  * ユーザーのストレージ使用状況を取得
  */
 export async function getStorageUsage(userId) {
   try {
+    // Firestore からファイル数・合計サイズを計算
     const pdfRef = collection(db, 'users', userId, 'pdfDocuments')
     const snapshot = await getDocs(pdfRef)
 
@@ -40,12 +40,21 @@ export async function getStorageUsage(userId) {
       fileCount++
     })
 
+    // Google Drive のストレージ情報も取得
+    let driveInfo = null
+    try {
+      driveInfo = await getDriveStorageInfo()
+    } catch {
+      // Drive情報取得失敗は無視
+    }
+
     return {
       totalSize,
       fileCount,
-      maxTotalSize: MAX_TOTAL_STORAGE,
       maxFileCount: MAX_PDF_COUNT,
-      maxFileSize: MAX_FILE_SIZE
+      maxFileSize: MAX_FILE_SIZE,
+      driveUsage: driveInfo?.totalSize || 0,
+      driveLimit: driveInfo?.limit || 15 * 1024 * 1024 * 1024,
     }
   } catch (error) {
     console.error('Error getting storage usage:', error)
@@ -54,7 +63,7 @@ export async function getStorageUsage(userId) {
 }
 
 /**
- * PDFファイルをアップロード
+ * PDFファイルをアップロード（Google Drive + Firestore メタデータ）
  */
 export async function uploadPDF(userId, file, metadata, onProgress) {
   try {
@@ -66,77 +75,45 @@ export async function uploadPDF(userId, file, metadata, onProgress) {
       }
     }
 
-    // ユーザーの使用状況をチェック
+    // ファイル数チェック
     const usage = await getStorageUsage(userId)
-    if (usage) {
-      if (usage.fileCount >= MAX_PDF_COUNT) {
-        return {
-          success: false,
-          error: `PDF数が上限（${MAX_PDF_COUNT}個）に達しています。不要なPDFを削除してください`
-        }
-      }
-      if (usage.totalSize + file.size > MAX_TOTAL_STORAGE) {
-        const remainingMB = Math.max(0, (MAX_TOTAL_STORAGE - usage.totalSize) / (1024 * 1024)).toFixed(1)
-        return {
-          success: false,
-          error: `ストレージ容量の上限（500MB）に達します。残り${remainingMB}MBです。不要なPDFを削除してください`
-        }
+    if (usage && usage.fileCount >= MAX_PDF_COUNT) {
+      return {
+        success: false,
+        error: `PDF数が上限（${MAX_PDF_COUNT}個）に達しています。不要なPDFを削除してください`
       }
     }
 
-    // ファイル名を安全にする
-    const timestamp = Date.now()
-    const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
-    const fileName = `${timestamp}_${sanitizedName}`
-    const storageRef = ref(storage, `users/${userId}/pdfs/${fileName}`)
+    // Google Drive にアップロード
+    const driveResult = await uploadPDFToDrive(file, onProgress)
 
-    // アップロード
-    const uploadTask = uploadBytesResumable(storageRef, file, {
-      contentType: 'application/pdf'
+    // Firestoreにメタデータを保存
+    const pdfRef = collection(db, 'users', userId, 'pdfDocuments')
+    const docRef = await addDoc(pdfRef, {
+      fileName: file.name,
+      driveFileId: driveResult.driveFileId,
+      viewUrl: driveResult.viewUrl,
+      fileSize: driveResult.fileSize,
+      uploadedAt: new Date().toISOString(),
+      storageType: 'google_drive',
+      ...metadata
     })
 
-    return new Promise((resolve, reject) => {
-      uploadTask.on(
-        'state_changed',
-        (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-          if (onProgress) onProgress(progress)
-        },
-        (error) => {
-          console.error('Upload error:', error)
-          reject(error)
-        },
-        async () => {
-          try {
-            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref)
-
-            // Firestoreにメタデータを保存
-            const pdfRef = collection(db, 'users', userId, 'pdfDocuments')
-            const docRef = await addDoc(pdfRef, {
-              fileName: file.name,
-              storagePath: storageRef.fullPath,
-              downloadURL,
-              fileSize: file.size,
-              uploadedAt: new Date().toISOString(),
-              ...metadata
-            })
-
-            resolve({
-              success: true,
-              data: {
-                firestoreId: docRef.id,
-                downloadURL,
-                fileName: file.name
-              }
-            })
-          } catch (error) {
-            reject(error)
-          }
-        }
-      )
-    })
+    return {
+      success: true,
+      data: {
+        firestoreId: docRef.id,
+        driveFileId: driveResult.driveFileId,
+        viewUrl: driveResult.viewUrl,
+        fileName: file.name
+      }
+    }
   } catch (error) {
     console.error('Error uploading PDF:', error)
+    // トークン切れの場合のメッセージ
+    if (error.message.includes('再ログイン')) {
+      return { success: false, error: 'Google Drive へのアクセス権限が切れました。再ログインしてください。' }
+    }
     return { success: false, error: error.message }
   }
 }
@@ -149,7 +126,6 @@ export async function getAllPDFs(userId, filters = {}) {
     const pdfRef = collection(db, 'users', userId, 'pdfDocuments')
     let q = query(pdfRef, orderBy('uploadedAt', 'desc'))
 
-    // フィルタリング
     if (filters.subject) {
       q = query(pdfRef, where('subject', '==', filters.subject), orderBy('uploadedAt', 'desc'))
     }
@@ -174,19 +150,22 @@ export async function getAllPDFs(userId, filters = {}) {
 }
 
 /**
- * PDFドキュメントを削除
+ * PDFドキュメントを削除（Google Drive + Firestore）
  */
-export async function deletePDF(userId, firestoreId, storagePath) {
+export async function deletePDF(userId, firestoreId, driveFileId) {
   try {
+    // Google Drive から削除
+    if (driveFileId) {
+      try {
+        await deleteFileFromDrive(driveFileId)
+      } catch (error) {
+        console.warn('Drive file deletion failed (may already be deleted):', error)
+      }
+    }
+
     // Firestoreから削除
     const pdfDocRef = doc(db, 'users', userId, 'pdfDocuments', firestoreId)
     await deleteDoc(pdfDocRef)
-
-    // Storageから削除
-    if (storagePath) {
-      const storageRef = ref(storage, storagePath)
-      await deleteObject(storageRef)
-    }
 
     // 関連する問題記録も削除
     const problemsRef = collection(db, 'users', userId, 'pdfProblems')
@@ -230,7 +209,6 @@ export async function saveProblemRecord(userId, problemData) {
   try {
     const problemsRef = collection(db, 'users', userId, 'pdfProblems')
 
-    // 既存の記録があるか確認
     const q = query(
       problemsRef,
       where('pdfDocumentId', '==', problemData.pdfDocumentId),
@@ -240,7 +218,6 @@ export async function saveProblemRecord(userId, problemData) {
     const snapshot = await getDocs(q)
 
     if (!snapshot.empty) {
-      // 更新
       const docRef = snapshot.docs[0].ref
       await updateDoc(docRef, {
         ...problemData,
@@ -248,7 +225,6 @@ export async function saveProblemRecord(userId, problemData) {
       })
       return { success: true, data: { firestoreId: docRef.id } }
     } else {
-      // 新規追加
       const docRef = await addDoc(problemsRef, {
         ...problemData,
         createdAt: new Date().toISOString()
@@ -331,3 +307,8 @@ export async function getPDFStatistics(userId) {
     return { success: false, error: error.message, data: {} }
   }
 }
+
+/**
+ * Google Drive アクセス状態をチェック
+ */
+export { checkDriveAccess }
