@@ -13,6 +13,7 @@ import PastPaperView from './components/PastPaperView'
 import TestScoreView from './components/TestScoreView'
 import TargetSchoolView from './components/TargetSchoolView'
 import StudyTimer from './components/StudyTimer'
+import PDFProblemView from './components/PDFProblemView'
 import { generateSAPIXScheduleByGrade } from './utils/sampleData'
 import {
   addTaskToFirestore,
@@ -35,7 +36,7 @@ import { toast } from './utils/toast'
 function App() {
   const [user, setUser] = useState(null)
   const [tasks, setTasks] = useState([])
-  const [view, setView] = useState('calendar') // subject, calendar, analytics, tasks, edit, unitManager, pastpaper, testscore, targetschool, timer
+  const [view, setView] = useState('calendar') // subject, calendar, analytics, tasks, edit, unitManager, pastpaper, testscore, targetschool, timer, pdfproblem
   const [previousView, setPreviousView] = useState('calendar') // Store previous view for returning after edit
   const [editingTask, setEditingTask] = useState(null)
   const [targetSchools, setTargetSchools] = useState([])
@@ -409,6 +410,12 @@ function App() {
           >
             ⏱️ タイマー
           </button>
+          <button
+            className={view === 'pdfproblem' ? 'active' : ''}
+            onClick={() => setView('pdfproblem')}
+          >
+            📕 PDF問題集
+          </button>
         </div>
 
         {view === 'subject' ? (
@@ -460,12 +467,16 @@ function App() {
           />
         ) : view === 'timer' ? (
           <StudyTimer />
+        ) : view === 'pdfproblem' ? (
+          <PDFProblemView
+            user={user}
+          />
         ) : null}
           </>
         )}
 
         {/* 3. タスク追加フォーム（一番下） - only show when not in edit view, unitManager view, pastpaper view, or testscore view */}
-        {view !== 'edit' && view !== 'unitManager' && view !== 'pastpaper' && view !== 'testscore' && view !== 'targetschool' && view !== 'timer' && (
+        {view !== 'edit' && view !== 'unitManager' && view !== 'pastpaper' && view !== 'testscore' && view !== 'targetschool' && view !== 'timer' && view !== 'pdfproblem' && (
           <div ref={taskFormRef}>
             <TaskForm
               onAddTask={addTask}
