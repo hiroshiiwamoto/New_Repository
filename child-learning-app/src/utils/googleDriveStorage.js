@@ -216,6 +216,29 @@ export async function listDriveFiles() {
 }
 
 /**
+ * アプリフォルダ内のPDFファイルを検索
+ */
+export async function searchDriveFiles(query = '') {
+  const folderId = await getOrCreateAppFolder()
+
+  let q = `'${folderId}' in parents and trashed=false`
+  if (query) {
+    q += ` and name contains '${query.replace(/'/g, "\\'")}'`
+  }
+
+  const url = `${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id,name,size,mimeType,createdTime,modifiedTime)&orderBy=modifiedTime desc&pageSize=50`
+
+  const response = await driveApiFetch(url)
+
+  if (!response.ok) {
+    throw new Error(`ファイル検索失敗 (${response.status})`)
+  }
+
+  const data = await response.json()
+  return data.files || []
+}
+
+/**
  * Google Drive トークンが有効かチェック
  */
 export async function checkDriveAccess() {
