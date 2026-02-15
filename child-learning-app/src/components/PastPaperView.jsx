@@ -11,6 +11,7 @@ import { subjectColors, subjectEmojis } from '../utils/constants'
 import { toast } from '../utils/toast'
 import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
 import { refreshGoogleAccessToken } from './Auth'
+import DriveFilePicker from './DriveFilePicker'
 
 function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask, onDeleteTask }) {
   const [viewMode, setViewMode] = useState('school') // 'school' or 'unit'
@@ -47,6 +48,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
   const [expandedSessions, setExpandedSessions] = useState({}) // 学習記録の展開状態 (taskId -> boolean)
   const [uploading, setUploading] = useState(false)
   const [uploadTarget, setUploadTarget] = useState(null) // 'add' | taskId (for edit)
+  const [showDrivePicker, setShowDrivePicker] = useState(null) // 'add' | 'edit' | null
   const addFileInputRef = useRef(null)
   const editFileInputRef = useRef(null)
 
@@ -543,36 +545,9 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           {/* 問題ファイル */}
           <div className="add-form-section">
             <label className="section-label">問題ファイル（任意）:</label>
-            <div className="file-upload-area">
-              <input
-                ref={addFileInputRef}
-                type="file"
-                accept="application/pdf"
-                style={{ display: 'none' }}
-                onChange={(e) => {
-                  handlePDFUpload(e.target.files[0], 'add')
-                  e.target.value = ''
-                }}
-              />
-              <button
-                type="button"
-                className="pdf-upload-btn"
-                onClick={() => addFileInputRef.current?.click()}
-                disabled={uploading && uploadTarget === 'add'}
-              >
-                {uploading && uploadTarget === 'add' ? 'アップロード中...' : 'PDFをアップロード'}
-              </button>
-              <span className="file-or-divider">または</span>
-              <input
-                type="url"
-                className="file-url-input"
-                placeholder="URLを貼り付け"
-                value={addForm.fileUrl}
-                onChange={(e) => setAddForm({ ...addForm, fileUrl: e.target.value })}
-              />
-            </div>
-            {addForm.fileUrl && (
+            {addForm.fileUrl ? (
               <div className="file-url-preview">
+                <span className="file-url-preview-icon">📎</span>
                 <a href={addForm.fileUrl} target="_blank" rel="noopener noreferrer">
                   {addForm.fileUrl.includes('drive.google.com') ? 'Google Drive のファイル' : addForm.fileUrl}
                 </a>
@@ -584,9 +559,46 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                   &times;
                 </button>
               </div>
+            ) : (
+              <div className="file-upload-area">
+                <input
+                  ref={addFileInputRef}
+                  type="file"
+                  accept="application/pdf"
+                  style={{ display: 'none' }}
+                  onChange={(e) => {
+                    handlePDFUpload(e.target.files[0], 'add')
+                    e.target.value = ''
+                  }}
+                />
+                <button
+                  type="button"
+                  className="pdf-upload-btn"
+                  onClick={() => addFileInputRef.current?.click()}
+                  disabled={uploading && uploadTarget === 'add'}
+                >
+                  {uploading && uploadTarget === 'add' ? 'アップロード中...' : '新規アップロード'}
+                </button>
+                <span className="file-or-divider">または</span>
+                <button
+                  type="button"
+                  className="drive-select-btn"
+                  onClick={() => setShowDrivePicker('add')}
+                >
+                  <svg width="16" height="16" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg">
+                    <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
+                    <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-20.4 35.3c-.8 1.4-1.2 2.95-1.2 4.5h27.5z" fill="#00ac47"/>
+                    <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/>
+                    <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
+                    <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/>
+                    <path d="m73.4 26.5-10.1-17.5c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 23.8h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
+                  </svg>
+                  Driveから選択
+                </button>
+              </div>
             )}
             <small className="input-hint">
-              PDFを直接アップロード（Google Driveに保存）、またはURLを入力
+              PDFを新規アップロード、またはGoogle Driveの既存ファイルを選択
             </small>
           </div>
 
@@ -752,36 +764,9 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                           {/* 問題ファイル */}
                           <div className="edit-form-section">
                             <label className="section-label">問題ファイル（任意）:</label>
-                            <div className="file-upload-area">
-                              <input
-                                ref={editFileInputRef}
-                                type="file"
-                                accept="application/pdf"
-                                style={{ display: 'none' }}
-                                onChange={(e) => {
-                                  handlePDFUpload(e.target.files[0], task.id)
-                                  e.target.value = ''
-                                }}
-                              />
-                              <button
-                                type="button"
-                                className="pdf-upload-btn"
-                                onClick={() => editFileInputRef.current?.click()}
-                                disabled={uploading && uploadTarget === task.id}
-                              >
-                                {uploading && uploadTarget === task.id ? 'アップロード中...' : 'PDFをアップロード'}
-                              </button>
-                              <span className="file-or-divider">または</span>
-                              <input
-                                type="url"
-                                className="file-url-input"
-                                placeholder="URLを貼り付け"
-                                value={editForm.fileUrl}
-                                onChange={(e) => setEditForm({ ...editForm, fileUrl: e.target.value })}
-                              />
-                            </div>
-                            {editForm.fileUrl && (
+                            {editForm.fileUrl ? (
                               <div className="file-url-preview">
+                                <span className="file-url-preview-icon">📎</span>
                                 <a href={editForm.fileUrl} target="_blank" rel="noopener noreferrer">
                                   {editForm.fileUrl.includes('drive.google.com') ? 'Google Drive のファイル' : editForm.fileUrl}
                                 </a>
@@ -793,9 +778,46 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                                   &times;
                                 </button>
                               </div>
+                            ) : (
+                              <div className="file-upload-area">
+                                <input
+                                  ref={editFileInputRef}
+                                  type="file"
+                                  accept="application/pdf"
+                                  style={{ display: 'none' }}
+                                  onChange={(e) => {
+                                    handlePDFUpload(e.target.files[0], task.id)
+                                    e.target.value = ''
+                                  }}
+                                />
+                                <button
+                                  type="button"
+                                  className="pdf-upload-btn"
+                                  onClick={() => editFileInputRef.current?.click()}
+                                  disabled={uploading && uploadTarget === task.id}
+                                >
+                                  {uploading && uploadTarget === task.id ? 'アップロード中...' : '新規アップロード'}
+                                </button>
+                                <span className="file-or-divider">または</span>
+                                <button
+                                  type="button"
+                                  className="drive-select-btn"
+                                  onClick={() => setShowDrivePicker('edit')}
+                                >
+                                  <svg width="16" height="16" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
+                                    <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-20.4 35.3c-.8 1.4-1.2 2.95-1.2 4.5h27.5z" fill="#00ac47"/>
+                                    <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/>
+                                    <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
+                                    <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/>
+                                    <path d="m73.4 26.5-10.1-17.5c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 23.8h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
+                                  </svg>
+                                  Driveから選択
+                                </button>
+                              </div>
                             )}
                             <small className="input-hint">
-                              PDFを直接アップロード（Google Driveに保存）、またはURLを入力
+                              PDFを新規アップロード、またはGoogle Driveの既存ファイルを選択
                             </small>
                           </div>
 
@@ -1040,6 +1062,20 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           ))
         )}
       </div>
+      {/* Google Drive ファイルピッカー */}
+      {showDrivePicker && (
+        <DriveFilePicker
+          onSelect={(url) => {
+            if (showDrivePicker === 'add') {
+              setAddForm(prev => ({ ...prev, fileUrl: url }))
+            } else if (showDrivePicker === 'edit') {
+              setEditForm(prev => ({ ...prev, fileUrl: url }))
+            }
+            setShowDrivePicker(null)
+          }}
+          onClose={() => setShowDrivePicker(null)}
+        />
+      )}
     </div>
   )
 }
