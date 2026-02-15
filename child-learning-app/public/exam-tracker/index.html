@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>中学受験 PDF問題管理ツール</title>
+  <style>
+    :root {
+      --primary: #4A90D9;
+      --primary-dark: #357ABD;
+      --success: #5CB85C;
+      --warning: #F0AD4E;
+      --danger: #D9534F;
+      --bg: #F5F7FA;
+      --card-bg: #FFFFFF;
+      --text: #333333;
+      --text-light: #777777;
+      --border: #E0E0E0;
+      --shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      padding: 16px 20px;
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    header h1 {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    header p {
+      font-size: 12px;
+      opacity: 0.85;
+      margin-top: 2px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 16px;
+      background: var(--card-bg);
+      border-radius: 10px;
+      padding: 4px;
+      box-shadow: var(--shadow);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px 8px;
+      border: none;
+      background: transparent;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-light);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h2 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Upload Area */
+    .upload-area {
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      padding: 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: #FAFBFC;
+    }
+
+    .upload-area:hover,
+    .upload-area.dragover {
+      border-color: var(--primary);
+      background: #EBF3FD;
+    }
+
+    .upload-area .icon {
+      font-size: 40px;
+      margin-bottom: 8px;
+    }
+
+    .upload-area p {
+      font-size: 14px;
+      color: var(--text-light);
+    }
+
+    .upload-area .sub {
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    /* Form */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: var(--primary);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+      font-size: 12px;
+      padding: 6px 12px;
+    }
+
+    .btn-sm {
+      font-size: 12px;
+      padding: 6px 14px;
+    }
+
+    .btn-block {
+      width: 100%;
+    }
+
+    /* Problem List */
+    .problem-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 10px;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .problem-item:hover {
+      border-color: var(--primary);
+      box-shadow: 0 2px 6px rgba(74, 144, 217, 0.15);
+    }
+
+    .problem-status {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .status-correct {
+      background: #E8F5E9;
+      color: var(--success);
+    }
+
+    .status-incorrect {
+      background: #FFEBEE;
+      color: var(--danger);
+    }
+
+    .status-pending {
+      background: #FFF3E0;
+      color: var(--warning);
+    }
+
+    .problem-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .problem-info .title {
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .problem-info .meta {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-top: 2px;
+    }
+
+    .problem-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .status-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: white;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .status-btn:hover {
+      transform: scale(1.15);
+    }
+
+    .status-btn.correct:hover {
+      border-color: var(--success);
+      background: #E8F5E9;
+    }
+
+    .status-btn.incorrect:hover {
+      border-color: var(--danger);
+      background: #FFEBEE;
+    }
+
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .stat-card {
+      text-align: center;
+      padding: 14px 8px;
+      border-radius: 10px;
+      background: #F5F7FA;
+    }
+
+    .stat-card .number {
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .stat-card .label {
+      font-size: 11px;
+      color: var(--text-light);
+      margin-top: 2px;
+    }
+
+    .stat-correct .number { color: var(--success); }
+    .stat-incorrect .number { color: var(--danger); }
+    .stat-pending .number { color: var(--warning); }
+
+    /* Subject Stats */
+    .subject-stat {
+      margin-bottom: 12px;
+    }
+
+    .subject-stat .subject-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .subject-stat .subject-name {
+      font-weight: 600;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: #E8E8E8;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    .progress-fill.green { background: var(--success); }
+    .progress-fill.red { background: var(--danger); }
+
+    /* PDF Viewer Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 200;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal {
+      background: white;
+      border-radius: 12px;
+      width: 95%;
+      max-width: 800px;
+      max-height: 90vh;
+      overflow: auto;
+      padding: 20px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .modal-header h3 {
+      font-size: 16px;
+    }
+
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: #f0f0f0;
+      border-radius: 50%;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .pdf-canvas-container {
+      text-align: center;
+      background: #e0e0e0;
+      border-radius: 8px;
+      overflow: auto;
+      max-height: 60vh;
+    }
+
+    .pdf-canvas-container canvas {
+      max-width: 100%;
+    }
+
+    .pdf-nav {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      margin-top: 12px;
+    }
+
+    .pdf-nav button {
+      padding: 6px 16px;
+      border: 1px solid var(--border);
+      background: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .pdf-nav button:hover {
+      background: #f0f0f0;
+    }
+
+    .pdf-nav span {
+      font-size: 13px;
+      color: var(--text-light);
+    }
+
+    /* Filter */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .filter-chip {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: white;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-chip.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-light);
+    }
+
+    .empty-state .icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .empty-state p {
+      font-size: 14px;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #333;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 300;
+      transition: transform 0.3s;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .tab-btn {
+        font-size: 12px;
+        padding: 8px 4px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>PDF問題管理ツール</h1>
+  <p>中学受験 過去問・テスト管理</p>
+</header>
+
+<div class="container">
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="upload">登録</button>
+    <button class="tab-btn" data-tab="list">問題一覧</button>
+    <button class="tab-btn" data-tab="review">復習</button>
+    <button class="tab-btn" data-tab="stats">統計</button>
+  </div>
+
+  <!-- Upload Tab -->
+  <div id="tab-upload" class="tab-content active">
+    <div class="card">
+      <h2>PDF問題を登録</h2>
+
+      <div class="upload-area" id="uploadArea">
+        <div class="icon">&#128196;</div>
+        <p>PDFファイルをドラッグ＆ドロップ</p>
+        <p class="sub">またはタップしてファイルを選択</p>
+      </div>
+      <input type="file" id="fileInput" accept=".pdf" style="display: none;">
+
+      <div id="fileInfo" style="display: none; margin-top: 12px; padding: 10px; background: #EBF3FD; border-radius: 8px; font-size: 13px;"></div>
+
+      <div style="margin-top: 16px;">
+        <div class="form-row">
+          <div class="form-group">
+            <label>教科</label>
+            <select id="subject">
+              <option value="算数">算数</option>
+              <option value="国語">国語</option>
+              <option value="理科">理科</option>
+              <option value="社会">社会</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>出典</label>
+            <input type="text" id="source" placeholder="例: 開成中 2024年">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>単元</label>
+            <input type="text" id="unit" placeholder="例: 速さと距離">
+          </div>
+          <div class="form-group">
+            <label>難易度</label>
+            <select id="difficulty">
+              <option value="1">基礎</option>
+              <option value="2">標準</option>
+              <option value="3">応用</option>
+              <option value="4">発展</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>メモ</label>
+          <textarea id="memo" rows="2" placeholder="問題に関するメモ"></textarea>
+        </div>
+        <button class="btn btn-primary btn-block" id="registerBtn">登録する</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- List Tab -->
+  <div id="tab-list" class="tab-content">
+    <div class="card">
+      <h2>問題一覧</h2>
+      <div class="filter-bar" id="filterBar">
+        <button class="filter-chip active" data-filter="all">全て</button>
+        <button class="filter-chip" data-filter="算数">算数</button>
+        <button class="filter-chip" data-filter="国語">国語</button>
+        <button class="filter-chip" data-filter="理科">理科</button>
+        <button class="filter-chip" data-filter="社会">社会</button>
+        <button class="filter-chip" data-filter="incorrect">間違いのみ</button>
+      </div>
+      <div id="problemList"></div>
+    </div>
+  </div>
+
+  <!-- Review Tab -->
+  <div id="tab-review" class="tab-content">
+    <div class="card">
+      <h2>復習リスト（間違えた問題）</h2>
+      <div id="reviewList"></div>
+    </div>
+  </div>
+
+  <!-- Stats Tab -->
+  <div id="tab-stats" class="tab-content">
+    <div class="card">
+      <h2>全体の成績</h2>
+      <div class="stats-grid" id="overallStats"></div>
+    </div>
+    <div class="card">
+      <h2>教科別の正答率</h2>
+      <div id="subjectStats"></div>
+    </div>
+    <div class="card" style="text-align: center;">
+      <button class="btn btn-danger" id="exportBtn">データをエクスポート (JSON)</button>
+      <button class="btn btn-primary btn-sm" id="importBtn" style="margin-left: 8px;">インポート</button>
+      <input type="file" id="importFileInput" accept=".json" style="display: none;">
+    </div>
+  </div>
+</div>
+
+<!-- PDF Viewer Modal -->
+<div class="modal-overlay" id="pdfModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">PDF閲覧</h3>
+      <button class="modal-close" id="modalClose">&times;</button>
+    </div>
+    <div class="pdf-canvas-container">
+      <canvas id="pdfCanvas"></canvas>
+    </div>
+    <div class="pdf-nav">
+      <button id="prevPage">&#9664; 前へ</button>
+      <span id="pageInfo">1 / 1</span>
+      <button id="nextPage">次へ &#9654;</button>
+    </div>
+    <div style="margin-top: 16px;">
+      <h4 style="font-size: 14px; margin-bottom: 8px;">結果を記録</h4>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn btn-success btn-sm" id="markCorrect">&#9675; 正解</button>
+        <button class="btn btn-danger btn-sm" id="markIncorrect">&#10005; 不正解</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- PDF.js from CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+<script>
+// ============================================================
+// Data Store (localStorage)
+// ============================================================
+const STORAGE_KEY = 'exam-tracker-problems';
+
+function loadProblems() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+  } catch {
+    return [];
+  }
+}
+
+function saveProblems(problems) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(problems));
+}
+
+let problems = loadProblems();
+let currentPdfData = null; // ArrayBuffer of uploaded PDF
+let currentPdfDoc = null;
+let currentPage = 1;
+let viewingProblemId = null;
+
+// ============================================================
+// Tab Navigation
+// ============================================================
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+
+    if (btn.dataset.tab === 'list') renderProblemList();
+    if (btn.dataset.tab === 'review') renderReviewList();
+    if (btn.dataset.tab === 'stats') renderStats();
+  });
+});
+
+// ============================================================
+// File Upload
+// ============================================================
+const uploadArea = document.getElementById('uploadArea');
+const fileInput = document.getElementById('fileInput');
+const fileInfo = document.getElementById('fileInfo');
+
+uploadArea.addEventListener('click', () => fileInput.click());
+
+uploadArea.addEventListener('dragover', e => {
+  e.preventDefault();
+  uploadArea.classList.add('dragover');
+});
+
+uploadArea.addEventListener('dragleave', () => {
+  uploadArea.classList.remove('dragover');
+});
+
+uploadArea.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadArea.classList.remove('dragover');
+  if (e.dataTransfer.files.length > 0) {
+    handleFile(e.dataTransfer.files[0]);
+  }
+});
+
+fileInput.addEventListener('change', () => {
+  if (fileInput.files.length > 0) {
+    handleFile(fileInput.files[0]);
+  }
+});
+
+function handleFile(file) {
+  if (file.type !== 'application/pdf') {
+    showToast('PDFファイルを選択してください');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    currentPdfData = e.target.result;
+    fileInfo.style.display = 'block';
+    fileInfo.textContent = `選択中: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ============================================================
+// Register Problem
+// ============================================================
+document.getElementById('registerBtn').addEventListener('click', () => {
+  if (!currentPdfData) {
+    showToast('PDFファイルを選択してください');
+    return;
+  }
+
+  const subject = document.getElementById('subject').value;
+  const source = document.getElementById('source').value.trim();
+  const unit = document.getElementById('unit').value.trim();
+  const difficulty = parseInt(document.getElementById('difficulty').value);
+  const memo = document.getElementById('memo').value.trim();
+
+  // Convert ArrayBuffer to Base64 for storage
+  const uint8 = new Uint8Array(currentPdfData);
+  let binary = '';
+  for (let i = 0; i < uint8.length; i++) {
+    binary += String.fromCharCode(uint8[i]);
+  }
+  const pdfBase64 = btoa(binary);
+
+  const problem = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+    subject,
+    source: source || '未入力',
+    unit: unit || '未分類',
+    difficulty,
+    memo,
+    pdfBase64,
+    status: 'pending', // pending | correct | incorrect
+    createdAt: new Date().toISOString(),
+    attempts: []
+  };
+
+  problems.push(problem);
+  saveProblems(problems);
+
+  // Reset form
+  currentPdfData = null;
+  fileInput.value = '';
+  fileInfo.style.display = 'none';
+  document.getElementById('source').value = '';
+  document.getElementById('unit').value = '';
+  document.getElementById('memo').value = '';
+
+  showToast('問題を登録しました');
+});
+
+// ============================================================
+// Render Problem List
+// ============================================================
+let currentFilter = 'all';
+
+document.getElementById('filterBar').addEventListener('click', e => {
+  if (e.target.classList.contains('filter-chip')) {
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    e.target.classList.add('active');
+    currentFilter = e.target.dataset.filter;
+    renderProblemList();
+  }
+});
+
+function renderProblemList() {
+  const container = document.getElementById('problemList');
+  let filtered = [...problems];
+
+  if (currentFilter === 'incorrect') {
+    filtered = filtered.filter(p => p.status === 'incorrect');
+  } else if (currentFilter !== 'all') {
+    filtered = filtered.filter(p => p.subject === currentFilter);
+  }
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">&#128203;</div>
+        <p>問題がありません</p>
+      </div>`;
+    return;
+  }
+
+  const difficultyLabels = ['', '基礎', '標準', '応用', '発展'];
+  const statusIcons = { pending: '&#9711;', correct: '&#9989;', incorrect: '&#10060;' };
+  const statusClass = { pending: 'status-pending', correct: 'status-correct', incorrect: 'status-incorrect' };
+
+  container.innerHTML = filtered.map(p => `
+    <div class="problem-item" data-id="${p.id}">
+      <div class="problem-status ${statusClass[p.status]}">${statusIcons[p.status]}</div>
+      <div class="problem-info">
+        <div class="title">${p.subject} - ${p.unit}</div>
+        <div class="meta">${p.source} | ${difficultyLabels[p.difficulty]} | ${new Date(p.createdAt).toLocaleDateString('ja-JP')}</div>
+      </div>
+      <div class="problem-actions">
+        <button class="status-btn correct" title="正解" data-action="correct" data-id="${p.id}">&#9675;</button>
+        <button class="status-btn incorrect" title="不正解" data-action="incorrect" data-id="${p.id}">&#10005;</button>
+      </div>
+    </div>
+  `).join('');
+
+  // Click to view PDF
+  container.querySelectorAll('.problem-item').forEach(item => {
+    item.addEventListener('click', e => {
+      if (e.target.closest('.status-btn')) return;
+      openPdfModal(item.dataset.id);
+    });
+  });
+
+  // Status buttons
+  container.querySelectorAll('.status-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      const action = btn.dataset.action;
+      updateStatus(id, action);
+      renderProblemList();
+    });
+  });
+}
+
+// ============================================================
+// Render Review List
+// ============================================================
+function renderReviewList() {
+  const container = document.getElementById('reviewList');
+  const incorrectProblems = problems.filter(p => p.status === 'incorrect');
+
+  if (incorrectProblems.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">&#127881;</div>
+        <p>復習する問題はありません</p>
+      </div>`;
+    return;
+  }
+
+  const difficultyLabels = ['', '基礎', '標準', '応用', '発展'];
+
+  container.innerHTML = incorrectProblems.map(p => `
+    <div class="problem-item" data-id="${p.id}">
+      <div class="problem-status status-incorrect">&#10060;</div>
+      <div class="problem-info">
+        <div class="title">${p.subject} - ${p.unit}</div>
+        <div class="meta">${p.source} | ${difficultyLabels[p.difficulty]} | 挑戦回数: ${p.attempts.length}</div>
+      </div>
+      <div class="problem-actions">
+        <button class="status-btn correct" title="正解に変更" data-action="correct" data-id="${p.id}">&#9675;</button>
+      </div>
+    </div>
+  `).join('');
+
+  container.querySelectorAll('.problem-item').forEach(item => {
+    item.addEventListener('click', e => {
+      if (e.target.closest('.status-btn')) return;
+      openPdfModal(item.dataset.id);
+    });
+  });
+
+  container.querySelectorAll('.status-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      updateStatus(btn.dataset.id, btn.dataset.action);
+      renderReviewList();
+    });
+  });
+}
+
+// ============================================================
+// Stats
+// ============================================================
+function renderStats() {
+  const total = problems.length;
+  const correct = problems.filter(p => p.status === 'correct').length;
+  const incorrect = problems.filter(p => p.status === 'incorrect').length;
+  const pending = problems.filter(p => p.status === 'pending').length;
+
+  document.getElementById('overallStats').innerHTML = `
+    <div class="stat-card stat-correct">
+      <div class="number">${correct}</div>
+      <div class="label">正解</div>
+    </div>
+    <div class="stat-card stat-incorrect">
+      <div class="number">${incorrect}</div>
+      <div class="label">不正解</div>
+    </div>
+    <div class="stat-card stat-pending">
+      <div class="number">${pending}</div>
+      <div class="label">未回答</div>
+    </div>
+  `;
+
+  // Subject stats
+  const subjects = ['算数', '国語', '理科', '社会'];
+  const subjectContainer = document.getElementById('subjectStats');
+
+  const subjectHtml = subjects.map(subj => {
+    const subjProblems = problems.filter(p => p.subject === subj);
+    const subjCorrect = subjProblems.filter(p => p.status === 'correct').length;
+    const subjTotal = subjProblems.length;
+    const rate = subjTotal > 0 ? Math.round((subjCorrect / subjTotal) * 100) : 0;
+
+    return `
+      <div class="subject-stat">
+        <div class="subject-header">
+          <span class="subject-name">${subj}</span>
+          <span>${subjCorrect}/${subjTotal} (${rate}%)</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill green" style="width: ${rate}%"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  subjectContainer.innerHTML = subjectHtml || '<p style="color: #999; font-size: 13px;">データがありません</p>';
+}
+
+// ============================================================
+// Status Update
+// ============================================================
+function updateStatus(id, status) {
+  const problem = problems.find(p => p.id === id);
+  if (!problem) return;
+
+  problem.status = status;
+  problem.attempts.push({
+    result: status,
+    date: new Date().toISOString()
+  });
+
+  saveProblems(problems);
+  showToast(status === 'correct' ? '正解に記録しました' : '不正解に記録しました');
+}
+
+// ============================================================
+// PDF Viewer Modal
+// ============================================================
+const pdfModal = document.getElementById('pdfModal');
+const pdfCanvas = document.getElementById('pdfCanvas');
+const ctx = pdfCanvas.getContext('2d');
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+function openPdfModal(id) {
+  const problem = problems.find(p => p.id === id);
+  if (!problem) return;
+
+  viewingProblemId = id;
+  document.getElementById('modalTitle').textContent = `${problem.subject} - ${problem.unit}`;
+
+  // Decode base64 to ArrayBuffer
+  const binary = atob(problem.pdfBase64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
+  const loadingTask = pdfjsLib.getDocument({ data: bytes });
+  loadingTask.promise.then(pdf => {
+    currentPdfDoc = pdf;
+    currentPage = 1;
+    renderPage(currentPage);
+    pdfModal.classList.add('show');
+  }).catch(err => {
+    showToast('PDFの読み込みに失敗しました');
+    console.error(err);
+  });
+}
+
+function renderPage(num) {
+  currentPdfDoc.getPage(num).then(page => {
+    const viewport = page.getViewport({ scale: 1.5 });
+    pdfCanvas.width = viewport.width;
+    pdfCanvas.height = viewport.height;
+
+    page.render({
+      canvasContext: ctx,
+      viewport: viewport
+    });
+
+    document.getElementById('pageInfo').textContent = `${num} / ${currentPdfDoc.numPages}`;
+  });
+}
+
+document.getElementById('prevPage').addEventListener('click', () => {
+  if (currentPage > 1) {
+    currentPage--;
+    renderPage(currentPage);
+  }
+});
+
+document.getElementById('nextPage').addEventListener('click', () => {
+  if (currentPdfDoc && currentPage < currentPdfDoc.numPages) {
+    currentPage++;
+    renderPage(currentPage);
+  }
+});
+
+document.getElementById('modalClose').addEventListener('click', () => {
+  pdfModal.classList.remove('show');
+  viewingProblemId = null;
+});
+
+pdfModal.addEventListener('click', e => {
+  if (e.target === pdfModal) {
+    pdfModal.classList.remove('show');
+    viewingProblemId = null;
+  }
+});
+
+document.getElementById('markCorrect').addEventListener('click', () => {
+  if (viewingProblemId) {
+    updateStatus(viewingProblemId, 'correct');
+    pdfModal.classList.remove('show');
+    viewingProblemId = null;
+  }
+});
+
+document.getElementById('markIncorrect').addEventListener('click', () => {
+  if (viewingProblemId) {
+    updateStatus(viewingProblemId, 'incorrect');
+    pdfModal.classList.remove('show');
+    viewingProblemId = null;
+  }
+});
+
+// ============================================================
+// Export / Import
+// ============================================================
+document.getElementById('exportBtn').addEventListener('click', () => {
+  const exportData = problems.map(p => ({
+    ...p,
+    pdfBase64: undefined // exclude PDF data from export to reduce size
+  }));
+
+  const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `exam-tracker-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('データをエクスポートしました');
+});
+
+document.getElementById('importBtn').addEventListener('click', () => {
+  document.getElementById('importFileInput').click();
+});
+
+document.getElementById('importFileInput').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (Array.isArray(imported)) {
+        problems = [...problems, ...imported];
+        saveProblems(problems);
+        showToast(`${imported.length}件のデータをインポートしました`);
+        renderStats();
+      }
+    } catch {
+      showToast('インポートに失敗しました');
+    }
+  };
+  reader.readAsText(file);
+});
+
+// ============================================================
+// Toast
+// ============================================================
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+// ============================================================
+// Keyboard shortcuts
+// ============================================================
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && pdfModal.classList.contains('show')) {
+    pdfModal.classList.remove('show');
+    viewingProblemId = null;
+  }
+});
+</script>
+
+</body>
+</html>
