@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import './TestScoreView.css'
 import { grades } from '../utils/unitsDatabase'
 import {
@@ -9,6 +9,7 @@ import {
   testTypes
 } from '../utils/testScores'
 import ScoreCard from './ScoreCard'
+import DeviationChart from './DeviationChart'
 
 function TestScoreView({ user }) {
   const [scores, setScores] = useState([])
@@ -49,6 +50,13 @@ function TestScoreView({ user }) {
 
   // フィルタリング
   const filteredScores = scores.filter(s => s.grade === selectedGrade)
+
+  // 偏差値推移データ（日付順）
+  const chartData = useMemo(() => {
+    return [...filteredScores]
+      .filter(s => s.fourSubjects?.deviation || s.twoSubjects?.deviation)
+      .sort((a, b) => new Date(a.testDate) - new Date(b.testDate))
+  }, [filteredScores])
 
   // フォームを開く
   const handleOpenForm = () => {
@@ -143,6 +151,32 @@ function TestScoreView({ user }) {
       <button className="add-score-btn" onClick={handleOpenForm}>
         + 成績を追加
       </button>
+
+      {/* 偏差値推移グラフ */}
+      {chartData.length >= 2 && (
+        <DeviationChart data={chartData} />
+      )}
+
+      {/* 成績カード一覧 */}
+      <div className="scores-content">
+        {filteredScores.length === 0 ? (
+          <div className="no-data">
+            📊 この学年のテスト成績がありません
+            <small>上の「+ 成績を追加」ボタンから記録を追加してください</small>
+          </div>
+        ) : (
+          <div className="scores-list">
+            {filteredScores.map(score => (
+              <ScoreCard
+                key={score.firestoreId}
+                score={score}
+                onEdit={handleEditScore}
+                onDelete={handleDelete}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* 成績入力フォーム */}
       {showForm && (

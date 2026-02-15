@@ -11,6 +11,8 @@ import Analytics from './components/Analytics'
 import UnitManager from './components/UnitManager'
 import PastPaperView from './components/PastPaperView'
 import TestScoreView from './components/TestScoreView'
+import TargetSchoolView from './components/TargetSchoolView'
+import StudyTimer from './components/StudyTimer'
 import { generateSAPIXScheduleByGrade } from './utils/sampleData'
 import {
   addTaskToFirestore,
@@ -33,7 +35,7 @@ import { toast } from './utils/toast'
 function App() {
   const [user, setUser] = useState(null)
   const [tasks, setTasks] = useState([])
-  const [view, setView] = useState('calendar') // subject, calendar, analytics, tasks, edit, unitManager, pastpaper, testscore
+  const [view, setView] = useState('calendar') // subject, calendar, analytics, tasks, edit, unitManager, pastpaper, testscore, targetschool, timer
   const [previousView, setPreviousView] = useState('calendar') // Store previous view for returning after edit
   const [editingTask, setEditingTask] = useState(null)
   const [targetSchools, setTargetSchools] = useState([])
@@ -395,6 +397,18 @@ function App() {
           >
             📊 テスト成績
           </button>
+          <button
+            className={view === 'targetschool' ? 'active' : ''}
+            onClick={() => setView('targetschool')}
+          >
+            🏫 志望校
+          </button>
+          <button
+            className={view === 'timer' ? 'active' : ''}
+            onClick={() => setView('timer')}
+          >
+            ⏱️ タイマー
+          </button>
         </div>
 
         {view === 'subject' ? (
@@ -440,12 +454,18 @@ function App() {
           <TestScoreView
             user={user}
           />
+        ) : view === 'targetschool' ? (
+          <TargetSchoolView
+            user={user}
+          />
+        ) : view === 'timer' ? (
+          <StudyTimer />
         ) : null}
           </>
         )}
 
         {/* 3. タスク追加フォーム（一番下） - only show when not in edit view, unitManager view, pastpaper view, or testscore view */}
-        {view !== 'edit' && view !== 'unitManager' && view !== 'pastpaper' && view !== 'testscore' && (
+        {view !== 'edit' && view !== 'unitManager' && view !== 'pastpaper' && view !== 'testscore' && view !== 'targetschool' && view !== 'timer' && (
           <div ref={taskFormRef}>
             <TaskForm
               onAddTask={addTask}

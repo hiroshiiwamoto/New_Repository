@@ -1,0 +1,577 @@
+.target-school-view {
+  padding: 24px 0;
+}
+
+/* カウントダウンヘッダー */
+.countdown-header {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.countdown-card {
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.countdown-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 32px rgba(0, 0, 0, 0.1);
+}
+
+.countdown-card.exam-urgent {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.countdown-card.exam-soon {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.countdown-card.exam-normal {
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.countdown-school-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+
+.countdown-number {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #1d1d1f;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.countdown-label {
+  font-size: 1rem;
+  color: #86868b;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.countdown-date {
+  font-size: 0.8125rem;
+  color: #86868b;
+  margin-top: 8px;
+}
+
+/* ヘッダー */
+.school-view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.school-view-header h2 {
+  font-size: 1.75rem;
+  color: #1d1d1f;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.add-school-btn {
+  padding: 12px 24px;
+  background: #007AFF;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.9375rem;
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
+}
+
+.add-school-btn:hover {
+  background: #0071e3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.35);
+}
+
+/* 学校カード一覧 */
+.schools-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.school-card {
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.school-card:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.school-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.school-priority {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #007AFF;
+  background: rgba(0, 122, 255, 0.08);
+  padding: 4px 10px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+}
+
+.school-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.school-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.school-actions .edit-btn,
+.school-actions .delete-btn {
+  padding: 10px 14px;
+  border: none;
+  background: white;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.school-actions .edit-btn:hover {
+  background: rgba(0, 122, 255, 0.08);
+  border-color: #007AFF;
+}
+
+.school-actions .delete-btn:hover {
+  background: rgba(255, 59, 48, 0.08);
+  border-color: #FF3B30;
+}
+
+/* カウントダウンバッジ */
+.exam-countdown {
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.exam-countdown.exam-urgent {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.exam-countdown.exam-soon {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+.exam-countdown.exam-normal {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.exam-countdown.exam-passed {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.exam-done {
+  opacity: 0.7;
+}
+
+/* スケジュール */
+.school-schedule {
+  margin-bottom: 16px;
+}
+
+.schedule-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.schedule-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px;
+  background: #f5f5f7;
+  border-radius: 10px;
+}
+
+.schedule-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #86868b;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.schedule-value {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1d1d1f;
+}
+
+.days-badge {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #007AFF;
+  background: rgba(0, 122, 255, 0.08);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+/* 目標 */
+.school-targets {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.target-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+  border-radius: 12px;
+  min-width: 120px;
+  text-align: center;
+}
+
+.target-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.target-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1d1d1f;
+}
+
+.target-value.deviation {
+  color: #2563eb;
+}
+
+.max-score {
+  font-size: 0.875rem;
+  color: #86868b;
+  font-weight: 500;
+}
+
+/* 受験科目 */
+.exam-subjects {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.subject-chip {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #1d1d1f;
+  background: #f5f5f7;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* メモ */
+.school-notes {
+  padding: 12px 16px;
+  background: #fffbeb;
+  border-radius: 10px;
+  margin-top: 8px;
+}
+
+.school-notes p {
+  color: #78350f;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+/* フォーム */
+.target-school-view .form-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.target-school-view .form-container {
+  background: white;
+  border-radius: 20px;
+  padding: 28px;
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.target-school-view .form-container h3 {
+  color: #1d1d1f;
+  font-size: 1.5rem;
+  margin-bottom: 24px;
+  font-weight: 600;
+}
+
+.target-school-view .form-section {
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.target-school-view .form-section:last-of-type {
+  border-bottom: none;
+}
+
+.target-school-view .form-section h4 {
+  color: #1d1d1f;
+  font-size: 1rem;
+  margin-bottom: 14px;
+  font-weight: 600;
+}
+
+.target-school-view .form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.target-school-view .form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.target-school-view .form-field.full {
+  grid-column: 1 / -1;
+}
+
+.target-school-view .form-field label {
+  font-weight: 600;
+  color: #1d1d1f;
+  font-size: 0.875rem;
+}
+
+.target-school-view .form-field input,
+.target-school-view .form-field select,
+.target-school-view .form-field textarea {
+  padding: 11px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  transition: all 0.2s;
+  background: #f5f5f7;
+  color: #1d1d1f;
+}
+
+.target-school-view .form-field input:focus,
+.target-school-view .form-field select:focus,
+.target-school-view .form-field textarea:focus {
+  outline: none;
+  border-color: #007AFF;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+  background: white;
+}
+
+.subject-toggles {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.subject-toggle {
+  padding: 10px 20px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  background: white;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #86868b;
+}
+
+.subject-toggle:hover {
+  border-color: #007AFF;
+  background: rgba(0, 122, 255, 0.04);
+}
+
+.subject-toggle.active {
+  border-color: #007AFF;
+  background: #007AFF;
+  color: white;
+}
+
+.target-school-view .form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.target-school-view .btn-primary,
+.target-school-view .btn-secondary {
+  flex: 1;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1rem;
+}
+
+.target-school-view .btn-primary {
+  background: #007AFF;
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
+}
+
+.target-school-view .btn-primary:hover {
+  background: #0071e3;
+  transform: translateY(-1px);
+}
+
+.target-school-view .btn-secondary {
+  background: white;
+  color: #64748b;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.target-school-view .btn-secondary:hover {
+  background: #f5f5f7;
+}
+
+/* No data */
+.target-school-view .no-data {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 20px;
+  color: #86868b;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.target-school-view .no-data small {
+  display: block;
+  margin-top: 12px;
+  font-size: 0.875rem;
+  color: #aeaeb2;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .countdown-header {
+    grid-template-columns: 1fr;
+  }
+
+  .countdown-number {
+    font-size: 2.5rem;
+  }
+
+  .school-card {
+    padding: 20px;
+  }
+
+  .schedule-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .school-targets {
+    flex-direction: column;
+  }
+
+  .target-school-view .form-container {
+    padding: 20px;
+  }
+
+  .target-school-view .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .school-view-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .add-school-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .school-card-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .school-actions {
+    align-self: flex-end;
+  }
+
+  .target-school-view .form-actions {
+    flex-direction: column;
+  }
+}
