@@ -2,6 +2,63 @@
   padding: 24px 0;
 }
 
+/* Google Drive 接続状態 */
+.drive-status {
+  margin-bottom: 16px;
+  text-align: right;
+}
+
+.drive-connected {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.drive-connected::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: #4caf50;
+  border-radius: 50%;
+}
+
+.drive-connect-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  background: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.drive-connect-btn:hover {
+  background: #3367d6;
+}
+
+.drive-note {
+  color: #4285f4;
+  font-weight: 500;
+}
+
+.drive-usage {
+  display: block;
+  margin-top: 4px;
+  color: #666;
+}
+
 /* 統計ヘッダー */
 .statistics-header {
   display: grid;

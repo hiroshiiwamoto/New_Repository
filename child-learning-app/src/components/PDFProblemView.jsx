@@ -4,12 +4,13 @@ import {
   uploadPDF,
   getAllPDFs,
   deletePDF,
-  updatePDF,
   saveProblemRecord,
   getProblemRecords,
   getPDFStatistics,
-  getStorageUsage
+  getStorageUsage,
+  checkDriveAccess
 } from '../utils/pdfStorage'
+import { refreshGoogleAccessToken } from './Auth'
 import { toast } from '../utils/toast'
 
 function PDFProblemView({ user }) {
@@ -22,6 +23,7 @@ function PDFProblemView({ user }) {
   const [showUploadForm, setShowUploadForm] = useState(false)
   const [filter, setFilter] = useState({ subject: '', schoolName: '' })
   const [storageUsage, setStorageUsage] = useState(null)
+  const [driveConnected, setDriveConnected] = useState(false)
   const [uploadMetadata, setUploadMetadata] = useState({
     subject: '算数',
     schoolName: '',
@@ -36,7 +38,24 @@ function PDFProblemView({ user }) {
     loadPDFs()
     loadStatistics()
     loadStorageUsage()
+    checkDriveConnection()
   }, [user])
+
+  const checkDriveConnection = async () => {
+    const connected = await checkDriveAccess()
+    setDriveConnected(connected)
+  }
+
+  const handleConnectDrive = async () => {
+    const token = await refreshGoogleAccessToken()
+    if (token) {
+      setDriveConnected(true)
+      toast.success('Google Drive に接続しました')
+      loadStorageUsage()
+    } else {
+      toast.error('Google Drive の接続に失敗しました')
+    }
+  }
 
   const loadPDFs = async () => {
     const result = await getAllPDFs(user.uid, filter)
@@ -75,9 +94,19 @@ function PDFProblemView({ user }) {
       return
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('ファイルサイズは10MB以下にしてください')
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error('ファイルサイズは20MB以下にしてください')
       return
+    }
+
+    // Google Drive 接続チェック
+    if (!driveConnected) {
+      const token = await refreshGoogleAccessToken()
+      if (!token) {
+        toast.error('Google Drive に接続してからアップロードしてください')
+        return
+      }
+      setDriveConnected(true)
     }
 
     setUploading(true)
@@ -92,7 +121,7 @@ function PDFProblemView({ user }) {
       )
 
       if (result.success) {
-        toast.success('PDFをアップロードしました')
+        toast.success('PDFをGoogle Driveにアップロードしました')
         await loadPDFs()
         await loadStorageUsage()
         setShowUploadForm(false)
@@ -115,11 +144,11 @@ function PDFProblemView({ user }) {
   }
 
   const handleDeletePDF = async (pdf) => {
-    if (!window.confirm(`「${pdf.fileName}」を削除しますか？\n関連する問題記録もすべて削除されます。`)) {
+    if (!window.confirm(`「${pdf.fileName}」を削除しますか？\nGoogle Driveからも削除されます。関連する問題記録もすべて削除されます。`)) {
       return
     }
 
-    const result = await deletePDF(user.uid, pdf.firestoreId, pdf.storagePath)
+    const result = await deletePDF(user.uid, pdf.firestoreId, pdf.driveFileId)
     if (result.success) {
       toast.success('削除しました')
       await loadPDFs()
@@ -158,18 +187,26 @@ function PDFProblemView({ user }) {
     }
   }
 
+  const getViewUrl = (pdf) => {
+    // Google Drive のプレビューURL
+    if (pdf.driveFileId) {
+      return `https://drive.google.com/file/d/${pdf.driveFileId}/view`
+    }
+    // 旧 Firebase Storage URL（後方互換）
+    return pdf.downloadURL || pdf.viewUrl
+  }
+
   const renderProblemTracker = () => {
     if (!selectedPDF) return null
 
-    // ページ数を推定（実際のPDFから取得する場合はpdf.jsを使用）
     const estimatedPages = 20
 
     return (
       <div className="problem-tracker">
         <div className="tracker-header">
-          <h3>📝 問題管理: {selectedPDF.fileName}</h3>
+          <h3>問題管理: {selectedPDF.fileName}</h3>
           <button className="close-btn" onClick={() => setSelectedPDF(null)}>
-            ✕ 閉じる
+            閉じる
           </button>
         </div>
 
@@ -254,6 +291,17 @@ function PDFProblemView({ user }) {
 
   return (
     <div className="pdf-problem-view">
+      {/* Google Drive 接続状態 */}
+      <div className="drive-status">
+        {driveConnected ? (
+          <span className="drive-connected">Google Drive 接続済み</span>
+        ) : (
+          <button className="drive-connect-btn" onClick={handleConnectDrive}>
+            Google Drive に接続
+          </button>
+        )}
+      </div>
+
       {/* 統計サマリー */}
       {statistics && (
         <div className="statistics-header">
@@ -286,7 +334,7 @@ function PDFProblemView({ user }) {
 
       {/* ヘッダー */}
       <div className="pdf-header">
-        <h2>📄 PDF問題集</h2>
+        <h2>PDF問題集</h2>
         <button
           className="upload-btn"
           onClick={() => setShowUploadForm(true)}
@@ -300,7 +348,7 @@ function PDFProblemView({ user }) {
       {showUploadForm && (
         <div className="upload-form-overlay" onClick={() => !uploading && setShowUploadForm(false)}>
           <div className="upload-form-container" onClick={(e) => e.stopPropagation()}>
-            <h3>📤 PDFをアップロード</h3>
+            <h3>PDFをアップロード（Google Drive）</h3>
 
             <div className="form-field">
               <label>科目 *</label>
@@ -357,7 +405,7 @@ function PDFProblemView({ user }) {
                 onChange={handleFileSelect}
                 disabled={uploading}
               />
-              <small>最大10MB / PDF</small>
+              <small>最大20MB / PDF（Google Driveに保存されます）</small>
             </div>
 
             {storageUsage && (
@@ -365,13 +413,18 @@ function PDFProblemView({ user }) {
                 <div className="usage-bar-container">
                   <div
                     className="usage-bar-fill"
-                    style={{ width: `${Math.min(100, (storageUsage.totalSize / storageUsage.maxTotalSize) * 100)}%` }}
+                    style={{ width: `${Math.min(100, (storageUsage.fileCount / storageUsage.maxFileCount) * 100)}%` }}
                   ></div>
                 </div>
                 <small>
-                  ストレージ: {(storageUsage.totalSize / (1024 * 1024)).toFixed(1)}MB / {storageUsage.maxTotalSize / (1024 * 1024)}MB
-                  ({storageUsage.fileCount} / {storageUsage.maxFileCount}個)
+                  アプリ内PDF: {storageUsage.fileCount} / {storageUsage.maxFileCount}個
+                  （合計 {(storageUsage.totalSize / (1024 * 1024)).toFixed(1)}MB）
                 </small>
+                {storageUsage.driveLimit > 0 && (
+                  <small className="drive-usage">
+                    Google Drive: {(storageUsage.driveUsage / (1024 * 1024 * 1024)).toFixed(1)}GB / {(storageUsage.driveLimit / (1024 * 1024 * 1024)).toFixed(0)}GB
+                  </small>
+                )}
               </div>
             )}
 
@@ -401,15 +454,28 @@ function PDFProblemView({ user }) {
       <div className="pdf-list">
         {pdfs.length === 0 ? (
           <div className="no-data">
-            📄 PDFファイルをアップロードして問題を管理しましょう
+            PDFファイルをアップロードして問題を管理しましょう
             <br />
             <small>過去問や問題集をPDFで保存し、問題ごとに解答状況を記録できます</small>
+            <br />
+            <small className="drive-note">PDFはあなたのGoogle Driveに安全に保存されます</small>
           </div>
         ) : (
           pdfs.map(pdf => (
             <div key={pdf.firestoreId} className="pdf-card">
               <div className="pdf-card-header">
-                <div className="pdf-icon">📕</div>
+                <div className="pdf-icon">
+                  {pdf.storageType === 'google_drive' ? (
+                    <svg width="24" height="24" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg">
+                      <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
+                      <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-20.4 35.3c-.8 1.4-1.2 2.95-1.2 4.5h27.5z" fill="#00ac47"/>
+                      <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/>
+                      <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
+                      <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/>
+                      <path d="m73.4 26.5-10.1-17.5c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 23.8h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
+                    </svg>
+                  ) : '📕'}
+                </div>
                 <div className="pdf-info">
                   <h3 className="pdf-filename">{pdf.fileName}</h3>
                   <div className="pdf-meta">
@@ -427,24 +493,24 @@ function PDFProblemView({ user }) {
 
               <div className="pdf-actions">
                 <a
-                  href={pdf.downloadURL}
+                  href={getViewUrl(pdf)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="action-btn view"
                 >
-                  👁️ 表示
+                  表示
                 </a>
                 <button
                   className="action-btn manage"
                   onClick={() => handleSelectPDF(pdf)}
                 >
-                  ✏️ 問題管理
+                  問題管理
                 </button>
                 <button
                   className="action-btn delete"
                   onClick={() => handleDeletePDF(pdf)}
                 >
-                  🗑️ 削除
+                  削除
                 </button>
               </div>
             </div>
