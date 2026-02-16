@@ -50,6 +50,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
   const [uploadTarget, setUploadTarget] = useState(null) // 'add' | taskId (for edit)
   const [showDrivePicker, setShowDrivePicker] = useState(null) // 'add' | 'edit' | null
   const [viewingPDF, setViewingPDF] = useState(null) // { taskId, fileUrl, title } - PDF閲覧中のタスク
+  const [fullscreenPDF, setFullscreenPDF] = useState(null) // { fileUrl, title } - フルスクリーン表示
   const addFileInputRef = useRef(null)
   const editFileInputRef = useRef(null)
 
@@ -956,6 +957,13 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                           <div className="pdf-preview-header">
                             <span className="pdf-preview-title">📄 {viewingPDF.title}</span>
                             <div className="pdf-preview-actions">
+                              <button
+                                className="pdf-fullscreen-btn"
+                                onClick={() => setFullscreenPDF({ fileUrl: viewingPDF.fileUrl, title: viewingPDF.title })}
+                                title="フルスクリーン表示"
+                              >
+                                ⛶
+                              </button>
                               <a
                                 href={viewingPDF.fileUrl}
                                 target="_blank"
@@ -1114,6 +1122,39 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           ))
         )}
       </div>
+      {/* PDFフルスクリーン表示 */}
+      {fullscreenPDF && (
+        <div className="pdf-fullscreen-overlay" onClick={() => setFullscreenPDF(null)}>
+          <div className="pdf-fullscreen-container" onClick={(e) => e.stopPropagation()}>
+            <div className="pdf-fullscreen-header">
+              <span className="pdf-fullscreen-title">📄 {fullscreenPDF.title}</span>
+              <div className="pdf-fullscreen-actions">
+                <a
+                  href={fullscreenPDF.fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="pdf-open-newtab-btn"
+                >
+                  新しいタブで開く
+                </a>
+                <button
+                  className="pdf-fullscreen-close"
+                  onClick={() => setFullscreenPDF(null)}
+                >
+                  &times;
+                </button>
+              </div>
+            </div>
+            <iframe
+              src={getEmbedUrl(fullscreenPDF.fileUrl)}
+              title={`PDF: ${fullscreenPDF.title}`}
+              className="pdf-fullscreen-iframe"
+              allow="autoplay"
+            />
+          </div>
+        </div>
+      )}
+
       {/* Google Drive ファイルピッカー */}
       {showDrivePicker && (
         <DriveFilePicker

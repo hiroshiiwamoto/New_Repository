@@ -704,6 +704,115 @@
   border: none;
 }
 
+/* フルスクリーンボタン */
+.pdf-fullscreen-btn {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  transition: all 0.15s;
+  line-height: 1;
+}
+
+.pdf-fullscreen-btn:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+
+/* PDFフルスクリーンオーバーレイ */
+.pdf-fullscreen-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.pdf-fullscreen-container {
+  width: 100%;
+  max-width: 1200px;
+  height: 100%;
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+}
+
+.pdf-fullscreen-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: #1e293b;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.pdf-fullscreen-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.pdf-fullscreen-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.pdf-fullscreen-actions .pdf-open-newtab-btn {
+  color: white;
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.pdf-fullscreen-actions .pdf-open-newtab-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.pdf-fullscreen-close {
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 6px;
+  line-height: 1;
+  transition: all 0.15s;
+}
+
+.pdf-fullscreen-close:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+}
+
+.pdf-fullscreen-iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #e2e8f0;
+}
+
 .edit-pastpaper-btn {
   background: transparent;
   border: none;
