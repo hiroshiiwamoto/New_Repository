@@ -1,0 +1,13 @@
+{
+  "name": "weakness-analysis-scripts",
+  "version": "1.0.0",
+  "description": "Data import scripts for weakness analysis system",
+  "type": "module",
+  "scripts": {
+    "import:weakness-tags": "node import-weakness-tags.js",
+    "import:dry-run": "node import-weakness-tags.js --dry-run"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  }
+}

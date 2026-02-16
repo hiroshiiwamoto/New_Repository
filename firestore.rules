@@ -3,49 +3,104 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ヘルパー関数
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // ========================================
+    // 弱点分析システム
+    // ========================================
+
+    // 弱点タグマスタ（全員読み取り可、書き込み不可）
+    match /weaknessTags/{tagId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // 管理者のみ（Admin SDKから）
+    }
+
+    // 過去問マスタ（全員読み取り可、書き込み不可）
+    match /problems/{problemId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // 管理者のみ
+    }
+
+    // 問題-弱点タグ中間テーブル（全員読み取り可、書き込み不可）
+    match /problemWeaknessTags/{id} {
+      allow read: if isAuthenticated();
+      allow write: if false; // 管理者のみ
+    }
+
+    // 解答履歴（自分のみ読み書き可）
+    match /answerHistory/{id} {
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+      allow update, delete: if isAuthenticated() && isOwner(resource.data.userId);
+    }
+
+    // ユーザー弱点スコア（自分のみ読み取り可、書き込み不可）
+    match /userWeaknessScores/{id} {
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      allow write: if false; // Cloud Functionsから自動計算
+    }
+
+    // レコメンド履歴（自分のみ読み書き可）
+    match /recommendationHistory/{id} {
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+      allow update, delete: if isAuthenticated() && isOwner(resource.data.userId);
+    }
+
+    // ========================================
+    // 既存システム
+    // ========================================
+
     // ユーザーデータへのアクセス制御
     match /users/{userId} {
       // ユーザー自身のドキュメントは読み書き可能
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isAuthenticated() && isOwner(userId);
 
       // タスクコレクション
       match /tasks/{taskId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if isAuthenticated() && isOwner(userId);
       }
 
       // カスタム単元コレクション
       match /customUnits/{unitId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if isAuthenticated() && isOwner(userId);
       }
 
       // 過去問セッションコレクション
       match /pastPaperSessions/{sessionId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if isAuthenticated() && isOwner(userId);
       }
 
       // テスト成績コレクション
       match /testScores/{scoreId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if isAuthenticated() && isOwner(userId);
       }
 
       // 志望校詳細コレクション
       match /targetSchoolsDetail/{schoolId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if isAuthenticated() && isOwner(userId);
       }
 
       // PDFドキュメントコレクション
       match /pdfDocuments/{pdfId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if isAuthenticated() && isOwner(userId);
       }
 
       // PDF問題記録コレクション
       match /pdfProblems/{problemId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if isAuthenticated() && isOwner(userId);
       }
 
       // SAPIXテキストコレクション
       match /sapixTexts/{textId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if isAuthenticated() && isOwner(userId);
       }
     }
 
