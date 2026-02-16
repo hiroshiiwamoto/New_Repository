@@ -1,0 +1,502 @@
+[
+  {
+    "id": "CALC_BASIC",
+    "name": "四則計算の基礎",
+    "category": "計算",
+    "difficulty_level": 1,
+    "description": "整数・小数・分数の四則演算の基本",
+    "learning_resources": [],
+    "order_index": 10,
+    "is_active": true
+  },
+  {
+    "id": "CALC_TRICK",
+    "name": "計算のくふう",
+    "category": "計算",
+    "difficulty_level": 2,
+    "description": "計算順序を工夫して効率化する技術",
+    "learning_resources": [],
+    "order_index": 20,
+    "is_active": true
+  },
+  {
+    "id": "CALC_UNIT",
+    "name": "単位換算",
+    "category": "計算",
+    "difficulty_level": 2,
+    "description": "長さ・重さ・面積・体積などの単位変換",
+    "learning_resources": [],
+    "order_index": 30,
+    "is_active": true
+  },
+  {
+    "id": "CALC_BOX",
+    "name": "□を求める計算",
+    "category": "計算",
+    "difficulty_level": 2,
+    "description": "逆算・方程式の基礎",
+    "learning_resources": [],
+    "order_index": 40,
+    "is_active": true
+  },
+  {
+    "id": "NUM_DIVISOR",
+    "name": "約数・倍数",
+    "category": "数の性質",
+    "difficulty_level": 3,
+    "description": "約数・倍数・最大公約数・最小公倍数",
+    "learning_resources": [],
+    "order_index": 50,
+    "is_active": true
+  },
+  {
+    "id": "PATTERN_SEQ",
+    "name": "規則性(数列)",
+    "category": "規則性",
+    "difficulty_level": 3,
+    "description": "等差数列・等比数列などの数列問題",
+    "learning_resources": [],
+    "order_index": 60,
+    "is_active": true
+  },
+  {
+    "id": "PATTERN_TABLE",
+    "name": "数表",
+    "category": "規則性",
+    "difficulty_level": 3,
+    "description": "数表・三角数・四角数などの規則性",
+    "learning_resources": [],
+    "order_index": 70,
+    "is_active": true
+  },
+  {
+    "id": "PATTERN_CALENDAR",
+    "name": "日暦算",
+    "category": "規則性",
+    "difficulty_level": 2,
+    "description": "曜日・日付の計算問題",
+    "learning_resources": [],
+    "order_index": 80,
+    "is_active": true
+  },
+  {
+    "id": "PATTERN_CYCLE",
+    "name": "周期算",
+    "category": "規則性",
+    "difficulty_level": 3,
+    "description": "周期的に繰り返すパターンの問題",
+    "learning_resources": [],
+    "order_index": 90,
+    "is_active": true
+  },
+  {
+    "id": "SPEC_WACHA",
+    "name": "和差算",
+    "category": "特殊算",
+    "difficulty_level": 2,
+    "description": "和と差から2つの数を求める",
+    "learning_resources": [],
+    "order_index": 100,
+    "is_active": true
+  },
+  {
+    "id": "SPEC_AGE",
+    "name": "年齢算",
+    "category": "特殊算",
+    "difficulty_level": 2,
+    "description": "年齢の差と比を使った問題",
+    "learning_resources": [],
+    "order_index": 110,
+    "is_active": true
+  },
+  {
+    "id": "SPEC_TSURU",
+    "name": "つるかめ算",
+    "category": "特殊算",
+    "difficulty_level": 3,
+    "description": "2種類のものの個数と合計から求める",
+    "learning_resources": [],
+    "order_index": 120,
+    "is_active": true
+  },
+  {
+    "id": "SPEC_DIFF",
+    "name": "差集め算",
+    "category": "特殊算",
+    "difficulty_level": 3,
+    "description": "差を集めて個数を求める",
+    "learning_resources": [],
+    "order_index": 130,
+    "is_active": true
+  },
+  {
+    "id": "SPEC_EXCESS",
+    "name": "過不足算",
+    "category": "特殊算",
+    "difficulty_level": 3,
+    "description": "配り方による過不足から個数を求める",
+    "learning_resources": [],
+    "order_index": 140,
+    "is_active": true
+  },
+  {
+    "id": "SPEC_TREE",
+    "name": "植木算",
+    "category": "特殊算",
+    "difficulty_level": 2,
+    "description": "等間隔に並ぶものの個数を求める",
+    "learning_resources": [],
+    "order_index": 150,
+    "is_active": true
+  },
+  {
+    "id": "SPEC_SQUARE",
+    "name": "方陣算",
+    "category": "特殊算",
+    "difficulty_level": 3,
+    "description": "正方形状に並ぶものの個数",
+    "learning_resources": [],
+    "order_index": 160,
+    "is_active": true
+  },
+  {
+    "id": "SPEC_DISTRIB",
+    "name": "分配算",
+    "category": "特殊算",
+    "difficulty_level": 3,
+    "description": "配分の比から各自の量を求める",
+    "learning_resources": [],
+    "order_index": 170,
+    "is_active": true
+  },
+  {
+    "id": "SPEC_EQUIV",
+    "name": "相当算",
+    "category": "特殊算",
+    "difficulty_level": 3,
+    "description": "割合と差から全体を求める",
+    "learning_resources": [],
+    "order_index": 180,
+    "is_active": true
+  },
+  {
+    "id": "SPEC_RESTORE",
+    "name": "還元算",
+    "category": "特殊算",
+    "difficulty_level": 3,
+    "description": "結果から元の数を逆算する",
+    "learning_resources": [],
+    "order_index": 190,
+    "is_active": true
+  },
+  {
+    "id": "SPEC_MULTIPLE",
+    "name": "倍数算",
+    "category": "特殊算",
+    "difficulty_level": 3,
+    "description": "倍数関係から数を求める",
+    "learning_resources": [],
+    "order_index": 200,
+    "is_active": true
+  },
+  {
+    "id": "SPEC_ELIM",
+    "name": "消去算",
+    "category": "特殊算",
+    "difficulty_level": 4,
+    "description": "連立方程式の考え方で解く",
+    "learning_resources": [],
+    "order_index": 210,
+    "is_active": true
+  },
+  {
+    "id": "SPEC_AVG",
+    "name": "平均算",
+    "category": "特殊算",
+    "difficulty_level": 2,
+    "description": "平均値から合計や個数を求める",
+    "learning_resources": [],
+    "order_index": 220,
+    "is_active": true
+  },
+  {
+    "id": "SPEC_WORK",
+    "name": "仕事算",
+    "category": "特殊算",
+    "difficulty_level": 4,
+    "description": "仕事量と効率から時間を求める",
+    "learning_resources": [],
+    "order_index": 230,
+    "is_active": true
+  },
+  {
+    "id": "SPEC_NEWTON",
+    "name": "ニュートン算",
+    "category": "特殊算",
+    "difficulty_level": 5,
+    "description": "一定の割合で増減する仕事算",
+    "learning_resources": [],
+    "order_index": 240,
+    "is_active": true
+  },
+  {
+    "id": "SPEED_BASIC",
+    "name": "速さの基本",
+    "category": "速さ",
+    "difficulty_level": 2,
+    "description": "速さ・時間・距離の関係",
+    "learning_resources": [],
+    "order_index": 250,
+    "is_active": true
+  },
+  {
+    "id": "SPEED_TRAVEL",
+    "name": "旅人算",
+    "category": "速さ",
+    "difficulty_level": 3,
+    "description": "2人の出会い・追いつき問題",
+    "learning_resources": [],
+    "order_index": 260,
+    "is_active": true
+  },
+  {
+    "id": "SPEED_PASS",
+    "name": "通過算",
+    "category": "速さ",
+    "difficulty_level": 3,
+    "description": "列車が橋やトンネルを通過する問題",
+    "learning_resources": [],
+    "order_index": 270,
+    "is_active": true
+  },
+  {
+    "id": "SPEED_RIVER",
+    "name": "流水算",
+    "category": "速さ",
+    "difficulty_level": 3,
+    "description": "川の流れと船の速さ",
+    "learning_resources": [],
+    "order_index": 280,
+    "is_active": true
+  },
+  {
+    "id": "SPEED_CLOCK",
+    "name": "時計算",
+    "category": "速さ",
+    "difficulty_level": 4,
+    "description": "時計の長針・短針の角度",
+    "learning_resources": [],
+    "order_index": 290,
+    "is_active": true
+  },
+  {
+    "id": "RATIO_BASIC",
+    "name": "割合の基本",
+    "category": "割合",
+    "difficulty_level": 2,
+    "description": "割合・百分率・歩合の基礎",
+    "learning_resources": [],
+    "order_index": 300,
+    "is_active": true
+  },
+  {
+    "id": "RATIO_PROFIT",
+    "name": "売買損益",
+    "category": "割合",
+    "difficulty_level": 3,
+    "description": "原価・定価・売価・利益の関係",
+    "learning_resources": [],
+    "order_index": 310,
+    "is_active": true
+  },
+  {
+    "id": "RATIO_CONC",
+    "name": "食塩水",
+    "category": "割合",
+    "difficulty_level": 4,
+    "description": "食塩水の濃度計算",
+    "learning_resources": [],
+    "order_index": 320,
+    "is_active": true
+  },
+  {
+    "id": "PROP_BASIC",
+    "name": "比の基本",
+    "category": "比",
+    "difficulty_level": 3,
+    "description": "比の性質・比例式",
+    "learning_resources": [],
+    "order_index": 330,
+    "is_active": true
+  },
+  {
+    "id": "PROP_RATIO",
+    "name": "比例・反比例",
+    "category": "比",
+    "difficulty_level": 3,
+    "description": "正比例・反比例の関係",
+    "learning_resources": [],
+    "order_index": 340,
+    "is_active": true
+  },
+  {
+    "id": "PROP_SPEED",
+    "name": "速さと比",
+    "category": "比",
+    "difficulty_level": 4,
+    "description": "速さの比を使った問題",
+    "learning_resources": [],
+    "order_index": 350,
+    "is_active": true
+  },
+  {
+    "id": "PLANE_ANGLE",
+    "name": "角度",
+    "category": "平面図形",
+    "difficulty_level": 2,
+    "description": "三角形・四角形の角度",
+    "learning_resources": [],
+    "order_index": 360,
+    "is_active": true
+  },
+  {
+    "id": "PLANE_AREA",
+    "name": "面積",
+    "category": "平面図形",
+    "difficulty_level": 2,
+    "description": "三角形・四角形・多角形の面積",
+    "learning_resources": [],
+    "order_index": 370,
+    "is_active": true
+  },
+  {
+    "id": "PLANE_CIRCLE",
+    "name": "円・おうぎ形",
+    "category": "平面図形",
+    "difficulty_level": 3,
+    "description": "円周・円の面積・おうぎ形",
+    "learning_resources": [],
+    "order_index": 380,
+    "is_active": true
+  },
+  {
+    "id": "PLANE_EQUIV",
+    "name": "等積変形",
+    "category": "平面図形",
+    "difficulty_level": 4,
+    "description": "面積を変えずに図形を変形",
+    "learning_resources": [],
+    "order_index": 390,
+    "is_active": true
+  },
+  {
+    "id": "PLANE_MOVE",
+    "name": "図形の移動",
+    "category": "平面図形",
+    "difficulty_level": 3,
+    "description": "図形の平行移動・回転移動",
+    "learning_resources": [],
+    "order_index": 400,
+    "is_active": true
+  },
+  {
+    "id": "PLANE_SIMILAR",
+    "name": "相似",
+    "category": "平面図形",
+    "difficulty_level": 4,
+    "description": "相似な図形の性質",
+    "learning_resources": [],
+    "order_index": 410,
+    "is_active": true
+  },
+  {
+    "id": "PLANE_RATIO",
+    "name": "面積比・線分比",
+    "category": "平面図形",
+    "difficulty_level": 5,
+    "description": "相似比から面積比・体積比",
+    "learning_resources": [],
+    "order_index": 420,
+    "is_active": true
+  },
+  {
+    "id": "SOLID_BASIC",
+    "name": "立体の名前・展開図",
+    "category": "立体図形",
+    "difficulty_level": 2,
+    "description": "立体の種類と展開図",
+    "learning_resources": [],
+    "order_index": 430,
+    "is_active": true
+  },
+  {
+    "id": "SOLID_VOLUME",
+    "name": "体積・表面積",
+    "category": "立体図形",
+    "difficulty_level": 3,
+    "description": "立体の体積・表面積の計算",
+    "learning_resources": [],
+    "order_index": 440,
+    "is_active": true
+  },
+  {
+    "id": "SOLID_CUT",
+    "name": "立体の切断",
+    "category": "立体図形",
+    "difficulty_level": 5,
+    "description": "立体を平面で切断する問題",
+    "learning_resources": [],
+    "order_index": 450,
+    "is_active": true
+  },
+  {
+    "id": "SOLID_ROTATE",
+    "name": "回転体",
+    "category": "立体図形",
+    "difficulty_level": 4,
+    "description": "図形を回転させてできる立体",
+    "learning_resources": [],
+    "order_index": 460,
+    "is_active": true
+  },
+  {
+    "id": "SOLID_WATER",
+    "name": "水位の変化",
+    "category": "立体図形",
+    "difficulty_level": 4,
+    "description": "容器に水を入れたときの水位",
+    "learning_resources": [],
+    "order_index": 470,
+    "is_active": true
+  },
+  {
+    "id": "COMB_COUNT",
+    "name": "場合の数",
+    "category": "場合の数",
+    "difficulty_level": 4,
+    "description": "順列・組み合わせ・樹形図",
+    "learning_resources": [],
+    "order_index": 480,
+    "is_active": true
+  },
+  {
+    "id": "LOGIC_GRAPH",
+    "name": "グラフ",
+    "category": "グラフ・論理",
+    "difficulty_level": 3,
+    "description": "グラフの読み取り・作成",
+    "learning_resources": [],
+    "order_index": 490,
+    "is_active": true
+  },
+  {
+    "id": "LOGIC_COND",
+    "name": "条件整理・論理",
+    "category": "グラフ・論理",
+    "difficulty_level": 4,
+    "description": "条件を整理して推理する問題",
+    "learning_resources": [],
+    "order_index": 500,
+    "is_active": true
+  }
+]
