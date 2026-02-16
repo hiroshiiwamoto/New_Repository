@@ -27,6 +27,7 @@ function SapixTextView({ user, customUnits = [] }) {
     unitId: '',
     fileUrl: '',
     scannedText: '',
+    studyDate: '',
   })
 
   const [editForm, setEditForm] = useState({
@@ -37,6 +38,7 @@ function SapixTextView({ user, customUnits = [] }) {
     unitId: '',
     fileUrl: '',
     scannedText: '',
+    studyDate: '',
   })
 
   const addFileInputRef = useRef(null)
@@ -135,10 +137,11 @@ function SapixTextView({ user, customUnits = [] }) {
       unitId: addForm.unitId,
       fileUrl: addForm.fileUrl,
       scannedText: addForm.scannedText,
+      studyDate: addForm.studyDate,
     })
     if (result.success) {
       toast.success('SAPIXテキストを追加しました')
-      setAddForm({ textName: '', textNumber: '', subject: '算数', grade: '4年生', unitId: '', fileUrl: '', scannedText: '' })
+      setAddForm({ textName: '', textNumber: '', subject: '算数', grade: '4年生', unitId: '', fileUrl: '', scannedText: '', studyDate: '' })
       setShowAddForm(false)
       await loadTexts()
     } else {
@@ -157,6 +160,7 @@ function SapixTextView({ user, customUnits = [] }) {
       unitId: text.unitId || '',
       fileUrl: text.fileUrl || '',
       scannedText: text.scannedText || '',
+      studyDate: text.studyDate || '',
     })
   }
 
@@ -174,6 +178,7 @@ function SapixTextView({ user, customUnits = [] }) {
       unitId: editForm.unitId,
       fileUrl: editForm.fileUrl,
       scannedText: editForm.scannedText,
+      studyDate: editForm.studyDate,
     })
     if (result.success) {
       toast.success('更新しました')
@@ -394,6 +399,16 @@ function SapixTextView({ user, customUnits = [] }) {
             </div>
           </div>
 
+          <div className="add-form-field">
+            <label>学習日（任意）:</label>
+            <input
+              type="date"
+              value={addForm.studyDate}
+              onChange={(e) => setAddForm(prev => ({ ...prev, studyDate: e.target.value }))}
+              style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}
+            />
+          </div>
+
           {renderFileUpload(addForm, setAddForm, 'add')}
           {renderUnitSelector(addForm, setAddForm)}
 
@@ -412,7 +427,7 @@ function SapixTextView({ user, customUnits = [] }) {
           <div className="add-form-actions">
             <button
               className="btn-secondary"
-              onClick={() => { setShowAddForm(false); setAddForm({ textName: '', textNumber: '', subject: '算数', grade: '4年生', unitId: '', fileUrl: '', scannedText: '' }) }}
+              onClick={() => { setShowAddForm(false); setAddForm({ textName: '', textNumber: '', subject: '算数', grade: '4年生', unitId: '', fileUrl: '', scannedText: '', studyDate: '' }) }}
             >
               キャンセル
             </button>
@@ -468,6 +483,15 @@ function SapixTextView({ user, customUnits = [] }) {
                       <input type="text" value={editForm.textNumber} onChange={(e) => setEditForm(prev => ({ ...prev, textNumber: e.target.value }))} />
                     </div>
                   </div>
+                  <div className="add-form-field">
+                    <label>学習日（任意）:</label>
+                    <input
+                      type="date"
+                      value={editForm.studyDate}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, studyDate: e.target.value }))}
+                      style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}
+                    />
+                  </div>
                   {renderFileUpload(editForm, setEditForm, 'edit')}
                   {renderUnitSelector(editForm, setEditForm)}
                   <div className="sapix-form-section">
@@ -492,6 +516,7 @@ function SapixTextView({ user, customUnits = [] }) {
                       <span className="sapix-text-name">
                         {text.textName}
                         {text.textNumber && <span className="sapix-text-number">{text.textNumber}</span>}
+                        {text.studyDate && <span className="sapix-study-date">📅 {text.studyDate}</span>}
                       </span>
                       {text.unitId && (
                         <span className="sapix-unit-badge">{getUnitName(text.unitId)}</span>
