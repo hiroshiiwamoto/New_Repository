@@ -42,8 +42,17 @@ function DriveFilePicker({ onSelect, onClose }) {
       }
 
       if (folderRes.status === 403) {
-        setError('Google Drive API へのアクセスが許可されていません。一度ログアウトしてから再ログインしてください。')
-        setErrorType('forbidden')
+        const errBody = await folderRes.json().catch(() => ({}))
+        const reason = errBody.error?.errors?.[0]?.reason || ''
+        const apiMsg = errBody.error?.message || ''
+
+        if (reason === 'accessNotConfigured' || apiMsg.includes('has not been used') || apiMsg.includes('disabled')) {
+          setError('Google Drive API がプロジェクトで有効になっていません。')
+          setErrorType('api_disabled')
+        } else {
+          setError('Google Drive へのアクセス権限がありません。一度ログアウトしてから再ログインしてください。')
+          setErrorType('forbidden')
+        }
         setLoading(false)
         return
       }
@@ -219,12 +228,38 @@ function DriveFilePicker({ onSelect, onClose }) {
               </button>
               <small>ボタンを押すとGoogleアカウントの認証画面が開きます</small>
             </div>
+          ) : errorType === 'api_disabled' ? (
+            <div className="drive-picker-setup">
+              <p className="drive-setup-title">Google Drive API の有効化が必要です</p>
+              <div className="drive-setup-steps">
+                <p>以下の手順で有効化してください:</p>
+                <ol>
+                  <li>下のリンクから Google Cloud Console を開く</li>
+                  <li>「有効にする」ボタンをクリック</li>
+                  <li>このページに戻って「再読み込み」を押す</li>
+                </ol>
+              </div>
+              <a
+                href="https://console.cloud.google.com/apis/library/drive.googleapis.com?project=studyapp-28e08"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="drive-setup-link"
+              >
+                Google Cloud Console を開く
+              </a>
+              <button
+                className="drive-connect-action-btn"
+                onClick={handleConnect}
+                disabled={connecting}
+                style={{ marginTop: '8px' }}
+              >
+                {connecting ? '接続中...' : '再読み込み'}
+              </button>
+            </div>
           ) : errorType === 'forbidden' ? (
             <div className="drive-picker-error">
               <p>{error}</p>
               <small>
-                Google Drive API が有効でない場合があります。
-                <br />
                 ログアウト → 再ログイン で権限を更新してください。
               </small>
               <button
