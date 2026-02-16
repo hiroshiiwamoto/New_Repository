@@ -1,0 +1,7 @@
+# Firebase Admin SDK サービスアカウントキー
+**/serviceAccountKey*.json
+**/*-firebase-adminsdk-*.json
+
+# Scripts dependencies
+scripts/node_modules/
+scripts/package-lock.json
