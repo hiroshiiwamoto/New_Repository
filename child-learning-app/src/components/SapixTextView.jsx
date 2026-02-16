@@ -26,6 +26,7 @@ function SapixTextView({ user, customUnits = [] }) {
     grade: '4年生',
     unitId: '',
     fileUrl: '',
+    fileName: '',
     scannedText: '',
     studyDate: '',
   })
@@ -37,6 +38,7 @@ function SapixTextView({ user, customUnits = [] }) {
     grade: '4年生',
     unitId: '',
     fileUrl: '',
+    fileName: '',
     scannedText: '',
     studyDate: '',
   })
@@ -84,9 +86,9 @@ function SapixTextView({ user, customUnits = [] }) {
       const result = await uploadPDFToDrive(file, () => {})
       const viewUrl = `https://drive.google.com/file/d/${result.driveFileId}/view`
       if (target === 'add') {
-        setAddForm(prev => ({ ...prev, fileUrl: viewUrl }))
+        setAddForm(prev => ({ ...prev, fileUrl: viewUrl, fileName: file.name }))
       } else {
-        setEditForm(prev => ({ ...prev, fileUrl: viewUrl }))
+        setEditForm(prev => ({ ...prev, fileUrl: viewUrl, fileName: file.name }))
       }
       toast.success('PDFをGoogle Driveにアップロードしました')
     } catch (error) {
@@ -136,12 +138,13 @@ function SapixTextView({ user, customUnits = [] }) {
       grade: addForm.grade,
       unitId: addForm.unitId,
       fileUrl: addForm.fileUrl,
+      fileName: addForm.fileName,
       scannedText: addForm.scannedText,
       studyDate: addForm.studyDate,
     })
     if (result.success) {
       toast.success('SAPIXテキストを追加しました')
-      setAddForm({ textName: '', textNumber: '', subject: '算数', grade: '4年生', unitId: '', fileUrl: '', scannedText: '', studyDate: '' })
+      setAddForm({ textName: '', textNumber: '', subject: '算数', grade: '4年生', unitId: '', fileUrl: '', fileName: '', scannedText: '', studyDate: '' })
       setShowAddForm(false)
       await loadTexts()
     } else {
@@ -159,6 +162,7 @@ function SapixTextView({ user, customUnits = [] }) {
       grade: text.grade || '4年生',
       unitId: text.unitId || '',
       fileUrl: text.fileUrl || '',
+      fileName: text.fileName || '',
       scannedText: text.scannedText || '',
       studyDate: text.studyDate || '',
     })
@@ -177,6 +181,7 @@ function SapixTextView({ user, customUnits = [] }) {
       grade: editForm.grade,
       unitId: editForm.unitId,
       fileUrl: editForm.fileUrl,
+      fileName: editForm.fileName,
       scannedText: editForm.scannedText,
       studyDate: editForm.studyDate,
     })
@@ -279,9 +284,9 @@ function SapixTextView({ user, customUnits = [] }) {
         <div className="sapix-file-preview">
           <span>📎</span>
           <a href={form.fileUrl} target="_blank" rel="noopener noreferrer">
-            {form.fileUrl.includes('drive.google.com') ? 'Google Drive のファイル' : form.fileUrl}
+            {form.fileName || (form.fileUrl.includes('drive.google.com') ? 'Google Drive のファイル' : form.fileUrl)}
           </a>
-          <button type="button" onClick={() => setForm(prev => ({ ...prev, fileUrl: '' }))}>&times;</button>
+          <button type="button" onClick={() => setForm(prev => ({ ...prev, fileUrl: '', fileName: '' }))}>&times;</button>
         </div>
       ) : (
         <div className="sapix-file-upload-area">
@@ -427,7 +432,7 @@ function SapixTextView({ user, customUnits = [] }) {
           <div className="add-form-actions">
             <button
               className="btn-secondary"
-              onClick={() => { setShowAddForm(false); setAddForm({ textName: '', textNumber: '', subject: '算数', grade: '4年生', unitId: '', fileUrl: '', scannedText: '', studyDate: '' }) }}
+              onClick={() => { setShowAddForm(false); setAddForm({ textName: '', textNumber: '', subject: '算数', grade: '4年生', unitId: '', fileUrl: '', fileName: '', scannedText: '', studyDate: '' }) }}
             >
               キャンセル
             </button>
@@ -616,11 +621,11 @@ function SapixTextView({ user, customUnits = [] }) {
       {/* Drive ファイルピッカー */}
       {showDrivePicker && (
         <DriveFilePicker
-          onSelect={(url) => {
+          onSelect={(data) => {
             if (showDrivePicker === 'add') {
-              setAddForm(prev => ({ ...prev, fileUrl: url }))
+              setAddForm(prev => ({ ...prev, fileUrl: data.url, fileName: data.name }))
             } else {
-              setEditForm(prev => ({ ...prev, fileUrl: url }))
+              setEditForm(prev => ({ ...prev, fileUrl: data.url, fileName: data.name }))
             }
             setShowDrivePicker(null)
           }}

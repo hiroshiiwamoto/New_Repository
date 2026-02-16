@@ -33,7 +33,8 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     subject: '算数',  // フォーム内で独立して科目を管理
     grade: '4年生',
     unitId: '',  // 単一の単元ID
-    fileUrl: ''  // GoogleドライブやPDFのURL
+    fileUrl: '',  // GoogleドライブやPDFのURL
+    fileName: ''  // ファイル名
   })
   const [editingTaskId, setEditingTaskId] = useState(null) // 編集中の過去問タスクID
   const [editForm, setEditForm] = useState({
@@ -43,7 +44,8 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     subject: '算数',
     grade: '4年生',
     unitId: '',  // 単一の単元ID
-    fileUrl: ''  // GoogleドライブやPDFのURL
+    fileUrl: '',  // GoogleドライブやPDFのURL
+    fileName: ''  // ファイル名
   })
   const [expandedSessions, setExpandedSessions] = useState({}) // 学習記録の展開状態 (taskId -> boolean)
   const [uploading, setUploading] = useState(false)
@@ -83,9 +85,9 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       const viewUrl = `https://drive.google.com/file/d/${result.driveFileId}/view`
 
       if (target === 'add') {
-        setAddForm(prev => ({ ...prev, fileUrl: viewUrl }))
+        setAddForm(prev => ({ ...prev, fileUrl: viewUrl, fileName: file.name }))
       } else {
-        setEditForm(prev => ({ ...prev, fileUrl: viewUrl }))
+        setEditForm(prev => ({ ...prev, fileUrl: viewUrl, fileName: file.name }))
       }
       toast.success('PDFをGoogle Driveにアップロードしました')
     } catch (error) {
@@ -306,12 +308,13 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       round: addForm.round,
       unitId: addForm.unitId,  // 単一の単元ID
       fileUrl: addForm.fileUrl,  // 問題ファイルのURL
+      fileName: addForm.fileName,  // ファイル名
       dueDate: '',
       priority: 'medium'
     }
 
     await onAddTask(newTask)
-    setAddForm({ schoolName: '', year: '', round: '', subject: '算数', grade: '4年生', unitId: '', fileUrl: '' })
+    setAddForm({ schoolName: '', year: '', round: '', subject: '算数', grade: '4年生', unitId: '', fileUrl: '', fileName: '' })
     setShowAddForm(false)
     toast.success('過去問を追加しました')
   }
@@ -358,7 +361,8 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       subject: task.subject || '算数',
       grade: task.grade || '4年生',
       unitId: task.unitId || '',
-      fileUrl: task.fileUrl || ''
+      fileUrl: task.fileUrl || '',
+      fileName: task.fileName || ''
     })
   }
 
@@ -372,7 +376,8 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       subject: '算数',
       grade: '4年生',
       unitId: '',
-      fileUrl: ''
+      fileUrl: '',
+      fileName: ''
     })
   }
 
@@ -390,7 +395,8 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       round: editForm.round,
       subject: editForm.subject,
       unitId: editForm.unitId,
-      fileUrl: editForm.fileUrl
+      fileUrl: editForm.fileUrl,
+      fileName: editForm.fileName
     }
 
     await onUpdateTask(editingTaskId, updatedTask)
@@ -571,12 +577,12 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
               <div className="file-url-preview">
                 <span className="file-url-preview-icon">📎</span>
                 <a href={addForm.fileUrl} target="_blank" rel="noopener noreferrer">
-                  {addForm.fileUrl.includes('drive.google.com') ? 'Google Drive のファイル' : addForm.fileUrl}
+                  {addForm.fileName || (addForm.fileUrl.includes('drive.google.com') ? 'Google Drive のファイル' : addForm.fileUrl)}
                 </a>
                 <button
                   type="button"
                   className="clear-url-btn"
-                  onClick={() => setAddForm({ ...addForm, fileUrl: '' })}
+                  onClick={() => setAddForm({ ...addForm, fileUrl: '', fileName: '' })}
                 >
                   &times;
                 </button>
@@ -684,7 +690,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
               className="btn-secondary"
               onClick={() => {
                 setShowAddForm(false)
-                setAddForm({ schoolName: '', year: '', round: '', subject: '算数', grade: '4年生', unitId: '', fileUrl: '' })
+                setAddForm({ schoolName: '', year: '', round: '', subject: '算数', grade: '4年生', unitId: '', fileUrl: '', fileName: '' })
               }}
             >
               キャンセル
@@ -790,12 +796,12 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                               <div className="file-url-preview">
                                 <span className="file-url-preview-icon">📎</span>
                                 <a href={editForm.fileUrl} target="_blank" rel="noopener noreferrer">
-                                  {editForm.fileUrl.includes('drive.google.com') ? 'Google Drive のファイル' : editForm.fileUrl}
+                                  {editForm.fileName || (editForm.fileUrl.includes('drive.google.com') ? 'Google Drive のファイル' : editForm.fileUrl)}
                                 </a>
                                 <button
                                   type="button"
                                   className="clear-url-btn"
-                                  onClick={() => setEditForm({ ...editForm, fileUrl: '' })}
+                                  onClick={() => setEditForm({ ...editForm, fileUrl: '', fileName: '' })}
                                 >
                                   &times;
                                 </button>
@@ -1158,11 +1164,11 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       {/* Google Drive ファイルピッカー */}
       {showDrivePicker && (
         <DriveFilePicker
-          onSelect={(url) => {
+          onSelect={(data) => {
             if (showDrivePicker === 'add') {
-              setAddForm(prev => ({ ...prev, fileUrl: url }))
+              setAddForm(prev => ({ ...prev, fileUrl: data.url, fileName: data.name }))
             } else if (showDrivePicker === 'edit') {
-              setEditForm(prev => ({ ...prev, fileUrl: url }))
+              setEditForm(prev => ({ ...prev, fileUrl: data.url, fileName: data.name }))
             }
             setShowDrivePicker(null)
           }}
