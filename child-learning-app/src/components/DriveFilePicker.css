@@ -153,6 +153,61 @@
   font-size: 0.85rem;
 }
 
+.drive-picker-error small {
+  color: #94a3b8;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  margin-top: 8px;
+}
+
+/* 接続画面 */
+.drive-picker-connect {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+  color: #475569;
+  text-align: center;
+  gap: 12px;
+}
+
+.drive-picker-connect p {
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.drive-picker-connect small {
+  color: #94a3b8;
+  font-size: 0.8rem;
+}
+
+.drive-connect-action-btn {
+  padding: 12px 28px;
+  background: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
+}
+
+.drive-connect-action-btn:hover {
+  background: #3367d6;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(66, 133, 244, 0.4);
+}
+
+.drive-connect-action-btn:disabled {
+  background: #93c5fd;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 .drive-picker-empty {
   display: flex;
   flex-direction: column;

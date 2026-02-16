@@ -34,7 +34,7 @@ async function driveApiFetch(url, options = {}) {
     },
   })
 
-  // トークン期限切れの場合、再認証してリトライ
+  // トークン期限切れの場合のみ再認証してリトライ（403は再認証しない）
   if (response.status === 401) {
     token = await refreshGoogleAccessToken()
     if (!token) {
@@ -47,6 +47,15 @@ async function driveApiFetch(url, options = {}) {
         'Authorization': `Bearer ${token}`,
       },
     })
+  }
+
+  if (response.status === 403) {
+    const errorData = await response.json().catch(() => ({}))
+    const reason = errorData.error?.errors?.[0]?.reason || ''
+    if (reason === 'insufficientPermissions') {
+      throw new Error('Google Drive へのアクセス権限がありません。一度ログアウトして再ログインしてください。')
+    }
+    throw new Error('Google Drive API が有効になっていない可能性があります。管理者にお問い合わせください。')
   }
 
   return response

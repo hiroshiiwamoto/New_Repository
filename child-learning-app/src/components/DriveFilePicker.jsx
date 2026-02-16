@@ -1,44 +1,137 @@
 import { useState, useEffect, useCallback } from 'react'
-import { searchDriveFiles, checkDriveAccess } from '../utils/googleDriveStorage'
-import { refreshGoogleAccessToken } from './Auth'
+import { getGoogleAccessToken, refreshGoogleAccessToken } from './Auth'
 import './DriveFilePicker.css'
+
+const DRIVE_API = 'https://www.googleapis.com/drive/v3'
+const APP_FOLDER_NAME = 'SAPIX学習管理_PDF'
+
+/**
+ * トークンを使って直接APIを呼ぶ（ポップアップを自動で開かない）
+ */
+async function driveFetchDirect(url, token) {
+  return fetch(url, {
+    headers: { 'Authorization': `Bearer ${token}` },
+  })
+}
 
 function DriveFilePicker({ onSelect, onClose }) {
   const [files, setFiles] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [errorType, setErrorType] = useState(null) // 'no_token' | 'forbidden' | 'general'
   const [searchQuery, setSearchQuery] = useState('')
+  const [connecting, setConnecting] = useState(false)
 
-  const loadFiles = useCallback(async (query = '') => {
+  const loadFiles = useCallback(async (token, query = '') => {
     setLoading(true)
     setError(null)
+    setErrorType(null)
     try {
-      // Drive接続確認
-      const hasAccess = await checkDriveAccess()
-      if (!hasAccess) {
-        const token = await refreshGoogleAccessToken()
-        if (!token) {
-          setError('Google Drive に接続してください。再ログインが必要です。')
-          setLoading(false)
-          return
-        }
+      // 1. アプリフォルダを検索
+      const folderSearchUrl = `${DRIVE_API}/files?q=${encodeURIComponent(
+        `name='${APP_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`
+      )}&fields=files(id,name)`
+
+      const folderRes = await driveFetchDirect(folderSearchUrl, token)
+
+      if (folderRes.status === 401) {
+        setError('アクセストークンの期限が切れました。再接続してください。')
+        setErrorType('no_token')
+        setLoading(false)
+        return
       }
 
-      const result = await searchDriveFiles(query)
-      setFiles(result)
+      if (folderRes.status === 403) {
+        setError('Google Drive API へのアクセスが許可されていません。一度ログアウトしてから再ログインしてください。')
+        setErrorType('forbidden')
+        setLoading(false)
+        return
+      }
+
+      if (!folderRes.ok) {
+        setError(`Drive API エラー (${folderRes.status})`)
+        setErrorType('general')
+        setLoading(false)
+        return
+      }
+
+      const folderData = await folderRes.json()
+
+      if (!folderData.files || folderData.files.length === 0) {
+        // フォルダがまだない = ファイルもない
+        setFiles([])
+        setLoading(false)
+        return
+      }
+
+      const folderId = folderData.files[0].id
+
+      // 2. フォルダ内のファイルを検索
+      let q = `'${folderId}' in parents and trashed=false`
+      if (query) {
+        q += ` and name contains '${query.replace(/'/g, "\\'")}'`
+      }
+
+      const filesUrl = `${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id,name,size,mimeType,createdTime,modifiedTime)&orderBy=modifiedTime desc&pageSize=50`
+
+      const filesRes = await driveFetchDirect(filesUrl, token)
+
+      if (!filesRes.ok) {
+        setError(`ファイル一覧取得失敗 (${filesRes.status})`)
+        setErrorType('general')
+        setLoading(false)
+        return
+      }
+
+      const filesData = await filesRes.json()
+      setFiles(filesData.files || [])
     } catch (err) {
-      setError('ファイル一覧の取得に失敗しました: ' + err.message)
+      setError('通信エラー: ' + err.message)
+      setErrorType('general')
     } finally {
       setLoading(false)
     }
   }, [])
 
+  // 初回: トークンがあればファイル読み込み、なければ接続ボタン表示
   useEffect(() => {
-    loadFiles()
+    const token = getGoogleAccessToken()
+    if (token) {
+      loadFiles(token)
+    } else {
+      setErrorType('no_token')
+      setError('Google Drive に接続してファイルを表示します。')
+    }
   }, [loadFiles])
 
+  const handleConnect = async () => {
+    setConnecting(true)
+    setError(null)
+    setErrorType(null)
+    try {
+      const token = await refreshGoogleAccessToken()
+      if (token) {
+        await loadFiles(token)
+      } else {
+        setError('Google Drive への接続がキャンセルされました。')
+        setErrorType('no_token')
+      }
+    } catch (err) {
+      setError('接続エラー: ' + err.message)
+      setErrorType('general')
+    } finally {
+      setConnecting(false)
+    }
+  }
+
   const handleSearch = () => {
-    loadFiles(searchQuery)
+    const token = getGoogleAccessToken()
+    if (token) {
+      loadFiles(token, searchQuery)
+    } else {
+      setErrorType('no_token')
+      setError('Google Drive に接続してください。')
+    }
   }
 
   const handleKeyDown = (e) => {
@@ -49,7 +142,7 @@ function DriveFilePicker({ onSelect, onClose }) {
 
   const handleSelect = (file) => {
     const viewUrl = `https://drive.google.com/file/d/${file.id}/view`
-    onSelect(viewUrl, file.name)
+    onSelect(viewUrl)
   }
 
   const formatFileSize = (bytes) => {
@@ -75,6 +168,8 @@ function DriveFilePicker({ onSelect, onClose }) {
     return '📁'
   }
 
+  const showSearchBar = !errorType || errorType === 'general'
+
   return (
     <div className="drive-picker-overlay" onClick={onClose}>
       <div className="drive-picker-modal" onClick={(e) => e.stopPropagation()}>
@@ -93,16 +188,18 @@ function DriveFilePicker({ onSelect, onClose }) {
           <button className="drive-picker-close" onClick={onClose}>&times;</button>
         </div>
 
-        <div className="drive-picker-search">
-          <input
-            type="text"
-            placeholder="ファイル名で検索..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-          />
-          <button onClick={handleSearch}>検索</button>
-        </div>
+        {showSearchBar && (
+          <div className="drive-picker-search">
+            <input
+              type="text"
+              placeholder="ファイル名で検索..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleKeyDown}
+            />
+            <button onClick={handleSearch}>検索</button>
+          </div>
+        )}
 
         <div className="drive-picker-body">
           {loading ? (
@@ -110,15 +207,46 @@ function DriveFilePicker({ onSelect, onClose }) {
               <div className="drive-picker-spinner"></div>
               <p>ファイルを読み込み中...</p>
             </div>
+          ) : errorType === 'no_token' ? (
+            <div className="drive-picker-connect">
+              <p>{error}</p>
+              <button
+                className="drive-connect-action-btn"
+                onClick={handleConnect}
+                disabled={connecting}
+              >
+                {connecting ? '接続中...' : 'Google Drive に接続'}
+              </button>
+              <small>ボタンを押すとGoogleアカウントの認証画面が開きます</small>
+            </div>
+          ) : errorType === 'forbidden' ? (
+            <div className="drive-picker-error">
+              <p>{error}</p>
+              <small>
+                Google Drive API が有効でない場合があります。
+                <br />
+                ログアウト → 再ログイン で権限を更新してください。
+              </small>
+              <button
+                className="drive-connect-action-btn"
+                onClick={handleConnect}
+                disabled={connecting}
+              >
+                {connecting ? '接続中...' : '再接続を試す'}
+              </button>
+            </div>
           ) : error ? (
             <div className="drive-picker-error">
               <p>{error}</p>
-              <button onClick={() => loadFiles()}>再読み込み</button>
+              <button onClick={() => {
+                const token = getGoogleAccessToken()
+                if (token) loadFiles(token)
+              }}>再読み込み</button>
             </div>
           ) : files.length === 0 ? (
             <div className="drive-picker-empty">
               <p>📂 アプリフォルダにファイルがありません</p>
-              <small>PDFをアップロードすると、ここに表示されます</small>
+              <small>「新規アップロード」でPDFを追加すると、ここに表示されます</small>
             </div>
           ) : (
             <div className="drive-picker-list">
