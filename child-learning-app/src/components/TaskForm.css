@@ -323,6 +323,101 @@
   color: #1e293b;
 }
 
+/* タスクフォーム PDF ファイル関連 */
+.task-file-url-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+}
+
+.task-file-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.task-file-link {
+  font-size: 0.82rem;
+  color: #15803d;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
+}
+
+.task-file-link:hover {
+  text-decoration: underline;
+}
+
+.task-file-clear-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.task-file-clear-btn:hover {
+  color: #ef4444;
+}
+
+.task-file-upload-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.task-pdf-upload-btn,
+.task-drive-select-btn {
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.task-pdf-upload-btn {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+}
+
+.task-pdf-upload-btn:hover {
+  background: #dbeafe;
+}
+
+.task-pdf-upload-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.task-drive-select-btn {
+  background: white;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+}
+
+.task-drive-select-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.task-file-or {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .task-form.sapix-form {

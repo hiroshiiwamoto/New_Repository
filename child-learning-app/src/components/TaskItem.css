@@ -123,6 +123,223 @@
   transform: scale(0.95);
 }
 
+/* タスク PDF ボタン */
+.task-pdf-btn {
+  background: rgba(59, 130, 246, 0.1);
+  border: none;
+  border-radius: 6px;
+  width: 26px;
+  height: 26px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  opacity: 0.7;
+}
+
+.task-pdf-btn:hover {
+  opacity: 1;
+  transform: scale(1.05);
+  background: rgba(59, 130, 246, 0.2);
+}
+
+.task-pdf-btn.active {
+  opacity: 1;
+  background: #3b82f6;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+}
+
+/* インラインPDFプレビュー */
+.task-pdf-preview-panel {
+  margin-top: 6px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.task-pdf-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  gap: 8px;
+}
+
+.task-pdf-preview-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #1e293b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.task-pdf-preview-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.task-pdf-fullscreen-btn {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 5px;
+  transition: all 0.15s;
+  line-height: 1;
+}
+
+.task-pdf-fullscreen-btn:hover {
+  background: #dbeafe;
+}
+
+.task-pdf-newtab-btn {
+  font-size: 0.7rem;
+  color: #3b82f6;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 5px;
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  white-space: nowrap;
+}
+
+.task-pdf-newtab-btn:hover {
+  background: #dbeafe;
+}
+
+.task-pdf-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 2px 5px;
+  line-height: 1;
+}
+
+.task-pdf-close-btn:hover {
+  color: #475569;
+}
+
+.task-pdf-preview-container {
+  width: 100%;
+  height: 450px;
+  background: #e2e8f0;
+}
+
+.task-pdf-preview-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* フルスクリーンPDF */
+.task-pdf-fullscreen-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.task-pdf-fullscreen-container {
+  width: 100%;
+  max-width: 1200px;
+  height: 100%;
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+}
+
+.task-pdf-fullscreen-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: #1e293b;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.task-pdf-fullscreen-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.task-pdf-fullscreen-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.task-pdf-fullscreen-newtab {
+  font-size: 0.75rem;
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.15);
+  white-space: nowrap;
+}
+
+.task-pdf-fullscreen-newtab:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.task-pdf-fullscreen-close {
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 6px;
+  line-height: 1;
+}
+
+.task-pdf-fullscreen-close:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+}
+
+.task-pdf-fullscreen-iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #e2e8f0;
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .task-item {
@@ -166,6 +383,14 @@
 }
 
 @media (max-width: 480px) {
+  .task-pdf-preview-container {
+    height: 300px;
+  }
+
+  .task-pdf-preview-title {
+    font-size: 0.7rem;
+  }
+
   .task-item {
     padding: 7px 10px;
     gap: 7px;
