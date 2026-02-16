@@ -283,9 +283,8 @@ body {
   }
 
   .view-switcher button {
-    flex: 1;
-    padding: 8px 12px;
-    font-size: 0.8125rem;
+    padding: 8px 10px;
+    font-size: 0.75rem;
   }
 
   .edit-view {

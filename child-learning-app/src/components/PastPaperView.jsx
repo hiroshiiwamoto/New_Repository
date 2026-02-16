@@ -49,6 +49,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
   const [uploading, setUploading] = useState(false)
   const [uploadTarget, setUploadTarget] = useState(null) // 'add' | taskId (for edit)
   const [showDrivePicker, setShowDrivePicker] = useState(null) // 'add' | 'edit' | null
+  const [viewingPDF, setViewingPDF] = useState(null) // { taskId, fileUrl, title } - PDF閲覧中のタスク
   const addFileInputRef = useRef(null)
   const editFileInputRef = useRef(null)
 
@@ -402,6 +403,26 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       ...editForm,
       unitId: unitId
     })
+  }
+
+  // Google Drive URLから埋め込みプレビューURLを生成
+  const getEmbedUrl = (fileUrl) => {
+    if (!fileUrl) return null
+    // https://drive.google.com/file/d/{ID}/view → https://drive.google.com/file/d/{ID}/preview
+    const match = fileUrl.match(/\/file\/d\/([^/]+)/)
+    if (match) {
+      return `https://drive.google.com/file/d/${match[1]}/preview`
+    }
+    return fileUrl
+  }
+
+  // PDFプレビューを表示
+  const handleViewPDF = (task) => {
+    if (viewingPDF?.taskId === task.id) {
+      setViewingPDF(null) // 同じタスクなら閉じる
+    } else {
+      setViewingPDF({ taskId: task.id, fileUrl: task.fileUrl, title: task.title })
+    }
   }
 
   // 学習記録の展開/折りたたみをトグル
@@ -902,15 +923,13 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                                 {taskSessions.length}回演習済み
                               </div>
                               {task.fileUrl && (
-                                <a
-                                  href={task.fileUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="file-link-btn"
-                                  title="問題ファイルを開く"
+                                <button
+                                  className={`pdf-view-btn ${viewingPDF?.taskId === task.id ? 'active' : ''}`}
+                                  onClick={() => handleViewPDF(task)}
+                                  title="PDFを表示"
                                 >
-                                  📎
-                                </a>
+                                  {viewingPDF?.taskId === task.id ? '✕ 閉じる' : '📄 PDF表示'}
+                                </button>
                               )}
                               <button
                                 className="edit-pastpaper-btn"
@@ -929,6 +948,39 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                             </div>
                           </div>
                         </>
+                      )}
+
+                      {/* PDFプレビュー（編集モードでない場合のみ表示） */}
+                      {editingTaskId !== task.id && viewingPDF?.taskId === task.id && (
+                        <div className="pdf-preview-panel">
+                          <div className="pdf-preview-header">
+                            <span className="pdf-preview-title">📄 {viewingPDF.title}</span>
+                            <div className="pdf-preview-actions">
+                              <a
+                                href={viewingPDF.fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="pdf-open-newtab-btn"
+                              >
+                                新しいタブで開く
+                              </a>
+                              <button
+                                className="pdf-preview-close"
+                                onClick={() => setViewingPDF(null)}
+                              >
+                                &times;
+                              </button>
+                            </div>
+                          </div>
+                          <div className="pdf-preview-container">
+                            <iframe
+                              src={getEmbedUrl(viewingPDF.fileUrl)}
+                              title={`PDF: ${viewingPDF.title}`}
+                              className="pdf-preview-iframe"
+                              allow="autoplay"
+                            />
+                          </div>
+                        </div>
                       )}
 
                       {/* 最新の学習記録（編集モードでない場合のみ表示） */}
