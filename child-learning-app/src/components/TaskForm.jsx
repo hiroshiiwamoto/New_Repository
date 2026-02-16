@@ -1,8 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './TaskForm.css'
 import { unitsDatabase, grades } from '../utils/unitsDatabase'
 import CustomUnitForm from './CustomUnitForm'
 import PastPaperFields from './PastPaperFields'
+import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
+import { refreshGoogleAccessToken } from './Auth'
+import { toast } from '../utils/toast'
+import DriveFilePicker from './DriveFilePicker'
 
 function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUnits = [], onAddCustomUnit }) {
   const [title, setTitle] = useState('')
@@ -16,6 +20,12 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
   const [customUnitName, setCustomUnitName] = useState('')
   const [customUnitCategory, setCustomUnitCategory] = useState('過去問')
   const [lastAddedCustomUnit, setLastAddedCustomUnit] = useState(null) // 最近追加したカスタム単元を一時保存
+
+  // PDF/ファイル関連
+  const [fileUrl, setFileUrl] = useState('')
+  const [uploading, setUploading] = useState(false)
+  const [showDrivePicker, setShowDrivePicker] = useState(false)
+  const fileInputRef = useRef(null)
 
   // 過去問用のフィールド
   const [schoolName, setSchoolName] = useState('')
@@ -33,6 +43,7 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
       setTaskType(editingTask.taskType || 'daily')
       setPriority(editingTask.priority || 'B')
       setDueDate(editingTask.dueDate || '')
+      setFileUrl(editingTask.fileUrl || '')
       // 過去問フィールド
       setSchoolName(editingTask.schoolName || '')
       setYear(editingTask.year || '')
@@ -54,6 +65,7 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
         taskType,
         priority,
         dueDate: dueDate || null,
+        fileUrl: fileUrl || '',
       }
 
       // 過去問の場合、追加情報を含める
@@ -73,6 +85,7 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
       // フォームをリセット
       setTitle('')
       setUnitId('')
+      setFileUrl('')
       setLastAddedCustomUnit(null) // 一時保存した単元情報をクリア
       // 過去問フィールドをリセット
       setSchoolName('')
@@ -154,6 +167,38 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
     setUnitId('')
     if (onCancelEdit) {
       onCancelEdit()
+    }
+  }
+
+  // PDF を Google Drive にアップロード
+  const handlePDFUpload = async (file) => {
+    if (!file) return
+    if (file.type !== 'application/pdf') {
+      toast.error('PDFファイルのみアップロード可能です')
+      return
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error('ファイルサイズは20MB以下にしてください')
+      return
+    }
+    const hasAccess = await checkDriveAccess()
+    if (!hasAccess) {
+      const token = await refreshGoogleAccessToken()
+      if (!token) {
+        toast.error('Google Drive に接続してからアップロードしてください')
+        return
+      }
+    }
+    setUploading(true)
+    try {
+      const result = await uploadPDFToDrive(file, () => {})
+      const viewUrl = `https://drive.google.com/file/d/${result.driveFileId}/view`
+      setFileUrl(viewUrl)
+      toast.success('PDFをGoogle Driveにアップロードしました')
+    } catch (error) {
+      toast.error('アップロードエラー: ' + error.message)
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -323,6 +368,55 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
         />
       )}
 
+      {/* 問題ファイル */}
+      <div className="form-group">
+        <label>問題ファイル（任意）</label>
+        {fileUrl ? (
+          <div className="task-file-url-preview">
+            <span className="task-file-icon">📎</span>
+            <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="task-file-link">
+              {fileUrl.includes('drive.google.com') ? 'Google Drive のファイル' : fileUrl}
+            </a>
+            <button
+              type="button"
+              className="task-file-clear-btn"
+              onClick={() => setFileUrl('')}
+            >
+              &times;
+            </button>
+          </div>
+        ) : (
+          <div className="task-file-upload-area">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/pdf"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                handlePDFUpload(e.target.files[0])
+                e.target.value = ''
+              }}
+            />
+            <button
+              type="button"
+              className="task-pdf-upload-btn"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+            >
+              {uploading ? 'アップロード中...' : '新規アップロード'}
+            </button>
+            <span className="task-file-or">または</span>
+            <button
+              type="button"
+              className="task-drive-select-btn"
+              onClick={() => setShowDrivePicker(true)}
+            >
+              Driveから選択
+            </button>
+          </div>
+        )}
+      </div>
+
       <div className="form-row">
         <div className="form-group half">
           <label>優先度</label>
@@ -366,6 +460,16 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
           </button>
         )}
       </div>
+      {/* Google Drive ファイルピッカー */}
+      {showDrivePicker && (
+        <DriveFilePicker
+          onSelect={(url) => {
+            setFileUrl(url)
+            setShowDrivePicker(false)
+          }}
+          onClose={() => setShowDrivePicker(false)}
+        />
+      )}
     </form>
   )
 }
