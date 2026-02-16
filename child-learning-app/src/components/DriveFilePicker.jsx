@@ -3,6 +3,8 @@ import { getGoogleAccessToken, refreshGoogleAccessToken } from './Auth'
 import './DriveFilePicker.css'
 
 const DRIVE_API = 'https://www.googleapis.com/drive/v3'
+const FOLDER_MIME = 'application/vnd.google-apps.folder'
+const ROOT_FOLDER = { id: 'root', name: 'マイドライブ' }
 
 /**
  * トークンを使って直接APIを呼ぶ（ポップアップを自動で開かない）
@@ -14,25 +16,28 @@ async function driveFetchDirect(url, token) {
 }
 
 function DriveFilePicker({ onSelect, onClose }) {
-  const [files, setFiles] = useState([])
+  const [items, setItems] = useState([]) // フォルダ + ファイル
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [errorType, setErrorType] = useState(null) // 'no_token' | 'forbidden' | 'api_disabled' | 'general'
   const [searchQuery, setSearchQuery] = useState('')
   const [connecting, setConnecting] = useState(false)
+  const [folderPath, setFolderPath] = useState([ROOT_FOLDER]) // パンくずリスト
+  const [isSearchMode, setIsSearchMode] = useState(false)
 
-  const loadFiles = useCallback(async (token, query = '') => {
+  const currentFolderId = folderPath[folderPath.length - 1].id
+
+  /**
+   * 指定フォルダ内のフォルダ＋PDFファイルを取得
+   */
+  const loadFolder = useCallback(async (token, folderId = 'root') => {
     setLoading(true)
     setError(null)
     setErrorType(null)
+    setIsSearchMode(false)
     try {
-      // Drive全体からPDFファイルを検索（アプリフォルダに限定しない）
-      let q = 'trashed=false and (mimeType="application/pdf" or mimeType="application/vnd.google-apps.folder")'
-      if (query) {
-        q = `trashed=false and name contains '${query.replace(/'/g, "\\'")}'`
-      }
-
-      const filesUrl = `${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id,name,size,mimeType,createdTime,modifiedTime,parents)&orderBy=modifiedTime desc&pageSize=50`
+      const q = `'${folderId}' in parents and trashed=false and (mimeType='${FOLDER_MIME}' or mimeType='application/pdf')`
+      const filesUrl = `${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id,name,size,mimeType,createdTime,modifiedTime)&orderBy=folder,name&pageSize=100`
 
       const res = await driveFetchDirect(filesUrl, token)
 
@@ -67,9 +72,11 @@ function DriveFilePicker({ onSelect, onClose }) {
       }
 
       const data = await res.json()
-      // PDFファイルのみ表示（フォルダは除外）
-      const pdfFiles = (data.files || []).filter(f => f.mimeType === 'application/pdf')
-      setFiles(pdfFiles)
+      const allItems = data.files || []
+      // フォルダを先に、次にPDFファイルを表示
+      const folders = allItems.filter(f => f.mimeType === FOLDER_MIME)
+      const pdfs = allItems.filter(f => f.mimeType !== FOLDER_MIME)
+      setItems([...folders, ...pdfs])
     } catch (err) {
       setError('通信エラー: ' + err.message)
       setErrorType('general')
@@ -78,16 +85,54 @@ function DriveFilePicker({ onSelect, onClose }) {
     }
   }, [])
 
-  // 初回: トークンがあればファイル読み込み、なければ接続ボタン表示
+  /**
+   * Drive全体からPDFファイルを検索
+   */
+  const searchFiles = useCallback(async (token, query) => {
+    setLoading(true)
+    setError(null)
+    setErrorType(null)
+    setIsSearchMode(true)
+    try {
+      const q = `trashed=false and name contains '${query.replace(/'/g, "\\'")}' and mimeType='application/pdf'`
+      const filesUrl = `${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id,name,size,mimeType,createdTime,modifiedTime)&orderBy=modifiedTime desc&pageSize=50`
+
+      const res = await driveFetchDirect(filesUrl, token)
+
+      if (res.status === 401) {
+        setError('アクセストークンの期限が切れました。再接続してください。')
+        setErrorType('no_token')
+        setLoading(false)
+        return
+      }
+
+      if (!res.ok) {
+        setError(`Drive API エラー (${res.status})`)
+        setErrorType('general')
+        setLoading(false)
+        return
+      }
+
+      const data = await res.json()
+      setItems(data.files || [])
+    } catch (err) {
+      setError('通信エラー: ' + err.message)
+      setErrorType('general')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  // 初回: トークンがあればルートフォルダを読み込み
   useEffect(() => {
     const token = getGoogleAccessToken()
     if (token) {
-      loadFiles(token)
+      loadFolder(token, 'root')
     } else {
       setErrorType('no_token')
       setError('Google Drive に接続してファイルを表示します。')
     }
-  }, [loadFiles])
+  }, [loadFolder])
 
   const handleConnect = async () => {
     setConnecting(true)
@@ -96,7 +141,8 @@ function DriveFilePicker({ onSelect, onClose }) {
     try {
       const token = await refreshGoogleAccessToken()
       if (token) {
-        await loadFiles(token)
+        setFolderPath([ROOT_FOLDER])
+        await loadFolder(token, 'root')
       } else {
         setError('Google Drive への接続がキャンセルされました。')
         setErrorType('no_token')
@@ -111,11 +157,17 @@ function DriveFilePicker({ onSelect, onClose }) {
 
   const handleSearch = () => {
     const token = getGoogleAccessToken()
-    if (token) {
-      loadFiles(token, searchQuery)
-    } else {
+    if (!token) {
       setErrorType('no_token')
       setError('Google Drive に接続してください。')
+      return
+    }
+    if (searchQuery.trim()) {
+      searchFiles(token, searchQuery.trim())
+    } else {
+      // 検索欄が空なら現在のフォルダに戻る
+      setIsSearchMode(false)
+      loadFolder(token, currentFolderId)
     }
   }
 
@@ -123,6 +175,34 @@ function DriveFilePicker({ onSelect, onClose }) {
     if (e.key === 'Enter') {
       handleSearch()
     }
+  }
+
+  /** フォルダをクリックして中に入る */
+  const handleOpenFolder = (folder) => {
+    const token = getGoogleAccessToken()
+    if (!token) return
+    setSearchQuery('')
+    setFolderPath(prev => [...prev, { id: folder.id, name: folder.name }])
+    loadFolder(token, folder.id)
+  }
+
+  /** パンくずリストのクリックで移動 */
+  const handleBreadcrumbClick = (index) => {
+    const token = getGoogleAccessToken()
+    if (!token) return
+    const targetFolder = folderPath[index]
+    setSearchQuery('')
+    setFolderPath(prev => prev.slice(0, index + 1))
+    loadFolder(token, targetFolder.id)
+  }
+
+  /** 検索結果をクリアしてフォルダ表示に戻る */
+  const handleClearSearch = () => {
+    const token = getGoogleAccessToken()
+    if (!token) return
+    setSearchQuery('')
+    setIsSearchMode(false)
+    loadFolder(token, currentFolderId)
   }
 
   const handleSelect = (file) => {
@@ -148,6 +228,8 @@ function DriveFilePicker({ onSelect, onClose }) {
   }
 
   const showSearchBar = !errorType || errorType === 'general'
+  const folders = items.filter(f => f.mimeType === FOLDER_MIME)
+  const pdfFiles = items.filter(f => f.mimeType !== FOLDER_MIME)
 
   return (
     <div className="drive-picker-overlay" onClick={onClose}>
@@ -177,6 +259,32 @@ function DriveFilePicker({ onSelect, onClose }) {
               onKeyDown={handleKeyDown}
             />
             <button onClick={handleSearch}>検索</button>
+          </div>
+        )}
+
+        {/* パンくずリスト */}
+        {showSearchBar && !isSearchMode && (
+          <div className="drive-breadcrumb">
+            {folderPath.map((folder, index) => (
+              <span key={folder.id + '-' + index} className="drive-breadcrumb-item">
+                {index > 0 && <span className="drive-breadcrumb-sep">/</span>}
+                <button
+                  className={`drive-breadcrumb-btn ${index === folderPath.length - 1 ? 'active' : ''}`}
+                  onClick={() => handleBreadcrumbClick(index)}
+                  disabled={index === folderPath.length - 1}
+                >
+                  {folder.name}
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* 検索モードバナー */}
+        {isSearchMode && (
+          <div className="drive-search-banner">
+            <span>検索結果: &quot;{searchQuery}&quot;</span>
+            <button onClick={handleClearSearch}>フォルダ表示に戻る</button>
           </div>
         )}
 
@@ -245,21 +353,47 @@ function DriveFilePicker({ onSelect, onClose }) {
               <p>{error}</p>
               <button onClick={() => {
                 const token = getGoogleAccessToken()
-                if (token) loadFiles(token)
+                if (token) loadFolder(token, currentFolderId)
               }}>再読み込み</button>
             </div>
-          ) : files.length === 0 ? (
+          ) : items.length === 0 ? (
             <div className="drive-picker-empty">
-              <p>📂 PDFファイルが見つかりません</p>
-              <small>
-                Google Drive にPDFファイルがある場合は、検索してみてください。
-                <br />
-                新しいPDFは「新規アップロード」から追加できます。
-              </small>
+              {isSearchMode ? (
+                <>
+                  <p>検索結果が見つかりません</p>
+                  <small>別のキーワードで検索するか、フォルダ表示に戻ってください。</small>
+                </>
+              ) : (
+                <>
+                  <p>このフォルダは空です</p>
+                  <small>
+                    PDFファイルやサブフォルダがありません。
+                    {folderPath.length > 1 && (
+                      <><br />上のパンくずリストから別のフォルダに移動できます。</>
+                    )}
+                  </small>
+                </>
+              )}
             </div>
           ) : (
             <div className="drive-picker-list">
-              {files.map(file => (
+              {/* フォルダ一覧 */}
+              {folders.map(folder => (
+                <button
+                  key={folder.id}
+                  className="drive-picker-item drive-picker-folder"
+                  onClick={() => handleOpenFolder(folder)}
+                >
+                  <span className="drive-file-icon drive-folder-icon">📁</span>
+                  <div className="drive-file-info">
+                    <span className="drive-file-name">{folder.name}</span>
+                    <span className="drive-file-meta">フォルダ</span>
+                  </div>
+                  <span className="drive-folder-arrow">›</span>
+                </button>
+              ))}
+              {/* PDFファイル一覧 */}
+              {pdfFiles.map(file => (
                 <button
                   key={file.id}
                   className="drive-picker-item"
@@ -280,7 +414,12 @@ function DriveFilePicker({ onSelect, onClose }) {
         </div>
 
         <div className="drive-picker-footer">
-          <small>Google Drive 内のPDFファイルが表示されます</small>
+          <small>
+            {isSearchMode
+              ? 'Google Drive 全体のPDFファイルを検索中'
+              : `${folderPath[folderPath.length - 1].name} 内のフォルダとPDFを表示中`
+            }
+          </small>
         </div>
       </div>
     </div>
