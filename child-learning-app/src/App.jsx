@@ -9,6 +9,7 @@ import UnitAnalysisView from './components/UnitAnalysisView'
 import PastPaperView from './components/PastPaperView'
 import TestScoreView from './components/TestScoreView'
 import PDFProblemView from './components/PDFProblemView'
+import SapixTextView from './components/SapixTextView'
 import { generateSAPIXScheduleByGrade } from './utils/sampleData'
 import {
   addTaskToFirestore,
@@ -29,7 +30,7 @@ import { toast } from './utils/toast'
 function App() {
   const [user, setUser] = useState(null)
   const [tasks, setTasks] = useState([])
-  const [view, setView] = useState('schedule') // schedule, unitAnalysis, pastpaper, testscore, pdfproblem, edit
+  const [view, setView] = useState('schedule') // schedule, unitAnalysis, pastpaper, testscore, pdfproblem, sapixtext, edit
   const [previousView, setPreviousView] = useState('schedule') // Store previous view for returning after edit
   const [editingTask, setEditingTask] = useState(null)
   const [customUnits, setCustomUnits] = useState([]) // カスタム単元
@@ -357,6 +358,12 @@ function App() {
           >
             📝 PDF問題管理
           </button>
+          <button
+            className={view === 'sapixtext' ? 'active' : ''}
+            onClick={() => setView('sapixtext')}
+          >
+            📘 SAPIX
+          </button>
         </div>
 
         {view === 'schedule' ? (
@@ -392,6 +399,11 @@ function App() {
         ) : view === 'pdfproblem' ? (
           <PDFProblemView
             user={user}
+          />
+        ) : view === 'sapixtext' ? (
+          <SapixTextView
+            user={user}
+            customUnits={customUnits}
           />
         ) : null}
           </>
