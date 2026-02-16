@@ -7,6 +7,10 @@ import {
   getAllWeaknessTags,
   getCategories
 } from '../utils/weaknessAnalysisApi'
+import {
+  importWeaknessTagsToFirestore,
+  getWeaknessTagsStats
+} from '../utils/importWeaknessTags'
 import './WeaknessAnalysis.css'
 
 function WeaknessAnalysis() {
@@ -19,6 +23,9 @@ function WeaknessAnalysis() {
   const [categories, setCategories] = useState([])
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [view, setView] = useState('weaknesses') // 'weaknesses', 'categories', 'tags'
+  const [importing, setImporting] = useState(false)
+  const [importProgress, setImportProgress] = useState({ current: 0, total: 0, message: '' })
+  const [importResult, setImportResult] = useState(null)
 
   useEffect(() => {
     loadWeaknessData()
@@ -60,6 +67,40 @@ function WeaknessAnalysis() {
     }
   }
 
+  const handleImport = async () => {
+    if (!confirm('50単元の弱点タグをFirestoreにインポートしますか？')) {
+      return
+    }
+
+    setImporting(true)
+    setImportProgress({ current: 0, total: 50, message: '準備中...' })
+    setImportResult(null)
+
+    try {
+      const result = await importWeaknessTagsToFirestore((current, total, message) => {
+        setImportProgress({ current, total, message })
+      })
+
+      setImportResult(result)
+
+      if (result.success > 0) {
+        // インポート成功後、データを再読み込み
+        setTimeout(() => {
+          loadWeaknessData()
+        }, 1000)
+      }
+    } catch (err) {
+      console.error('インポートエラー:', err)
+      setImportResult({
+        success: 0,
+        failed: 50,
+        errors: [{ error: err.message }]
+      })
+    } finally {
+      setImporting(false)
+    }
+  }
+
   const getWeaknessLevelLabel = (level) => {
     const labels = {
       0: '問題なし',
@@ -94,19 +135,76 @@ function WeaknessAnalysis() {
   }
 
   if (error) {
+    const stats = getWeaknessTagsStats()
+
     return (
       <div className="weakness-analysis">
         <div className="error-message">
           <p>⚠️ {error}</p>
           {error.includes('初期データ') && (
-            <div className="setup-instructions">
-              <h3>セットアップ手順:</h3>
-              <ol>
-                <li>Firebase Admin SDK サービスアカウントキーを取得</li>
-                <li><code>cd scripts && npm install</code></li>
-                <li><code>export GOOGLE_APPLICATION_CREDENTIALS="/path/to/key.json"</code></li>
-                <li><code>npm run import:weakness-tags</code></li>
-              </ol>
+            <div className="import-section">
+              <h3>📱 iPhoneから簡単インポート</h3>
+              <p>このボタンをタップするだけで、50単元の弱点タグをインポートできます。</p>
+
+              <div className="import-stats">
+                <p>📊 インポートされるデータ:</p>
+                <ul>
+                  <li>合計: {stats.totalTags}単元</li>
+                  {stats.categories.map(cat => (
+                    <li key={cat.category}>
+                      {cat.category}: {cat.count}単元 (平均難易度 {cat.avgDifficulty})
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <button
+                onClick={handleImport}
+                disabled={importing}
+                className="import-btn"
+              >
+                {importing ? '⏳ インポート中...' : '📥 今すぐインポート (50単元)'}
+              </button>
+
+              {importing && (
+                <div className="import-progress">
+                  <div className="progress-bar">
+                    <div
+                      className="progress-fill"
+                      style={{ width: `${(importProgress.current / importProgress.total) * 100}%` }}
+                    />
+                  </div>
+                  <p>{importProgress.message} ({importProgress.current}/{importProgress.total})</p>
+                </div>
+              )}
+
+              {importResult && (
+                <div className={importResult.success > 0 ? 'import-success' : 'import-error'}>
+                  <h4>インポート結果:</h4>
+                  <p>✅ 成功: {importResult.success}件</p>
+                  <p>❌ 失敗: {importResult.failed}件</p>
+                  {importResult.errors.length > 0 && (
+                    <details>
+                      <summary>エラー詳細</summary>
+                      <ul>
+                        {importResult.errors.map((err, i) => (
+                          <li key={i}>{err.name || err.id}: {err.error}</li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
+                </div>
+              )}
+
+              <details className="advanced-setup">
+                <summary>💻 PCからインポートする場合</summary>
+                <ol>
+                  <li>Firebase Admin SDK サービスアカウントキーを取得</li>
+                  <li><code>cd scripts && npm install</code></li>
+                  <li><code>export GOOGLE_APPLICATION_CREDENTIALS="/path/to/key.json"</code></li>
+                  <li><code>npm run import:weakness-tags</code></li>
+                </ol>
+              </details>
             </div>
           )}
         </div>
