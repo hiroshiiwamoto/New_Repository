@@ -342,6 +342,110 @@
   color: #94a3b8;
 }
 
+/* パンくずリスト */
+.drive-breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 8px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #f8fafc;
+  gap: 2px;
+  min-height: 36px;
+}
+
+.drive-breadcrumb-item {
+  display: flex;
+  align-items: center;
+}
+
+.drive-breadcrumb-sep {
+  color: #cbd5e1;
+  margin: 0 4px;
+  font-size: 0.85rem;
+}
+
+.drive-breadcrumb-btn {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  color: #3b82f6;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.drive-breadcrumb-btn:hover:not(:disabled) {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.drive-breadcrumb-btn.active {
+  color: #1e293b;
+  font-weight: 700;
+  cursor: default;
+}
+
+/* 検索モードバナー */
+.drive-search-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #eff6ff;
+  font-size: 0.82rem;
+  color: #1e40af;
+}
+
+.drive-search-banner button {
+  background: none;
+  border: 1px solid #93c5fd;
+  color: #3b82f6;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.drive-search-banner button:hover {
+  background: #dbeafe;
+  border-color: #3b82f6;
+}
+
+/* フォルダアイテム */
+.drive-picker-folder {
+  position: relative;
+}
+
+.drive-picker-folder:hover {
+  background: #fefce8;
+  border-color: #fde68a;
+}
+
+.drive-folder-icon {
+  font-size: 1.4rem !important;
+}
+
+.drive-folder-arrow {
+  margin-left: auto;
+  color: #94a3b8;
+  font-size: 1.3rem;
+  font-weight: 300;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+
+.drive-picker-folder:hover .drive-folder-arrow {
+  color: #f59e0b;
+}
+
 .drive-picker-footer {
   padding: 10px 20px;
   border-top: 1px solid #f1f5f9;
@@ -387,5 +491,19 @@
 
   .drive-picker-item {
     padding: 10px 12px;
+  }
+
+  .drive-breadcrumb {
+    padding: 6px 16px;
+  }
+
+  .drive-breadcrumb-btn {
+    font-size: 0.78rem;
+    padding: 3px 6px;
+  }
+
+  .drive-search-banner {
+    padding: 6px 16px;
+    font-size: 0.78rem;
   }
 }
