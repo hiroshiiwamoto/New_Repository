@@ -23,6 +23,7 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
 
   // PDF/ファイル関連
   const [fileUrl, setFileUrl] = useState('')
+  const [fileName, setFileName] = useState('')
   const [uploading, setUploading] = useState(false)
   const [showDrivePicker, setShowDrivePicker] = useState(false)
   const fileInputRef = useRef(null)
@@ -44,6 +45,7 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
       setPriority(editingTask.priority || 'B')
       setDueDate(editingTask.dueDate || '')
       setFileUrl(editingTask.fileUrl || '')
+      setFileName(editingTask.fileName || '')
       // 過去問フィールド
       setSchoolName(editingTask.schoolName || '')
       setYear(editingTask.year || '')
@@ -66,6 +68,7 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
         priority,
         dueDate: dueDate || null,
         fileUrl: fileUrl || '',
+        fileName: fileName || '',
       }
 
       // 過去問の場合、追加情報を含める
@@ -86,6 +89,7 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
       setTitle('')
       setUnitId('')
       setFileUrl('')
+      setFileName('')
       setLastAddedCustomUnit(null) // 一時保存した単元情報をクリア
       // 過去問フィールドをリセット
       setSchoolName('')
@@ -194,6 +198,7 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
       const result = await uploadPDFToDrive(file, () => {})
       const viewUrl = `https://drive.google.com/file/d/${result.driveFileId}/view`
       setFileUrl(viewUrl)
+      setFileName(file.name)
       toast.success('PDFをGoogle Driveにアップロードしました')
     } catch (error) {
       toast.error('アップロードエラー: ' + error.message)
@@ -375,12 +380,12 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
           <div className="task-file-url-preview">
             <span className="task-file-icon">📎</span>
             <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="task-file-link">
-              {fileUrl.includes('drive.google.com') ? 'Google Drive のファイル' : fileUrl}
+              {fileName || (fileUrl.includes('drive.google.com') ? 'Google Drive のファイル' : fileUrl)}
             </a>
             <button
               type="button"
               className="task-file-clear-btn"
-              onClick={() => setFileUrl('')}
+              onClick={() => { setFileUrl(''); setFileName('') }}
             >
               &times;
             </button>
@@ -463,8 +468,9 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
       {/* Google Drive ファイルピッカー */}
       {showDrivePicker && (
         <DriveFilePicker
-          onSelect={(url) => {
-            setFileUrl(url)
+          onSelect={(data) => {
+            setFileUrl(data.url)
+            setFileName(data.name)
             setShowDrivePicker(false)
           }}
           onClose={() => setShowDrivePicker(false)}

@@ -207,7 +207,7 @@ function DriveFilePicker({ onSelect, onClose }) {
 
   const handleSelect = (file) => {
     const viewUrl = `https://drive.google.com/file/d/${file.id}/view`
-    onSelect(viewUrl)
+    onSelect({ url: viewUrl, name: file.name })
   }
 
   const formatFileSize = (bytes) => {
