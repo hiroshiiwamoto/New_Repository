@@ -197,7 +197,10 @@ function validateData(data) {
 // メイン処理
 async function main() {
   const args = process.argv.slice(2);
-  const serviceAccountPath = args[0];
+
+  // オプション引数を除外してサービスアカウントパスを取得
+  const serviceAccountPath = args.find(arg => !arg.startsWith('--'));
+  const dryRun = args.includes('--dry-run');
 
   console.log('========================================');
   console.log('弱点タグマスタ データインポート');
@@ -215,13 +218,17 @@ async function main() {
     // 統計表示
     showStatistics(data);
 
-    // Firebase初期化
-    const db = initializeFirebase(serviceAccountPath);
+    // ドライランの場合はFirebase初期化をスキップ
+    let db = null;
+    if (!dryRun) {
+      // Firebase初期化
+      db = initializeFirebase(serviceAccountPath);
+    }
 
     // オプション
     const options = {
       batchSize: 500,
-      dryRun: args.includes('--dry-run')
+      dryRun: dryRun
     };
 
     // インポート実行
