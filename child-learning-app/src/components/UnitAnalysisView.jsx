@@ -3,9 +3,10 @@ import '../components/ScheduleView.css'
 import UnitDashboard from './UnitDashboard'
 import Analytics from './Analytics'
 import UnitManager from './UnitManager'
+import WeaknessAnalysis from './WeaknessAnalysis'
 
 function UnitAnalysisView({ tasks, onEditTask, customUnits, onAddCustomUnit, onUpdateUnit, onDeleteUnit }) {
-  const [subView, setSubView] = useState('dashboard') // 'dashboard', 'analytics', 'unitManager'
+  const [subView, setSubView] = useState('dashboard') // 'dashboard', 'analytics', 'unitManager', 'weakness'
 
   return (
     <div className="unit-analysis-view">
@@ -23,6 +24,12 @@ function UnitAnalysisView({ tasks, onEditTask, customUnits, onAddCustomUnit, onU
           学習分析
         </button>
         <button
+          className={subView === 'weakness' ? 'active' : ''}
+          onClick={() => setSubView('weakness')}
+        >
+          🎯 弱点分析
+        </button>
+        <button
           className={subView === 'unitManager' ? 'active' : ''}
           onClick={() => setSubView('unitManager')}
         >
@@ -38,6 +45,8 @@ function UnitAnalysisView({ tasks, onEditTask, customUnits, onAddCustomUnit, onU
         />
       ) : subView === 'analytics' ? (
         <Analytics tasks={tasks} />
+      ) : subView === 'weakness' ? (
+        <WeaknessAnalysis />
       ) : (
         <UnitManager
           customUnits={customUnits}
