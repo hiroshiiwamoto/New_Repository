@@ -3,7 +3,6 @@ import { getGoogleAccessToken, refreshGoogleAccessToken } from './Auth'
 import './DriveFilePicker.css'
 
 const DRIVE_API = 'https://www.googleapis.com/drive/v3'
-const APP_FOLDER_NAME = 'SAPIX学習管理_PDF'
 
 /**
  * トークンを使って直接APIを呼ぶ（ポップアップを自動で開かない）
@@ -18,7 +17,7 @@ function DriveFilePicker({ onSelect, onClose }) {
   const [files, setFiles] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [errorType, setErrorType] = useState(null) // 'no_token' | 'forbidden' | 'general'
+  const [errorType, setErrorType] = useState(null) // 'no_token' | 'forbidden' | 'api_disabled' | 'general'
   const [searchQuery, setSearchQuery] = useState('')
   const [connecting, setConnecting] = useState(false)
 
@@ -27,64 +26,50 @@ function DriveFilePicker({ onSelect, onClose }) {
     setError(null)
     setErrorType(null)
     try {
-      // 1. アプリフォルダを検索
-      const folderSearchUrl = `${DRIVE_API}/files?q=${encodeURIComponent(
-        `name='${APP_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`
-      )}&fields=files(id,name)`
+      // Drive全体からPDFファイルを検索（アプリフォルダに限定しない）
+      let q = 'trashed=false and (mimeType="application/pdf" or mimeType="application/vnd.google-apps.folder")'
+      if (query) {
+        q = `trashed=false and name contains '${query.replace(/'/g, "\\'")}'`
+      }
 
-      const folderRes = await driveFetchDirect(folderSearchUrl, token)
+      const filesUrl = `${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id,name,size,mimeType,createdTime,modifiedTime,parents)&orderBy=modifiedTime desc&pageSize=50`
 
-      if (folderRes.status === 401) {
+      const res = await driveFetchDirect(filesUrl, token)
+
+      if (res.status === 401) {
         setError('アクセストークンの期限が切れました。再接続してください。')
         setErrorType('no_token')
         setLoading(false)
         return
       }
 
-      if (folderRes.status === 403) {
-        setError('Google Drive API へのアクセスが許可されていません。一度ログアウトしてから再ログインしてください。')
-        setErrorType('forbidden')
+      if (res.status === 403) {
+        const errBody = await res.json().catch(() => ({}))
+        const reason = errBody.error?.errors?.[0]?.reason || ''
+        const apiMsg = errBody.error?.message || ''
+
+        if (reason === 'accessNotConfigured' || apiMsg.includes('has not been used') || apiMsg.includes('disabled')) {
+          setError('Google Drive API がプロジェクトで有効になっていません。')
+          setErrorType('api_disabled')
+        } else {
+          setError('Google Drive へのアクセス権限がありません。一度ログアウトしてから再ログインしてください。')
+          setErrorType('forbidden')
+        }
         setLoading(false)
         return
       }
 
-      if (!folderRes.ok) {
-        setError(`Drive API エラー (${folderRes.status})`)
+      if (!res.ok) {
+        setError(`Drive API エラー (${res.status})`)
         setErrorType('general')
         setLoading(false)
         return
       }
 
-      const folderData = await folderRes.json()
-
-      if (!folderData.files || folderData.files.length === 0) {
-        // フォルダがまだない = ファイルもない
-        setFiles([])
-        setLoading(false)
-        return
-      }
-
-      const folderId = folderData.files[0].id
-
-      // 2. フォルダ内のファイルを検索
-      let q = `'${folderId}' in parents and trashed=false`
-      if (query) {
-        q += ` and name contains '${query.replace(/'/g, "\\'")}'`
-      }
-
-      const filesUrl = `${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id,name,size,mimeType,createdTime,modifiedTime)&orderBy=modifiedTime desc&pageSize=50`
-
-      const filesRes = await driveFetchDirect(filesUrl, token)
-
-      if (!filesRes.ok) {
-        setError(`ファイル一覧取得失敗 (${filesRes.status})`)
-        setErrorType('general')
-        setLoading(false)
-        return
-      }
-
-      const filesData = await filesRes.json()
-      setFiles(filesData.files || [])
+      const data = await res.json()
+      // PDFファイルのみ表示（フォルダは除外）
+      const pdfFiles = (data.files || []).filter(f => f.mimeType === 'application/pdf')
+      setFiles(pdfFiles)
     } catch (err) {
       setError('通信エラー: ' + err.message)
       setErrorType('general')
@@ -162,12 +147,6 @@ function DriveFilePicker({ onSelect, onClose }) {
     })
   }
 
-  const getFileIcon = (mimeType) => {
-    if (mimeType === 'application/pdf') return '📄'
-    if (mimeType?.startsWith('image/')) return '🖼️'
-    return '📁'
-  }
-
   const showSearchBar = !errorType || errorType === 'general'
 
   return (
@@ -219,12 +198,38 @@ function DriveFilePicker({ onSelect, onClose }) {
               </button>
               <small>ボタンを押すとGoogleアカウントの認証画面が開きます</small>
             </div>
+          ) : errorType === 'api_disabled' ? (
+            <div className="drive-picker-setup">
+              <p className="drive-setup-title">Google Drive API の有効化が必要です</p>
+              <div className="drive-setup-steps">
+                <p>以下の手順で有効化してください:</p>
+                <ol>
+                  <li>下のリンクから Google Cloud Console を開く</li>
+                  <li>「有効にする」ボタンをクリック</li>
+                  <li>このページに戻って「再読み込み」を押す</li>
+                </ol>
+              </div>
+              <a
+                href="https://console.cloud.google.com/apis/library/drive.googleapis.com?project=studyapp-28e08"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="drive-setup-link"
+              >
+                Google Cloud Console を開く
+              </a>
+              <button
+                className="drive-connect-action-btn"
+                onClick={handleConnect}
+                disabled={connecting}
+                style={{ marginTop: '8px' }}
+              >
+                {connecting ? '接続中...' : '再読み込み'}
+              </button>
+            </div>
           ) : errorType === 'forbidden' ? (
             <div className="drive-picker-error">
               <p>{error}</p>
               <small>
-                Google Drive API が有効でない場合があります。
-                <br />
                 ログアウト → 再ログイン で権限を更新してください。
               </small>
               <button
@@ -245,8 +250,12 @@ function DriveFilePicker({ onSelect, onClose }) {
             </div>
           ) : files.length === 0 ? (
             <div className="drive-picker-empty">
-              <p>📂 アプリフォルダにファイルがありません</p>
-              <small>「新規アップロード」でPDFを追加すると、ここに表示されます</small>
+              <p>📂 PDFファイルが見つかりません</p>
+              <small>
+                Google Drive にPDFファイルがある場合は、検索してみてください。
+                <br />
+                新しいPDFは「新規アップロード」から追加できます。
+              </small>
             </div>
           ) : (
             <div className="drive-picker-list">
@@ -256,7 +265,7 @@ function DriveFilePicker({ onSelect, onClose }) {
                   className="drive-picker-item"
                   onClick={() => handleSelect(file)}
                 >
-                  <span className="drive-file-icon">{getFileIcon(file.mimeType)}</span>
+                  <span className="drive-file-icon">📄</span>
                   <div className="drive-file-info">
                     <span className="drive-file-name">{file.name}</span>
                     <span className="drive-file-meta">
@@ -271,7 +280,7 @@ function DriveFilePicker({ onSelect, onClose }) {
         </div>
 
         <div className="drive-picker-footer">
-          <small>アプリが保存したファイルが表示されます</small>
+          <small>Google Drive 内のPDFファイルが表示されます</small>
         </div>
       </div>
     </div>

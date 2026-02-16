@@ -22,6 +22,8 @@ export const googleProvider = new GoogleAuthProvider()
 
 // Google Drive API用のスコープを追加
 googleProvider.addScope('https://www.googleapis.com/auth/drive.file')
+// Drive全体のファイル閲覧用（読み取り専用）
+googleProvider.addScope('https://www.googleapis.com/auth/drive.readonly')
 
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app)
