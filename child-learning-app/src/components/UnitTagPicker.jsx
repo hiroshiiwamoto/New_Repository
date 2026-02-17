@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
-import { collection, query, orderBy, getDocs, where } from 'firebase/firestore'
+import { collection, getDocs } from 'firebase/firestore'
 import { db } from '../firebase'
+import { getStaticMasterUnits, ensureMasterUnitsSeeded } from '../utils/importMasterUnits'
 import './UnitTagPicker.css'
 
 /**
@@ -21,21 +22,22 @@ function UnitTagPicker({ value = [], onChange, placeholder = '単元を検索...
 
   const loadUnits = async () => {
     try {
-      const q = query(
-        collection(db, 'masterUnits'),
-        where('isActive', '==', true),
-        orderBy('orderIndex')
-      )
-      const snapshot = await getDocs(q)
-      setAllUnits(snapshot.docs.map(d => ({ id: d.id, ...d.data() })))
-    } catch {
-      // orderIndex インデックスがない場合はシンプルに取得
-      try {
-        const snapshot = await getDocs(collection(db, 'masterUnits'))
-        setAllUnits(snapshot.docs.map(d => ({ id: d.id, ...d.data() })))
-      } catch (e) {
-        console.error('masterUnits 取得エラー:', e)
+      // コレクション未シードの場合は自動初期化
+      await ensureMasterUnitsSeeded()
+      const snapshot = await getDocs(collection(db, 'masterUnits'))
+      if (snapshot.empty) {
+        // Firestoreへの書き込み権限がない場合は静的データにフォールバック
+        setAllUnits(getStaticMasterUnits())
+        return
       }
+      const units = snapshot.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(u => u.isActive !== false)
+        .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0))
+      setAllUnits(units)
+    } catch (e) {
+      console.error('masterUnits 取得エラー:', e)
+      setAllUnits(getStaticMasterUnits())
     }
   }
 
