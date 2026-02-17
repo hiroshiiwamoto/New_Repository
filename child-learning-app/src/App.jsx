@@ -66,7 +66,16 @@ function App() {
     })
 
     // タスクのリアルタイム同期を開始
+    const CLEANUP_KEY = 'all_tasks_cleared_20260217'
     const unsubscribe = subscribeToTasks(user.uid, (firestoreTasks) => {
+      if (!localStorage.getItem(CLEANUP_KEY)) {
+        localStorage.setItem(CLEANUP_KEY, 'true')
+        if (firestoreTasks.length > 0) {
+          const ids = firestoreTasks.map(t => t.id)
+          bulkDeleteTasksFromFirestore(user.uid, ids)
+        }
+        return
+      }
       setTasks(firestoreTasks)
     })
 
