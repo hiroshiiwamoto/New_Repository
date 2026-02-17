@@ -9,7 +9,6 @@ import UnitAnalysisView from './components/UnitAnalysisView'
 import PastPaperView from './components/PastPaperView'
 import TestScoreView from './components/TestScoreView'
 import SapixTextView from './components/SapixTextView'
-import { generateSAPIXScheduleByGrade } from './utils/sampleData'
 import {
   addTaskToFirestore,
   updateTaskInFirestore,
@@ -67,7 +66,16 @@ function App() {
     })
 
     // タスクのリアルタイム同期を開始
+    const CLEANUP_KEY = 'all_tasks_cleared_20260217'
     const unsubscribe = subscribeToTasks(user.uid, (firestoreTasks) => {
+      if (!localStorage.getItem(CLEANUP_KEY)) {
+        localStorage.setItem(CLEANUP_KEY, 'true')
+        if (firestoreTasks.length > 0) {
+          const ids = firestoreTasks.map(t => t.id)
+          bulkDeleteTasksFromFirestore(user.uid, ids)
+        }
+        return
+      }
       setTasks(firestoreTasks)
     })
 
@@ -165,47 +173,6 @@ function App() {
     setEditingTask(null)
     // Return to previous view
     setView(previousView)
-  }
-
-  const loadSampleSchedule = async () => {
-    const grade = window.prompt(
-      'どの学年のサンプルスケジュールを読み込みますか？\n\n3 = 新三年生（1月～3月）\n4 = 新四年生（1月～3月）\n\n既存のタスクは削除されます。',
-      '4'
-    )
-
-    if (!grade) return // キャンセルされた場合
-
-    let selectedGrade = '4年生' // デフォルト
-    if (grade === '3') {
-      selectedGrade = '3年生'
-    } else if (grade === '4') {
-      selectedGrade = '4年生'
-    } else {
-      toast.error('3または4を入力してください')
-      return
-    }
-
-    const sampleTasks = generateSAPIXScheduleByGrade(selectedGrade)
-
-    if (user) {
-      // 既存のタスクを削除してから新しいタスクを追加
-      const taskIds = tasks.map(t => t.id)
-      if (taskIds.length > 0) {
-        await bulkDeleteTasksFromFirestore(user.uid, taskIds)
-      }
-
-      // サンプルタスクをFirestoreに追加
-      const uploadPromises = sampleTasks.map(task =>
-        addTaskToFirestore(user.uid, task)
-      )
-      await Promise.all(uploadPromises)
-    } else {
-      // ユーザーがログインしていない場合は、localStorageに保存
-      setTasks(sampleTasks)
-      localStorage.setItem('sapixTasks', JSON.stringify(sampleTasks))
-    }
-
-    toast.success(`${selectedGrade}のサンプルスケジュール（${sampleTasks.length}個のタスク）を読み込みました！`)
   }
 
   const addCustomUnit = async (unitData) => {
@@ -315,15 +282,6 @@ function App() {
               onDeleteTask={deleteTask}
               onEditTask={handleEditTask}
             />
-
-            {tasks.length === 0 && (
-              <div className="sample-schedule-prompt">
-                <p>📅 サンプルスケジュールを読み込んで、すぐに使い始められます！</p>
-                <button onClick={loadSampleSchedule} className="load-sample-btn">
-                  🎓 SAPIXサンプルスケジュールを読み込む（新3年 / 新4年）
-                </button>
-              </div>
-            )}
 
             {/* 2. ビュー切り替え */}
             <div className="view-switcher">
