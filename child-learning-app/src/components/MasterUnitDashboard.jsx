@@ -66,7 +66,11 @@ function MasterUnitDashboard() {
 
       setMasterUnits(units)
 
+      if (!logsResult.success) {
+        console.error('lessonLogs 読み取り失敗:', logsResult.error)
+      }
       const logs = logsResult.success ? logsResult.data : []
+      console.log(`lessonLogs: ${logs.length}件取得`)
       setAllLogs(logs)
 
       // lessonLogs から直接習熟度を計算（masterUnitStats に依存しない）
@@ -102,7 +106,7 @@ function MasterUnitDashboard() {
 
     setSaving(true)
     try {
-      await addLessonLogWithStats(userId, {
+      const result = await addLessonLogWithStats(userId, {
         unitIds: [practiceUnit.id],
         sourceType: 'practice',
         sourceName: practiceUnit.name,
@@ -110,9 +114,12 @@ function MasterUnitDashboard() {
         performance: EVALUATION_SCORES[practiceEval],
         evaluationKey: practiceEval,
       })
+      if (!result.success) {
+        console.error('練習記録エラー:', result.error)
+        return
+      }
       setPracticeUnit(null)
       setPracticeEval(null)
-      // lessonLogs を再読み込みして統計を再計算（drillLogs も自動更新される）
       await loadData()
     } catch (err) {
       console.error('記録エラー:', err)
