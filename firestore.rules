@@ -16,9 +16,9 @@ service cloud.firestore {
     // 弱点分析システム
     // ========================================
 
-    // 弱点タグマスタ（全員読み取り可、ログイン済みユーザーは作成可）
+    // 単元マスタ（全員読み取り可、ログイン済みユーザーは作成可）
     // ⚠️ セキュリティ注意: 初期データインポート後は create を false に変更することを推奨
-    match /weaknessTags/{tagId} {
+    match /masterUnits/{unitId} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated(); // iPhoneからのインポートを許可
       allow update, delete: if false; // 更新・削除は不可
@@ -30,8 +30,8 @@ service cloud.firestore {
       allow write: if false; // 管理者のみ
     }
 
-    // 問題-弱点タグ中間テーブル（全員読み取り可、書き込み不可）
-    match /problemWeaknessTags/{id} {
+    // 問題-単元 中間テーブル（全員読み取り可、書き込み不可）
+    match /problemUnitTags/{id} {
       allow read: if isAuthenticated();
       allow write: if false; // 管理者のみ
     }
@@ -43,10 +43,12 @@ service cloud.firestore {
       allow update, delete: if isAuthenticated() && isOwner(resource.data.userId);
     }
 
-    // ユーザー弱点スコア（自分のみ読み取り可、書き込み不可）
+    // ユーザー弱点スコア（自分のみ読み書き可）
     match /userWeaknessScores/{id} {
       allow read: if isAuthenticated() && isOwner(resource.data.userId);
-      allow write: if false; // Cloud Functionsから自動計算
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+      allow update: if isAuthenticated() && isOwner(resource.data.userId);
+      allow delete: if false; // 削除は不可
     }
 
     // レコメンド履歴（自分のみ読み書き可）

@@ -27,21 +27,21 @@ npm install
 
 ## 使用方法
 
-### 弱点タグマスタのインポート
+### 単元マスタのインポート
 
 #### 方法1: 環境変数を使用
 
 ```bash
 export GOOGLE_APPLICATION_CREDENTIALS="/path/to/serviceAccountKey.json"
 cd scripts
-npm run import:weakness-tags
+npm run import:master-units
 ```
 
 #### 方法2: 引数でパスを指定
 
 ```bash
 cd scripts
-node import-weakness-tags.js /path/to/serviceAccountKey.json
+node import-master-units.js /path/to/serviceAccountKey.json
 ```
 
 #### ドライラン（実際にはインポートしない）
@@ -52,24 +52,24 @@ node import-weakness-tags.js /path/to/serviceAccountKey.json
 cd scripts
 npm run import:dry-run
 # または
-node import-weakness-tags.js --dry-run
+node import-master-units.js --dry-run
 ```
 
 ---
 
 ## スクリプト詳細
 
-### `import-weakness-tags.js`
+### `import-master-units.js`
 
-弱点タグマスタ（50単元）をFirestoreにインポートします。
+単元マスタ（50単元）をFirestoreにインポートします。
 
 **処理内容:**
-1. データファイル読み込み (`docs/design/weakness-tags-initial-data.json`)
+1. データファイル読み込み (`docs/design/master-units-initial-data.json`)
 2. データ検証（ID重複チェック、必須フィールドチェックなど）
 3. カテゴリ別・難易度別の統計表示
 4. Firestoreへのバッチインポート（500件ずつ）
 
-**コレクション名:** `weaknessTags`
+**コレクション名:** `masterUnits`
 
 **オプション:**
 - `--dry-run`: ドライランモード（データは書き込まれない）
@@ -78,10 +78,10 @@ node import-weakness-tags.js --dry-run
 
 ```
 ========================================
-弱点タグマスタ データインポート
+単元マスタ データインポート
 ========================================
 
-📂 50件の弱点タグデータを読み込みました
+📂 50件の単元マスタデータを読み込みました
 
 🔍 データ検証中...
 ✅ データ検証OK
@@ -125,7 +125,7 @@ node import-weakness-tags.js --dry-run
 
 ## データ構造
 
-### Firestore: `weaknessTags` コレクション
+### Firestore: `masterUnits` コレクション
 
 ```javascript
 {
@@ -157,12 +157,12 @@ export GOOGLE_APPLICATION_CREDENTIALS="/path/to/serviceAccountKey.json"
 
 または引数でパスを指定:
 ```bash
-node import-weakness-tags.js /path/to/serviceAccountKey.json
+node import-master-units.js /path/to/serviceAccountKey.json
 ```
 
 ### エラー: `データファイルが見つかりません`
 
-**原因:** `docs/design/weakness-tags-initial-data.json` が存在しない
+**原因:** `docs/design/master-units-initial-data.json` が存在しない
 
 **解決策:**
 - ファイルが正しい場所にあるか確認
@@ -203,7 +203,7 @@ node import-weakness-tags.js /path/to/serviceAccountKey.json
    ```
 
 2. **データの確認**
-   - Firebase Consoleで `weaknessTags` コレクションを確認
+   - Firebase Consoleで `masterUnits` コレクションを確認
    - 50件すべてインポートされているか確認
 
 3. **過去問データのインポート**

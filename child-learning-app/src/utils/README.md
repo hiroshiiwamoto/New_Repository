@@ -6,10 +6,10 @@
 
 ```javascript
 import {
-  // 弱点タグ
-  getAllWeaknessTags,
-  getWeaknessTagsByCategory,
-  getWeaknessTagById,
+  // 単元マスタ
+  getAllMasterUnits,
+  getMasterUnitsByCategory,
+  getMasterUnitById,
   getCategories,
 
   // 過去問
@@ -44,13 +44,13 @@ import {
 
 ## 使用例
 
-### 1. 弱点タグの取得
+### 1. 単元マスタの取得
 
-#### すべての弱点タグを取得
+#### すべての単元マスタを取得
 
 ```javascript
-const tags = await getAllWeaknessTags();
-console.log(tags);
+const masterUnits = await getAllMasterUnits();
+console.log(masterUnits);
 // [
 //   { id: 'CALC_BASIC', name: '四則計算の基礎', category: '計算', ... },
 //   { id: 'SPEC_CONC', name: '濃度算', category: '特殊算', ... },
@@ -61,7 +61,7 @@ console.log(tags);
 #### カテゴリ別に取得
 
 ```javascript
-const specialTags = await getWeaknessTagsByCategory('特殊算');
+const specialTags = await getMasterUnitsByCategory('特殊算');
 console.log(specialTags);
 // [
 //   { id: 'SPEC_CONC', name: '濃度算', ... },
@@ -93,7 +93,7 @@ console.log(problems);
 // ]
 ```
 
-#### 問題に関連する弱点タグを取得
+#### 問題に関連する単元を取得
 
 ```javascript
 const problemTags = await getProblemTags('kaisei_2024_001');
@@ -350,7 +350,7 @@ export default WeaknessDashboard;
 
 ### セキュリティルール
 
-- 弱点タグ・過去問は**全員読み取り可**（書き込み不可）
+- 単元マスタ・過去問は**全員読み取り可**（書き込み不可）
 - 解答履歴・レコメンド履歴は**自分のみ読み書き可**
 - ユーザー弱点スコアは**自分のみ読み取り可**（書き込みはCloud Functionsのみ）
 
@@ -374,8 +374,8 @@ exports.updateWeaknessScores = functions.firestore
 
 ```javascript
 try {
-  const tags = await getAllWeaknessTags();
-  console.log(tags);
+  const masterUnits = await getAllMasterUnits();
+  console.log(masterUnits);
 } catch (error) {
   if (error.code === 'permission-denied') {
     console.error('アクセス権限がありません');

@@ -9,10 +9,10 @@ const mockDb = {};
 
 // APIユーティリティから関数をインポート（構文チェック）
 import {
-  // 弱点タグ
-  getAllWeaknessTags,
-  getWeaknessTagsByCategory,
-  getWeaknessTagById,
+  // 単元マスタ
+  getAllMasterUnits,
+  getMasterUnitsByCategory,
+  getMasterUnitById,
   getCategories,
 
   // 過去問
@@ -28,8 +28,8 @@ import {
 
   // ユーザー弱点スコア
   getUserWeaknessScores,
-  getUserWeaknessScoreByTag,
-  getUserWeaknessesWithTags,
+  getUserWeaknessScoreByUnit,
+  getUserWeaknessesWithUnits,
 
   // レコメンド
   saveRecommendation,
@@ -44,10 +44,10 @@ import {
 
 // エクスポートされた関数の型をチェック
 const exportedFunctions = {
-  // 弱点タグ (4)
-  getAllWeaknessTags,
-  getWeaknessTagsByCategory,
-  getWeaknessTagById,
+  // 単元マスタ (4)
+  getAllMasterUnits,
+  getMasterUnitsByCategory,
+  getMasterUnitById,
   getCategories,
 
   // 過去問 (4)
@@ -63,8 +63,8 @@ const exportedFunctions = {
 
   // ユーザー弱点スコア (3)
   getUserWeaknessScores,
-  getUserWeaknessScoreByTag,
-  getUserWeaknessesWithTags,
+  getUserWeaknessScoreByUnit,
+  getUserWeaknessesWithUnits,
 
   // レコメンド (3)
   saveRecommendation,
@@ -88,7 +88,7 @@ console.log('========================================\n');
 console.log('✅ すべてのインポートが成功しました\n');
 
 console.log('📊 エクスポートされた関数:');
-console.log(`   - 弱点タグ: 4関数`);
+console.log(`   - 単元マスタ: 4関数`);
 console.log(`   - 過去問: 4関数`);
 console.log(`   - 解答履歴: 3関数`);
 console.log(`   - ユーザー弱点スコア: 3関数`);

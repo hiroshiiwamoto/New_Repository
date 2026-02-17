@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react'
 import { getAuth } from 'firebase/auth'
 import {
-  getUserWeaknessesWithTags,
+  getUserWeaknessesWithUnits,
   getUserOverallStats,
   getCategoryStats,
-  getAllWeaknessTags,
-  getCategories
+  getAllMasterUnits,
+  getCategories,
+  recordUnitPractice
 } from '../utils/weaknessAnalysisApi'
 import {
-  importWeaknessTagsToFirestore,
-  getWeaknessTagsStats
-} from '../utils/importWeaknessTags'
+  importMasterUnitsToFirestore,
+  getMasterUnitsStats
+} from '../utils/importMasterUnits'
 import './WeaknessAnalysis.css'
 
 function WeaknessAnalysis() {
@@ -19,13 +20,18 @@ function WeaknessAnalysis() {
   const [overallStats, setOverallStats] = useState(null)
   const [weaknesses, setWeaknesses] = useState([])
   const [categoryStats, setCategoryStats] = useState([])
-  const [allTags, setAllTags] = useState([])
+  const [allUnits, setAllUnits] = useState([])
   const [categories, setCategories] = useState([])
   const [selectedCategory, setSelectedCategory] = useState('all')
-  const [view, setView] = useState('weaknesses') // 'weaknesses', 'categories', 'tags'
+  const [view, setView] = useState('weaknesses') // 'weaknesses', 'categories', 'units'
   const [importing, setImporting] = useState(false)
   const [importProgress, setImportProgress] = useState({ current: 0, total: 0, message: '' })
   const [importResult, setImportResult] = useState(null)
+
+  // 練習記録モーダル
+  const [practiceModal, setPracticeModal] = useState(null) // { unit }
+  const [practiceForm, setPracticeForm] = useState({ isCorrect: null, timeSpent: '', notes: '' })
+  const [recordingPractice, setRecordingPractice] = useState(false)
 
   useEffect(() => {
     loadWeaknessData()
@@ -46,18 +52,18 @@ function WeaknessAnalysis() {
       }
 
       // 並列で全データを取得
-      const [stats, weak, catStats, tags, cats] = await Promise.all([
+      const [stats, weak, catStats, units, cats] = await Promise.all([
         getUserOverallStats(userId),
-        getUserWeaknessesWithTags(userId, { minWeaknessLevel: 1, limit: 20 }),
+        getUserWeaknessesWithUnits(userId, { minWeaknessLevel: 1, limit: 20 }),
         getCategoryStats(userId),
-        getAllWeaknessTags(),
+        getAllMasterUnits(),
         getCategories()
       ])
 
       setOverallStats(stats)
       setWeaknesses(weak)
       setCategoryStats(catStats)
-      setAllTags(tags)
+      setAllUnits(units)
       setCategories(cats)
     } catch (err) {
       console.error('弱点データ取得エラー:', err)
@@ -68,7 +74,7 @@ function WeaknessAnalysis() {
   }
 
   const handleImport = async () => {
-    if (!confirm('50単元の弱点タグをFirestoreにインポートしますか？')) {
+    if (!confirm('50単元の単元マスタをFirestoreにインポートしますか？')) {
       return
     }
 
@@ -77,7 +83,7 @@ function WeaknessAnalysis() {
     setImportResult(null)
 
     try {
-      const result = await importWeaknessTagsToFirestore((current, total, message) => {
+      const result = await importMasterUnitsToFirestore((current, total, message) => {
         setImportProgress({ current, total, message })
       })
 
@@ -122,9 +128,50 @@ function WeaknessAnalysis() {
     return '#dc2626'
   }
 
-  const filteredTags = selectedCategory === 'all'
-    ? allTags
-    : allTags.filter(tag => tag.category === selectedCategory)
+  const handleOpenPracticeModal = (unit) => {
+    setPracticeModal({ unit })
+    setPracticeForm({ isCorrect: null, timeSpent: '', notes: '' })
+  }
+
+  const handleClosePracticeModal = () => {
+    setPracticeModal(null)
+    setPracticeForm({ isCorrect: null, timeSpent: '', notes: '' })
+  }
+
+  const handleRecordPractice = async () => {
+    if (practiceForm.isCorrect === null) {
+      alert('正解・不正解を選択してください')
+      return
+    }
+
+    const auth = getAuth()
+    const userId = auth.currentUser?.uid
+    if (!userId) {
+      alert('ログインしてください')
+      return
+    }
+
+    setRecordingPractice(true)
+    try {
+      await recordUnitPractice(userId, practiceModal.unit.id, {
+        isCorrect: practiceForm.isCorrect,
+        timeSpent: practiceForm.timeSpent ? parseInt(practiceForm.timeSpent) * 60 : null,
+        notes: practiceForm.notes
+      })
+      handleClosePracticeModal()
+      // データを再読み込み
+      await loadWeaknessData()
+    } catch (err) {
+      console.error('練習記録エラー:', err)
+      alert('記録に失敗しました: ' + err.message)
+    } finally {
+      setRecordingPractice(false)
+    }
+  }
+
+  const filteredUnits = selectedCategory === 'all'
+    ? allUnits
+    : allUnits.filter(unit => unit.category === selectedCategory)
 
   if (loading) {
     return (
@@ -135,7 +182,7 @@ function WeaknessAnalysis() {
   }
 
   if (error) {
-    const stats = getWeaknessTagsStats()
+    const stats = getMasterUnitsStats()
 
     return (
       <div className="weakness-analysis">
@@ -144,12 +191,12 @@ function WeaknessAnalysis() {
           {error.includes('初期データ') && (
             <div className="import-section">
               <h3>📱 iPhoneから簡単インポート</h3>
-              <p>このボタンをタップするだけで、50単元の弱点タグをインポートできます。</p>
+              <p>このボタンをタップするだけで、50単元の単元マスタをインポートできます。</p>
 
               <div className="import-stats">
                 <p>📊 インポートされるデータ:</p>
                 <ul>
-                  <li>合計: {stats.totalTags}単元</li>
+                  <li>合計: {stats.totalUnits}単元</li>
                   {stats.categories.map(cat => (
                     <li key={cat.category}>
                       {cat.category}: {cat.count}単元 (平均難易度 {cat.avgDifficulty})
@@ -202,7 +249,7 @@ function WeaknessAnalysis() {
                   <li>Firebase Admin SDK サービスアカウントキーを取得</li>
                   <li><code>cd scripts && npm install</code></li>
                   <li><code>export GOOGLE_APPLICATION_CREDENTIALS="/path/to/key.json"</code></li>
-                  <li><code>npm run import:weakness-tags</code></li>
+                  <li><code>npm run import:master-units</code></li>
                 </ol>
               </details>
             </div>
@@ -265,8 +312,8 @@ function WeaknessAnalysis() {
           📊 カテゴリ別統計
         </button>
         <button
-          className={view === 'tags' ? 'active' : ''}
-          onClick={() => setView('tags')}
+          className={view === 'units' ? 'active' : ''}
+          onClick={() => setView('units')}
         >
           🏷️ 単元一覧
         </button>
@@ -282,15 +329,15 @@ function WeaknessAnalysis() {
             </div>
           ) : (
             <div className="weakness-list">
-              {weaknesses.map(({ score, tag }, index) => (
+              {weaknesses.map(({ score, unit }, index) => (
                 <div key={score.id} className="weakness-item">
                   <div className="weakness-rank">#{index + 1}</div>
                   <div className="weakness-info">
                     <div className="weakness-name">
-                      {tag?.name || '不明な単元'}
+                      {unit?.name || '不明な単元'}
                     </div>
                     <div className="weakness-category">
-                      {tag?.category || '-'}
+                      {unit?.category || '-'}
                     </div>
                   </div>
                   <div className="weakness-stats">
@@ -354,7 +401,7 @@ function WeaknessAnalysis() {
       )}
 
       {/* 単元一覧 */}
-      {view === 'tags' && (
+      {view === 'units' && (
         <div className="tags-section">
           {/* カテゴリフィルター */}
           <div className="category-filter">
@@ -368,28 +415,115 @@ function WeaknessAnalysis() {
               ))}
             </select>
             <span className="tag-count">
-              {filteredTags.length}単元
+              {filteredUnits.length}単元
             </span>
           </div>
 
-          {/* タグ一覧 */}
+          {/* 単元一覧 */}
           <div className="tag-grid">
-            {filteredTags.map(tag => (
-              <div key={tag.id} className="tag-card">
-                <div className="tag-header">
-                  <div className="tag-name">{tag.name}</div>
-                  {tag.difficultyLevel && (
-                    <div className="tag-difficulty">
-                      難易度: {'★'.repeat(tag.difficultyLevel)}
+            {filteredUnits.map(unit => {
+              const weakScore = weaknesses.find(w => w.score?.unitId === unit.id)
+              return (
+                <div key={unit.id} className="tag-card">
+                  <div className="tag-header">
+                    <div className="tag-name">{unit.name}</div>
+                    {unit.difficultyLevel && (
+                      <div className="tag-difficulty">
+                        難易度: {'★'.repeat(unit.difficultyLevel)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="tag-category">{unit.category}</div>
+                  {unit.description && (
+                    <div className="tag-description">{unit.description}</div>
+                  )}
+                  {weakScore && (
+                    <div className="tag-weakness-info">
+                      <span>正答率: {(weakScore.score.accuracyRate * 100).toFixed(0)}%</span>
+                      <span>({weakScore.score.totalAttempts}回)</span>
                     </div>
                   )}
+                  <button
+                    className="practice-record-btn"
+                    onClick={() => handleOpenPracticeModal(unit)}
+                  >
+                    ✏️ 練習を記録
+                  </button>
                 </div>
-                <div className="tag-category">{tag.category}</div>
-                {tag.description && (
-                  <div className="tag-description">{tag.description}</div>
-                )}
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 練習記録モーダル */}
+      {practiceModal && (
+        <div className="modal-overlay" onClick={handleClosePracticeModal}>
+          <div className="modal-content practice-modal" onClick={e => e.stopPropagation()}>
+            <h3>✏️ 練習を記録</h3>
+            <p className="modal-unit-name">{practiceModal.unit.name}</p>
+            <p className="modal-unit-category">{practiceModal.unit.category}</p>
+
+            <div className="practice-form">
+              <div className="form-group">
+                <label>結果</label>
+                <div className="result-buttons">
+                  <button
+                    className={`result-btn correct ${practiceForm.isCorrect === true ? 'selected' : ''}`}
+                    onClick={() => setPracticeForm(f => ({ ...f, isCorrect: true }))}
+                  >
+                    ⭕ 正解
+                  </button>
+                  <button
+                    className={`result-btn incorrect ${practiceForm.isCorrect === false ? 'selected' : ''}`}
+                    onClick={() => setPracticeForm(f => ({ ...f, isCorrect: false }))}
+                  >
+                    ❌ 不正解
+                  </button>
+                </div>
               </div>
-            ))}
+
+              <div className="form-group">
+                <label>所要時間（分）</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="120"
+                  placeholder="例: 5"
+                  value={practiceForm.timeSpent}
+                  onChange={e => setPracticeForm(f => ({ ...f, timeSpent: e.target.value }))}
+                  className="time-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>メモ</label>
+                <textarea
+                  placeholder="気づいたことや次回へのコメント..."
+                  value={practiceForm.notes}
+                  onChange={e => setPracticeForm(f => ({ ...f, notes: e.target.value }))}
+                  className="notes-input"
+                  rows={3}
+                />
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button
+                className="btn-cancel"
+                onClick={handleClosePracticeModal}
+                disabled={recordingPractice}
+              >
+                キャンセル
+              </button>
+              <button
+                className="btn-record"
+                onClick={handleRecordPractice}
+                disabled={recordingPractice || practiceForm.isCorrect === null}
+              >
+                {recordingPractice ? '記録中...' : '記録する'}
+              </button>
+            </div>
           </div>
         </div>
       )}
