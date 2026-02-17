@@ -119,7 +119,7 @@ function SapixTextView({ user }) {
     }
     setEvaluating(text.firestoreId)
     try {
-      await addLessonLogWithStats(user.uid, {
+      const result = await addLessonLogWithStats(user.uid, {
         unitIds: text.unitIds,
         sourceType: 'sapixTask',
         sourceId: text.firestoreId,
@@ -128,7 +128,12 @@ function SapixTextView({ user }) {
         performance: EVALUATION_SCORES[evalKey],
         evaluationKey: evalKey,
       })
-      toast.success(`評価を記録しました: ${EVALUATION_LABELS[evalKey]}`)
+      if (result.success) {
+        toast.success(`評価を記録しました: ${EVALUATION_LABELS[evalKey]}`)
+      } else {
+        toast.error('評価の記録に失敗しました: ' + result.error)
+        console.error('addLessonLogWithStats failed:', result.error)
+      }
     } catch (err) {
       toast.error('評価の記録に失敗しました')
       console.error(err)
