@@ -1,13 +1,13 @@
 /**
- * クライアント側から弱点タグをインポートするユーティリティ
+ * クライアント側から単元マスタをインポートするユーティリティ
  * iPhoneのブラウザから実行可能
  */
 
 import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../firebase'
 
-// 弱点タグ初期データ（50単元）
-const WEAKNESS_TAGS_DATA = [
+// 単元マスタ初期データ（50単元）
+const MASTER_UNITS_DATA = [
   // 計算 (4)
   { id: 'CALC_BASIC', name: '四則計算の基礎', category: '計算', difficulty_level: 1, order_index: 10 },
   { id: 'CALC_TRICK', name: '計算のくふう', category: '計算', difficulty_level: 2, order_index: 20 },
@@ -82,40 +82,39 @@ const WEAKNESS_TAGS_DATA = [
 ]
 
 /**
- * Firestoreに弱点タグをインポート
+ * Firestoreに単元マスタをインポート
  * @param {Function} onProgress - 進捗コールバック (current, total, message)
  * @returns {Promise<{success: number, failed: number, errors: Array}>}
  */
-export async function importWeaknessTagsToFirestore(onProgress = null) {
+export async function importMasterUnitsToFirestore(onProgress = null) {
   const results = {
     success: 0,
     failed: 0,
     errors: []
   }
 
-  const total = WEAKNESS_TAGS_DATA.length
+  const total = MASTER_UNITS_DATA.length
 
-  for (let i = 0; i < WEAKNESS_TAGS_DATA.length; i++) {
-    const tag = WEAKNESS_TAGS_DATA[i]
+  for (let i = 0; i < MASTER_UNITS_DATA.length; i++) {
+    const unit = MASTER_UNITS_DATA[i]
 
     try {
-      // 進捗通知
       if (onProgress) {
-        onProgress(i + 1, total, `インポート中: ${tag.name}`)
+        onProgress(i + 1, total, `インポート中: ${unit.name}`)
       }
 
-      const docRef = doc(db, 'weaknessTags', tag.id)
+      const docRef = doc(db, 'masterUnits', unit.id)
 
       // snake_case → camelCase 変換
       const firestoreData = {
-        id: tag.id,
-        name: tag.name,
-        category: tag.category,
-        difficultyLevel: tag.difficulty_level || null,
-        description: tag.description || '',
-        learningResources: tag.learning_resources || [],
-        orderIndex: tag.order_index || 0,
-        isActive: tag.is_active !== false,
+        id: unit.id,
+        name: unit.name,
+        category: unit.category,
+        difficultyLevel: unit.difficulty_level || null,
+        description: unit.description || '',
+        learningResources: unit.learning_resources || [],
+        orderIndex: unit.order_index || 0,
+        isActive: unit.is_active !== false,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       }
@@ -123,11 +122,11 @@ export async function importWeaknessTagsToFirestore(onProgress = null) {
       await setDoc(docRef, firestoreData)
       results.success++
     } catch (error) {
-      console.error(`エラー: ${tag.id}`, error)
+      console.error(`エラー: ${unit.id}`, error)
       results.failed++
       results.errors.push({
-        id: tag.id,
-        name: tag.name,
+        id: unit.id,
+        name: unit.name,
         error: error.message
       })
     }
@@ -140,18 +139,18 @@ export async function importWeaknessTagsToFirestore(onProgress = null) {
  * 統計情報を取得
  * @returns {Object}
  */
-export function getWeaknessTagsStats() {
+export function getMasterUnitsStats() {
   const categoryMap = {}
 
-  WEAKNESS_TAGS_DATA.forEach(tag => {
-    if (!categoryMap[tag.category]) {
-      categoryMap[tag.category] = {
+  MASTER_UNITS_DATA.forEach(unit => {
+    if (!categoryMap[unit.category]) {
+      categoryMap[unit.category] = {
         count: 0,
         totalDifficulty: 0
       }
     }
-    categoryMap[tag.category].count++
-    categoryMap[tag.category].totalDifficulty += tag.difficulty_level || 0
+    categoryMap[unit.category].count++
+    categoryMap[unit.category].totalDifficulty += unit.difficulty_level || 0
   })
 
   const categoryStats = Object.entries(categoryMap).map(([category, data]) => ({
@@ -161,7 +160,7 @@ export function getWeaknessTagsStats() {
   }))
 
   return {
-    totalTags: WEAKNESS_TAGS_DATA.length,
+    totalUnits: MASTER_UNITS_DATA.length,
     categories: categoryStats.sort((a, b) => a.category.localeCompare(b.category))
   }
 }

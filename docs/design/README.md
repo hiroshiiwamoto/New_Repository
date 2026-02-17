@@ -12,8 +12,8 @@
 - セキュリティルール
 - インデックス戦略
 
-### 2. `weakness-tags-initial-data.json`
-弱点タグマスタの初期データ（50単元）。
+### 2. `master-units-initial-data.json`
+単元マスタの初期データ（50単元）。
 
 **データ構造:**
 ```json
@@ -55,15 +55,15 @@ const fs = require('fs');
 admin.initializeApp();
 const db = admin.firestore();
 
-async function importWeaknessTags() {
+async function importMasterUnits() {
   const data = JSON.parse(
-    fs.readFileSync('./weakness-tags-initial-data.json', 'utf8')
+    fs.readFileSync('./master-units-initial-data.json', 'utf8')
   );
 
   const batch = db.batch();
 
   data.forEach(tag => {
-    const docRef = db.collection('weaknessTags').doc(tag.id);
+    const docRef = db.collection('masterUnits').doc(tag.id);
     batch.set(docRef, {
       ...tag,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -72,10 +72,10 @@ async function importWeaknessTags() {
   });
 
   await batch.commit();
-  console.log(`✅ ${data.length}件の弱点タグをインポートしました`);
+  console.log(`✅ ${data.length}件の単元マスタをインポートしました`);
 }
 
-importWeaknessTags();
+importMasterUnits();
 ```
 
 ### SQLite
@@ -86,13 +86,13 @@ const fs = require('fs');
 
 const db = new sqlite3.Database('./database.sqlite');
 
-async function importWeaknessTags() {
+async function importMasterUnits() {
   const data = JSON.parse(
-    fs.readFileSync('./weakness-tags-initial-data.json', 'utf8')
+    fs.readFileSync('./master-units-initial-data.json', 'utf8')
   );
 
   const stmt = db.prepare(`
-    INSERT INTO weakness_tags
+    INSERT INTO master_units
     (id, name, category, difficulty_level, description, learning_resources,
      order_index, is_active, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -116,10 +116,10 @@ async function importWeaknessTags() {
   });
 
   stmt.finalize();
-  console.log(`✅ ${data.length}件の弱点タグをインポートしました`);
+  console.log(`✅ ${data.length}件の単元マスタをインポートしました`);
 }
 
-importWeaknessTags();
+importMasterUnits();
 ```
 
 ---
@@ -129,20 +129,20 @@ importWeaknessTags();
 ### カテゴリ別の単元数
 
 ```bash
-cat weakness-tags-initial-data.json | jq '[.[] | .category] | group_by(.) | map({category: .[0], count: length})'
+cat master-units-initial-data.json | jq '[.[] | .category] | group_by(.) | map({category: .[0], count: length})'
 ```
 
 ### 難易度別の分布
 
 ```bash
-cat weakness-tags-initial-data.json | jq '[.[] | .difficulty_level] | group_by(.) | map({difficulty: .[0], count: length})'
+cat master-units-initial-data.json | jq '[.[] | .difficulty_level] | group_by(.) | map({difficulty: .[0], count: length})'
 ```
 
 ### IDの重複チェック
 
 ```bash
-cat weakness-tags-initial-data.json | jq '[.[] | .id] | length' # 全件数
-cat weakness-tags-initial-data.json | jq '[.[] | .id] | unique | length' # ユニーク数
+cat master-units-initial-data.json | jq '[.[] | .id] | length' # 全件数
+cat master-units-initial-data.json | jq '[.[] | .id] | unique | length' # ユニーク数
 # 上記2つが同じであれば重複なし
 ```
 

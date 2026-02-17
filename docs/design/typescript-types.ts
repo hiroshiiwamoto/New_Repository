@@ -7,13 +7,13 @@
 import { Timestamp } from 'firebase/firestore';
 
 // ========================================
-// 1. 弱点タグマスタ
+// 1. 単元マスタ
 // ========================================
 
 /**
- * 弱点タグ（単元）
+ * 単元マスタ
  */
-export interface WeaknessTag {
+export interface MasterUnit {
   /** 単元コードID (例: CALC_BASIC, SPEC_CONC) */
   id: string;
 
@@ -21,7 +21,7 @@ export interface WeaknessTag {
   name: string;
 
   /** カテゴリ (計算, 特殊算, 図形, etc.) */
-  category: WeaknessTagCategory;
+  category: MasterUnitCategory;
 
   /** 難易度 (1-5, 1が最も易しい) */
   difficultyLevel?: number;
@@ -46,9 +46,9 @@ export interface WeaknessTag {
 }
 
 /**
- * 弱点タグのカテゴリ
+ * 単元マスタのカテゴリ
  */
-export type WeaknessTagCategory =
+export type MasterUnitCategory =
   | '計算'
   | '数の性質'
   | '規則性'
@@ -62,9 +62,9 @@ export type WeaknessTagCategory =
   | 'グラフ・論理';
 
 /**
- * 弱点タグ作成用（createdAt/updatedAtなし）
+ * 単元マスタ作成用（createdAt/updatedAtなし）
  */
-export type WeaknessTagInput = Omit<WeaknessTag, 'createdAt' | 'updatedAt'>;
+export type MasterUnitInput = Omit<MasterUnit, 'createdAt' | 'updatedAt'>;
 
 // ========================================
 // 2. 過去問
@@ -120,21 +120,21 @@ export interface Problem {
 export type ProblemInput = Omit<Problem, 'createdAt' | 'updatedAt'>;
 
 // ========================================
-// 3. 問題-弱点タグ中間テーブル
+// 3. 問題-単元 中間テーブル
 // ========================================
 
 /**
- * 問題と弱点タグの関連
+ * 問題と単元の関連
  */
-export interface ProblemWeaknessTag {
+export interface ProblemUnitTag {
   /** UUID */
   id: string;
 
   /** 問題ID */
   problemId: string;
 
-  /** タグID (例: SPEC_CONC) */
-  tagId: string;
+  /** 単元ID (例: SPEC_CONC) */
+  unitId: string;
 
   /** 関連度スコア (0.0-1.0) */
   relevanceScore: number;
@@ -144,9 +144,9 @@ export interface ProblemWeaknessTag {
 }
 
 /**
- * 問題-タグ関連作成用
+ * 問題-単元関連作成用
  */
-export type ProblemWeaknessTagInput = Omit<ProblemWeaknessTag, 'id' | 'createdAt'>;
+export type ProblemUnitTagInput = Omit<ProblemUnitTag, 'id' | 'createdAt'>;
 
 // ========================================
 // 4. ユーザー
@@ -249,8 +249,8 @@ export interface UserWeaknessScore {
   /** ユーザーID */
   userId: string;
 
-  /** タグID (例: SPEC_CONC) */
-  tagId: string;
+  /** 単元ID (例: SPEC_CONC) */
+  unitId: string;
 
   /** 挑戦回数 */
   totalAttempts: number;
@@ -313,8 +313,8 @@ export interface RecommendationHistory {
   /** ユーザーID */
   userId: string;
 
-  /** レコメンドタグID (例: ["SPEC_CONC", "RATIO_CALC"]) */
-  recommendedTagIds: string[];
+  /** レコメンド単元ID (例: ["SPEC_CONC", "RATIO_CALC"]) */
+  recommendedUnitIds: string[];
 
   /** レコメンド問題ID */
   recommendedProblems: string[];
@@ -342,20 +342,20 @@ export type RecommendationHistoryInput = Omit<RecommendationHistory, 'id' | 'cre
 // ========================================
 
 /**
- * 弱点タグと詳細スコアの組み合わせ
+ * 単元マスタと詳細スコアの組み合わせ
  */
-export interface WeaknessTagWithScore extends WeaknessTag {
+export interface MasterUnitWithScore extends MasterUnit {
   /** ユーザー弱点スコア */
   score?: UserWeaknessScore;
 }
 
 /**
- * 問題と関連タグの組み合わせ
+ * 問題と関連単元の組み合わせ
  */
-export interface ProblemWithTags extends Problem {
-  /** 関連タグ */
-  tags: Array<{
-    tag: WeaknessTag;
+export interface ProblemWithUnits extends Problem {
+  /** 関連単元 */
+  units: Array<{
+    unit: MasterUnit;
     relevanceScore: number;
   }>;
 }
@@ -373,11 +373,11 @@ export interface WeaknessAnalysis {
   /** 総解答数 */
   totalAnswers: number;
 
-  /** 弱点タグ（弱点レベル順） */
-  weaknessTags: WeaknessTagWithScore[];
+  /** 弱点単元（弱点レベル順） */
+  weaknessUnits: MasterUnitWithScore[];
 
-  /** 推奨学習タグ（上位5件） */
-  recommendedTags: WeaknessTagWithScore[];
+  /** 推奨学習単元（上位5件） */
+  recommendedUnits: MasterUnitWithScore[];
 
   /** 分析日時 */
   analyzedAt: Timestamp | string;
@@ -388,7 +388,7 @@ export interface WeaknessAnalysis {
  */
 export interface CategoryStats {
   /** カテゴリ名 */
-  category: WeaknessTagCategory;
+  category: MasterUnitCategory;
 
   /** 総解答数 */
   totalAttempts: number;
@@ -425,13 +425,13 @@ export interface WeaknessDashboard {
   /** 最近の解答履歴（直近10件） */
   recentAnswers: Array<AnswerHistory & { problem: Problem }>;
 
-  /** 弱点タグ（上位10件） */
-  topWeaknesses: WeaknessTagWithScore[];
+  /** 弱点単元（上位10件） */
+  topWeaknesses: MasterUnitWithScore[];
 
   /** 推奨学習プラン */
   recommendedLearning: {
-    tags: WeaknessTagWithScore[];
-    problems: ProblemWithTags[];
+    units: MasterUnitWithScore[];
+    problems: ProblemWithUnits[];
   };
 }
 
@@ -473,7 +473,7 @@ export interface GetRecommendationsRequest {
  * レコメンドレスポンス
  */
 export interface GetRecommendationsResponse {
-  recommendedTags: WeaknessTagWithScore[];
-  recommendedProblems: ProblemWithTags[];
+  recommendedUnits: MasterUnitWithScore[];
+  recommendedProblems: ProblemWithUnits[];
   reasoning: string;
 }

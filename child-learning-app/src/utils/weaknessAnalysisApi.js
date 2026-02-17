@@ -26,7 +26,7 @@ import { db } from '../firebase';
 // ========================================
 
 /**
- * @typedef {Object} WeaknessTag
+ * @typedef {Object} MasterUnit
  * @property {string} id - 単元コードID (例: CALC_BASIC)
  * @property {string} name - 単元名
  * @property {string} category - カテゴリ
@@ -74,7 +74,7 @@ import { db } from '../firebase';
  * @typedef {Object} UserWeaknessScore
  * @property {string} id - UUID
  * @property {string} userId - ユーザーID
- * @property {string} tagId - タグID
+ * @property {string} unitId - 単元ID
  * @property {number} totalAttempts - 挑戦回数
  * @property {number} correctCount - 正解数
  * @property {number} accuracyRate - 正答率 (0.0-1.0)
@@ -86,16 +86,16 @@ import { db } from '../firebase';
  */
 
 // ========================================
-// 1. 弱点タグマスタ
+// 1. 単元マスタ
 // ========================================
 
 /**
- * すべての弱点タグを取得（カテゴリ・表示順でソート）
- * @returns {Promise<WeaknessTag[]>}
+ * すべての単元マスタを取得（カテゴリ・表示順でソート）
+ * @returns {Promise<MasterUnit[]>}
  */
-export async function getAllWeaknessTags() {
+export async function getAllMasterUnits() {
   const q = query(
-    collection(db, 'weaknessTags'),
+    collection(db, 'masterUnits'),
     where('isActive', '==', true),
     orderBy('orderIndex')
   );
@@ -104,13 +104,13 @@ export async function getAllWeaknessTags() {
 }
 
 /**
- * 特定カテゴリの弱点タグを取得
+ * 特定カテゴリの単元マスタを取得
  * @param {string} category - カテゴリ名
- * @returns {Promise<WeaknessTag[]>}
+ * @returns {Promise<MasterUnit[]>}
  */
-export async function getWeaknessTagsByCategory(category) {
+export async function getMasterUnitsByCategory(category) {
   const q = query(
-    collection(db, 'weaknessTags'),
+    collection(db, 'masterUnits'),
     where('category', '==', category),
     where('isActive', '==', true),
     orderBy('orderIndex')
@@ -120,12 +120,12 @@ export async function getWeaknessTagsByCategory(category) {
 }
 
 /**
- * 特定の弱点タグを取得
- * @param {string} tagId - タグID
- * @returns {Promise<WeaknessTag|null>}
+ * 特定の単元マスタを取得
+ * @param {string} unitId - 単元ID
+ * @returns {Promise<MasterUnit|null>}
  */
-export async function getWeaknessTagById(tagId) {
-  const docRef = doc(db, 'weaknessTags', tagId);
+export async function getMasterUnitById(unitId) {
+  const docRef = doc(db, 'masterUnits', unitId);
   const docSnap = await getDoc(docRef);
   return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
 }
@@ -135,8 +135,8 @@ export async function getWeaknessTagById(tagId) {
  * @returns {Promise<string[]>}
  */
 export async function getCategories() {
-  const tags = await getAllWeaknessTags();
-  const categories = [...new Set(tags.map(tag => tag.category))];
+  const units = await getAllMasterUnits();
+  const categories = [...new Set(units.map(unit => unit.category))];
   return categories.sort();
 }
 
@@ -199,28 +199,28 @@ export async function getProblemById(problemId) {
 }
 
 /**
- * 問題に関連する弱点タグを取得
+ * 問題に関連する単元を取得
  * @param {string} problemId - 問題ID
- * @returns {Promise<Array<{tag: WeaknessTag, relevanceScore: number}>>}
+ * @returns {Promise<Array<{unit: MasterUnit, relevanceScore: number}>>}
  */
 export async function getProblemTags(problemId) {
   const q = query(
-    collection(db, 'problemWeaknessTags'),
+    collection(db, 'problemUnitTags'),
     where('problemId', '==', problemId),
     orderBy('relevanceScore', 'desc')
   );
 
   const snapshot = await getDocs(q);
-  const tagPromises = snapshot.docs.map(async (docSnap) => {
+  const unitPromises = snapshot.docs.map(async (docSnap) => {
     const data = docSnap.data();
-    const tag = await getWeaknessTagById(data.tagId);
+    const unit = await getMasterUnitById(data.unitId);
     return {
-      tag,
+      unit,
       relevanceScore: data.relevanceScore
     };
   });
 
-  return Promise.all(tagPromises);
+  return Promise.all(unitPromises);
 }
 
 // ========================================
@@ -329,16 +329,16 @@ export async function getUserWeaknessScores(userId, options = {}) {
 }
 
 /**
- * 特定タグの弱点スコアを取得
+ * 特定単元の弱点スコアを取得
  * @param {string} userId - ユーザーID
- * @param {string} tagId - タグID
+ * @param {string} unitId - 単元ID
  * @returns {Promise<UserWeaknessScore|null>}
  */
-export async function getUserWeaknessScoreByTag(userId, tagId) {
+export async function getUserWeaknessScoreByUnit(userId, unitId) {
   const q = query(
     collection(db, 'userWeaknessScores'),
     where('userId', '==', userId),
-    where('tagId', '==', tagId),
+    where('unitId', '==', unitId),
     limit(1)
   );
 
@@ -349,17 +349,17 @@ export async function getUserWeaknessScoreByTag(userId, tagId) {
 }
 
 /**
- * 弱点スコアと対応する弱点タグを取得
+ * 弱点スコアと対応する単元マスタを取得
  * @param {string} userId - ユーザーID
  * @param {Object} options - オプション
- * @returns {Promise<Array<{score: UserWeaknessScore, tag: WeaknessTag}>>}
+ * @returns {Promise<Array<{score: UserWeaknessScore, unit: MasterUnit}>>}
  */
-export async function getUserWeaknessesWithTags(userId, options = {}) {
+export async function getUserWeaknessesWithUnits(userId, options = {}) {
   const scores = await getUserWeaknessScores(userId, options);
 
   const promises = scores.map(async (score) => {
-    const tag = await getWeaknessTagById(score.tagId);
-    return { score, tag };
+    const unit = await getMasterUnitById(score.unitId);
+    return { score, unit };
   });
 
   return Promise.all(promises);
@@ -373,7 +373,7 @@ export async function getUserWeaknessesWithTags(userId, options = {}) {
  * レコメンド履歴を保存
  * @param {Object} recommendationData - レコメンドデータ
  * @param {string} recommendationData.userId - ユーザーID
- * @param {string[]} recommendationData.recommendedTagIds - レコメンドタグID
+ * @param {string[]} recommendationData.recommendedUnitIds - レコメンド単元ID
  * @param {string[]} recommendationData.recommendedProblems - レコメンド問題ID
  * @param {string} [recommendationData.reasoning] - レコメンド理由
  * @returns {Promise<string>} - 作成されたドキュメントID
@@ -381,7 +381,7 @@ export async function getUserWeaknessesWithTags(userId, options = {}) {
 export async function saveRecommendation(recommendationData) {
   const docData = {
     userId: recommendationData.userId,
-    recommendedTagIds: recommendationData.recommendedTagIds,
+    recommendedUnitIds: recommendationData.recommendedUnitIds,
     recommendedProblems: recommendationData.recommendedProblems,
     reasoning: recommendationData.reasoning || '',
     accepted: null,
@@ -464,36 +464,33 @@ export async function getUserOverallStats(userId) {
  * @returns {Promise<Array<Object>>}
  */
 export async function getCategoryStats(userId) {
-  // 解答履歴を取得
   const history = await getUserAnswerHistory(userId);
 
-  // 各問題のタグを取得してカテゴリごとに集計
   const categoryMap = {};
 
   for (const answer of history) {
     const problemTags = await getProblemTags(answer.problemId);
 
-    for (const { tag } of problemTags) {
-      if (!tag) continue;
+    for (const { unit } of problemTags) {
+      if (!unit) continue;
 
-      if (!categoryMap[tag.category]) {
-        categoryMap[tag.category] = {
-          category: tag.category,
+      if (!categoryMap[unit.category]) {
+        categoryMap[unit.category] = {
+          category: unit.category,
           totalAttempts: 0,
           correctCount: 0,
           difficulties: []
         };
       }
 
-      categoryMap[tag.category].totalAttempts++;
+      categoryMap[unit.category].totalAttempts++;
       if (answer.isCorrect) {
-        categoryMap[tag.category].correctCount++;
+        categoryMap[unit.category].correctCount++;
       }
-      categoryMap[tag.category].difficulties.push(tag.difficultyLevel || 0);
+      categoryMap[unit.category].difficulties.push(unit.difficultyLevel || 0);
     }
   }
 
-  // 統計計算
   return Object.values(categoryMap).map(cat => ({
     category: cat.category,
     totalAttempts: cat.totalAttempts,

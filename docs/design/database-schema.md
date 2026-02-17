@@ -9,14 +9,14 @@ Firebase Firestore (NoSQL) を使用するが、将来的なSQLiteマイグレ�
 
 ---
 
-## 1. 弱点タグマスタ (`weakness_tags`)
+## 1. 単元マスタ (`master_units`)
 
 算数の単元・テーマを管理するマスタテーブル。
 
 ### テーブル定義
 
 ```sql
-CREATE TABLE weakness_tags (
+CREATE TABLE master_units (
   id TEXT PRIMARY KEY,              -- 単元コード (例: CALC_BASIC, SPEC_CONC)
   name TEXT NOT NULL,               -- 単元名 (例: 四則計算の基礎)
   category TEXT NOT NULL,           -- カテゴリ (計算, 特殊算, etc.)
@@ -29,9 +29,9 @@ CREATE TABLE weakness_tags (
   updated_at TEXT NOT NULL          -- 更新日時 (ISO 8601)
 );
 
-CREATE INDEX idx_weakness_tags_category ON weakness_tags(category);
-CREATE INDEX idx_weakness_tags_difficulty ON weakness_tags(difficulty_level);
-CREATE INDEX idx_weakness_tags_order ON weakness_tags(order_index);
+CREATE INDEX idx_master_units_category ON master_units(category);
+CREATE INDEX idx_master_units_difficulty ON master_units(difficulty_level);
+CREATE INDEX idx_master_units_order ON master_units(order_index);
 ```
 
 ### フィールド詳細
@@ -151,28 +151,28 @@ CREATE INDEX idx_problems_difficulty ON problems(difficulty);
 
 ---
 
-## 3. 問題-弱点タグ中間テーブル (`problem_weakness_tags`)
+## 3. 問題-単元 中間テーブル (`problem_unit_tags`)
 
-問題と弱点タグの多対多の関係を管理。
+問題と単元マスタの多対多の関係を管理。
 
 ### テーブル定義
 
 ```sql
-CREATE TABLE problem_weakness_tags (
+CREATE TABLE problem_unit_tags (
   id TEXT PRIMARY KEY,              -- UUID
   problem_id TEXT NOT NULL,         -- 問題ID (外部キー: problems.id)
-  tag_id TEXT NOT NULL,             -- タグID (外部キー: weakness_tags.id)
+  unit_id TEXT NOT NULL,            -- 単元ID (外部キー: master_units.id)
   relevance_score REAL DEFAULT 1.0, -- 関連度スコア (0.0-1.0)
   created_at TEXT NOT NULL,
 
   FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE,
-  FOREIGN KEY (tag_id) REFERENCES weakness_tags(id) ON DELETE CASCADE,
-  UNIQUE(problem_id, tag_id)        -- 同じ組み合わせは重複不可
+  FOREIGN KEY (unit_id) REFERENCES master_units(id) ON DELETE CASCADE,
+  UNIQUE(problem_id, unit_id)       -- 同じ組み合わせは重複不可
 );
 
-CREATE INDEX idx_pwt_problem ON problem_weakness_tags(problem_id);
-CREATE INDEX idx_pwt_tag ON problem_weakness_tags(tag_id);
-CREATE INDEX idx_pwt_relevance ON problem_weakness_tags(relevance_score);
+CREATE INDEX idx_put_problem ON problem_unit_tags(problem_id);
+CREATE INDEX idx_put_unit ON problem_unit_tags(unit_id);
+CREATE INDEX idx_put_relevance ON problem_unit_tags(relevance_score);
 ```
 
 ### フィールド詳細
@@ -181,7 +181,7 @@ CREATE INDEX idx_pwt_relevance ON problem_weakness_tags(relevance_score);
 |-----------|-----|------|------|-----|
 | `id` | TEXT | ✓ | UUID（主キー） | `550e8400-...` |
 | `problem_id` | TEXT | ✓ | 問題ID（外部キー） | `kaisei_2024_001` |
-| `tag_id` | TEXT | ✓ | タグID（外部キー） | `SPEC_CONC` |
+| `unit_id` | TEXT | ✓ | 単元ID（外部キー） | `SPEC_CONC` |
 | `relevance_score` | REAL | - | 関連度スコア (0.0-1.0) | `0.8` |
 | `created_at` | TEXT | ✓ | 作成日時 | `2024-01-01T00:00:00Z` |
 
@@ -192,14 +192,14 @@ CREATE INDEX idx_pwt_relevance ON problem_weakness_tags(relevance_score);
   {
     "id": "550e8400-e29b-41d4-a716-446655440001",
     "problem_id": "kaisei_2024_001",
-    "tag_id": "SPEC_CONC",
+    "unit_id": "SPEC_CONC",
     "relevance_score": 1.0,
     "created_at": "2024-01-01T00:00:00Z"
   },
   {
     "id": "550e8400-e29b-41d4-a716-446655440002",
     "problem_id": "kaisei_2024_001",
-    "tag_id": "RATIO_CALC",
+    "unit_id": "RATIO_CALC",
     "relevance_score": 0.7,
     "created_at": "2024-01-01T00:00:00Z"
   }
@@ -265,7 +265,7 @@ CREATE INDEX idx_answer_history_correct ON answer_history(is_correct);
 
 ## 6. ユーザー弱点スコア (`user_weakness_scores`)
 
-生徒ごとの弱点タグ別スコアを管理（集計テーブル）。
+生徒ごとの単元マスタ別スコアを管理（集計テーブル）。
 
 ### テーブル定義
 
@@ -273,7 +273,7 @@ CREATE INDEX idx_answer_history_correct ON answer_history(is_correct);
 CREATE TABLE user_weakness_scores (
   id TEXT PRIMARY KEY,              -- UUID
   user_id TEXT NOT NULL,            -- ユーザーID (外部キー: users.id)
-  tag_id TEXT NOT NULL,             -- タグID (外部キー: weakness_tags.id)
+  unit_id TEXT NOT NULL,            -- 単元ID (外部キー: master_units.id)
   total_attempts INTEGER DEFAULT 0, -- 挑戦回数
   correct_count INTEGER DEFAULT 0,  -- 正解数
   accuracy_rate REAL DEFAULT 0.0,   -- 正答率 (0.0-1.0)
@@ -284,12 +284,12 @@ CREATE TABLE user_weakness_scores (
   updated_at TEXT NOT NULL,
 
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  FOREIGN KEY (tag_id) REFERENCES weakness_tags(id) ON DELETE CASCADE,
-  UNIQUE(user_id, tag_id)
+  FOREIGN KEY (unit_id) REFERENCES master_units(id) ON DELETE CASCADE,
+  UNIQUE(user_id, unit_id)
 );
 
 CREATE INDEX idx_uws_user ON user_weakness_scores(user_id);
-CREATE INDEX idx_uws_tag ON user_weakness_scores(tag_id);
+CREATE INDEX idx_uws_unit ON user_weakness_scores(unit_id);
 CREATE INDEX idx_uws_weakness_level ON user_weakness_scores(weakness_level);
 CREATE INDEX idx_uws_accuracy ON user_weakness_scores(accuracy_rate);
 ```
@@ -342,7 +342,7 @@ CREATE INDEX idx_rec_history_created_at ON recommendation_history(created_at);
 ### コレクション構造
 
 ```
-weaknessTags/
+masterUnits/
   {id}
     - id: string (例: "CALC_BASIC")
     - name: string
@@ -371,11 +371,11 @@ problems/
     - createdAt: Timestamp
     - updatedAt: Timestamp
 
-problemWeaknessTags/
+problemUnitTags/
   {id}
     - id: string (UUID)
     - problemId: string
-    - tagId: string (例: "SPEC_CONC")
+    - unitId: string (例: "SPEC_CONC")
     - relevanceScore: number
     - createdAt: Timestamp
 
@@ -407,7 +407,7 @@ userWeaknessScores/
   {id}
     - id: string (UUID)
     - userId: string
-    - tagId: string (例: "SPEC_CONC")
+    - unitId: string (例: "SPEC_CONC")
     - totalAttempts: number
     - correctCount: number
     - accuracyRate: number
@@ -448,8 +448,8 @@ service cloud.firestore {
       return request.auth.uid == userId;
     }
 
-    // 弱点タグマスタ（全員読み取り可、管理者のみ書き込み可）
-    match /weaknessTags/{tagId} {
+    // 単元マスタ（全員読み取り可、管理者のみ書き込み可）
+    match /masterUnits/{tagId} {
       allow read: if isAuthenticated();
       allow write: if false; // 管理者のみ（Cloud Functionsから）
     }
@@ -461,7 +461,7 @@ service cloud.firestore {
     }
 
     // 問題-タグ中間テーブル（全員読み取り可、管理者のみ書き込み可）
-    match /problemWeaknessTags/{id} {
+    match /problemUnitTags/{id} {
       allow read: if isAuthenticated();
       allow write: if false;
     }
@@ -498,7 +498,7 @@ service cloud.firestore {
 
 ## データ初期投入計画
 
-### 1. 弱点タグマスタデータ
+### 1. 単元マスタデータ
 
 初期データとして約50-100件の単元タグを投入予定。
 
@@ -547,12 +547,12 @@ SPEC_TRAVEL,旅人算,特殊算,3,110
 async function migrateFirestoreToSQLite() {
   const db = await openSQLiteDB();
 
-  // 1. 弱点タグマスタ
-  const tags = await firestore.collection('weaknessTags').get();
+  // 1. 単元マスタ
+  const tags = await firestore.collection('masterUnits').get();
   for (const doc of tags.docs) {
     const data = doc.data();
     await db.run(`
-      INSERT INTO weakness_tags VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO master_units VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       data.id,
       data.name,
@@ -577,16 +577,16 @@ async function migrateFirestoreToSQLite() {
 
 ### インデックス戦略
 
-- **検索頻度の高いフィールド**: `category`, `difficulty`, `user_id`, `tag_id`
+- **検索頻度の高いフィールド**: `category`, `difficulty`, `user_id`, `unit_id`
 - **ソートに使用するフィールド**: `order_index`, `answered_at`, `created_at`
-- **複合インデックス**: 必要に応じて追加（例: `(user_id, tag_id, answered_at)`）
+- **複合インデックス**: 必要に応じて追加（例: `(user_id, unit_id, answered_at)`）
 
 ### Firestore クエリ例
 
 ```javascript
-// 特定カテゴリの弱点タグを取得（難易度順）
+// 特定カテゴリの単元マスタを取得（難易度順）
 const tags = await firestore
-  .collection('weaknessTags')
+  .collection('masterUnits')
   .where('category', '==', '特殊算')
   .where('isActive', '==', true)
   .orderBy('orderIndex')
@@ -604,7 +604,7 @@ const scores = await firestore
 
 // 特定問題に関連するタグを取得
 const problemTags = await firestore
-  .collection('problemWeaknessTags')
+  .collection('problemUnitTags')
   .where('problemId', '==', 'kaisei_2024_001')
   .orderBy('relevanceScore', 'desc')
   .get();
@@ -638,6 +638,6 @@ const problemTags = await firestore
 - **Firestore/SQLite 両対応**: 将来的なマイグレーションを考慮した設計
 
 次のステップ:
-1. 弱点タグマスタの初期データ作成
+1. 単元マスタの初期データ作成
 2. Firestore セキュリティルールの実装
 3. バックエンドAPI設計（次のドキュメント）

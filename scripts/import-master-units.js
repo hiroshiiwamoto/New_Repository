@@ -1,14 +1,14 @@
 /**
- * 弱点タグマスタの初期データインポートスクリプト
+ * 単元マスタの初期データインポートスクリプト
  *
  * 使用方法:
  *   1. Firebase Admin SDK サービスアカウントキーを用意
  *   2. 環境変数 GOOGLE_APPLICATION_CREDENTIALS にパスを設定
  *   3. npm install firebase-admin を実行
- *   4. node scripts/import-weakness-tags.js を実行
+ *   4. node scripts/import-master-units.js を実行
  *
  * または環境変数を使わずに直接パスを指定:
- *   node scripts/import-weakness-tags.js /path/to/serviceAccountKey.json
+ *   node scripts/import-master-units.js /path/to/serviceAccountKey.json
  */
 
 import admin from 'firebase-admin';
@@ -43,21 +43,21 @@ function initializeFirebase(serviceAccountPath) {
   return admin.firestore();
 }
 
-// 弱点タグマスタデータの読み込み
-function loadWeaknessTagsData() {
-  const dataPath = path.join(__dirname, '../docs/design/weakness-tags-initial-data.json');
+// 単元マスタデータの読み込み
+function loadMasterUnitsData() {
+  const dataPath = path.join(__dirname, '../docs/design/master-units-initial-data.json');
 
   if (!fs.existsSync(dataPath)) {
     throw new Error(`❌ データファイルが見つかりません: ${dataPath}`);
   }
 
   const data = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
-  console.log(`📂 ${data.length}件の弱点タグデータを読み込みました`);
+  console.log(`📂 ${data.length}件の単元マスタデータを読み込みました`);
   return data;
 }
 
 // Firestoreにデータをインポート
-async function importWeaknessTags(db, data, options = {}) {
+async function importMasterUnits(db, data, options = {}) {
   const { batchSize = 500, dryRun = false } = options;
 
   console.log(`\n🚀 インポート開始...`);
@@ -66,8 +66,8 @@ async function importWeaknessTags(db, data, options = {}) {
 
   if (dryRun) {
     console.log('\n⚠️  ドライランモード: データは実際には書き込まれません\n');
-    data.forEach((tag, index) => {
-      console.log(`${index + 1}. [${tag.id}] ${tag.name} (${tag.category}, 難易度${tag.difficulty_level})`);
+    data.forEach((unit, index) => {
+      console.log(`${index + 1}. [${unit.id}] ${unit.name} (${unit.category}, 難易度${unit.difficulty_level})`);
     });
     return;
   }
@@ -81,20 +81,20 @@ async function importWeaknessTags(db, data, options = {}) {
     const batch = db.batch();
     const chunk = data.slice(i, Math.min(i + batchSize, data.length));
 
-    chunk.forEach(tag => {
+    chunk.forEach(unit => {
       try {
-        const docRef = db.collection('weaknessTags').doc(tag.id);
+        const docRef = db.collection('masterUnits').doc(unit.id);
 
         // snake_case → camelCase 変換
         const firestoreData = {
-          id: tag.id,
-          name: tag.name,
-          category: tag.category,
-          difficultyLevel: tag.difficulty_level || null,
-          description: tag.description || '',
-          learningResources: tag.learning_resources || [],
-          orderIndex: tag.order_index || 0,
-          isActive: tag.is_active !== false,
+          id: unit.id,
+          name: unit.name,
+          category: unit.category,
+          difficultyLevel: unit.difficulty_level || null,
+          description: unit.description || '',
+          learningResources: unit.learning_resources || [],
+          orderIndex: unit.order_index || 0,
+          isActive: unit.is_active !== false,
           createdAt: admin.firestore.FieldValue.serverTimestamp(),
           updatedAt: admin.firestore.FieldValue.serverTimestamp()
         };
@@ -102,7 +102,7 @@ async function importWeaknessTags(db, data, options = {}) {
         batch.set(docRef, firestoreData);
       } catch (error) {
         failed++;
-        errors.push({ tag: tag.id, error: error.message });
+        errors.push({ unit: unit.id, error: error.message });
       }
     });
 
@@ -123,8 +123,8 @@ async function importWeaknessTags(db, data, options = {}) {
 
   if (errors.length > 0) {
     console.log('\n❌ エラー詳細:');
-    errors.forEach(({ tag, error }) => {
-      console.log(`   - ${tag}: ${error}`);
+    errors.forEach(({ unit, error }) => {
+      console.log(`   - ${unit}: ${error}`);
     });
   }
 }
@@ -134,23 +134,23 @@ function showStatistics(data) {
   console.log('\n📈 カテゴリ別統計:');
 
   const categoryMap = {};
-  data.forEach(tag => {
-    if (!categoryMap[tag.category]) {
-      categoryMap[tag.category] = [];
+  data.forEach(unit => {
+    if (!categoryMap[unit.category]) {
+      categoryMap[unit.category] = [];
     }
-    categoryMap[tag.category].push(tag);
+    categoryMap[unit.category].push(unit);
   });
 
   Object.keys(categoryMap).sort().forEach(category => {
-    const tags = categoryMap[category];
-    const avgDifficulty = tags.reduce((sum, t) => sum + (t.difficulty_level || 0), 0) / tags.length;
-    console.log(`   - ${category}: ${tags.length}件 (平均難易度 ${avgDifficulty.toFixed(1)})`);
+    const units = categoryMap[category];
+    const avgDifficulty = units.reduce((sum, u) => sum + (u.difficulty_level || 0), 0) / units.length;
+    console.log(`   - ${category}: ${units.length}件 (平均難易度 ${avgDifficulty.toFixed(1)})`);
   });
 
   console.log('\n📈 難易度別統計:');
   const difficultyMap = {};
-  data.forEach(tag => {
-    const level = tag.difficulty_level || 0;
+  data.forEach(unit => {
+    const level = unit.difficulty_level || 0;
     difficultyMap[level] = (difficultyMap[level] || 0) + 1;
   });
 
@@ -166,21 +166,21 @@ function validateData(data) {
   const issues = [];
   const idSet = new Set();
 
-  data.forEach((tag, index) => {
+  data.forEach((unit, index) => {
     // ID重複チェック
-    if (idSet.has(tag.id)) {
-      issues.push(`重複ID: ${tag.id}`);
+    if (idSet.has(unit.id)) {
+      issues.push(`重複ID: ${unit.id}`);
     }
-    idSet.add(tag.id);
+    idSet.add(unit.id);
 
     // 必須フィールドチェック
-    if (!tag.id) issues.push(`${index + 1}行目: IDが空`);
-    if (!tag.name) issues.push(`${index + 1}行目: 名前が空`);
-    if (!tag.category) issues.push(`${index + 1}行目: カテゴリが空`);
+    if (!unit.id) issues.push(`${index + 1}行目: IDが空`);
+    if (!unit.name) issues.push(`${index + 1}行目: 名前が空`);
+    if (!unit.category) issues.push(`${index + 1}行目: カテゴリが空`);
 
     // 難易度範囲チェック
-    if (tag.difficulty_level && (tag.difficulty_level < 1 || tag.difficulty_level > 5)) {
-      issues.push(`${tag.id}: 難易度は1-5の範囲で指定してください`);
+    if (unit.difficulty_level && (unit.difficulty_level < 1 || unit.difficulty_level > 5)) {
+      issues.push(`${unit.id}: 難易度は1-5の範囲で指定してください`);
     }
   });
 
@@ -203,12 +203,12 @@ async function main() {
   const dryRun = args.includes('--dry-run');
 
   console.log('========================================');
-  console.log('弱点タグマスタ データインポート');
+  console.log('単元マスタ データインポート');
   console.log('========================================\n');
 
   try {
     // データ読み込み
-    const data = loadWeaknessTagsData();
+    const data = loadMasterUnitsData();
 
     // データ検証
     if (!validateData(data)) {
@@ -232,7 +232,7 @@ async function main() {
     };
 
     // インポート実行
-    await importWeaknessTags(db, data, options);
+    await importMasterUnits(db, data, options);
 
     console.log('\n✅ すべての処理が完了しました\n');
     process.exit(0);
