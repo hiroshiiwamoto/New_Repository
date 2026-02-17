@@ -116,11 +116,17 @@ export async function getLessonLogsByUnit(userId, unitId) {
   try {
     const q = query(
       collection(db, 'users', userId, 'lessonLogs'),
-      where('unitIds', 'array-contains', unitId),
-      orderBy('createdAt', 'desc')
+      where('unitIds', 'array-contains', unitId)
+      // orderBy は複合インデックスが必要なため除去。呼び出し側でソートする
     )
     const snapshot = await getDocs(q)
-    const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
+    const data = snapshot.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => {
+        const ta = a.createdAt?.toMillis?.() ?? new Date(a.createdAt ?? 0).getTime()
+        const tb = b.createdAt?.toMillis?.() ?? new Date(b.createdAt ?? 0).getTime()
+        return tb - ta
+      })
     return { success: true, data }
   } catch (error) {
     console.error('lessonLog (単元別) 取得エラー:', error)
