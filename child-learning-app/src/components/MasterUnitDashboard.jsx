@@ -14,12 +14,15 @@ import {
 } from '../utils/lessonLogs'
 import './MasterUnitDashboard.css'
 
+const SUBJECTS = ['算数', '国語', '理科', '社会']
+const SUBJECT_ICONS = { 算数: '🔢', 国語: '📖', 理科: '🔬', 社会: '🌏' }
 const CATEGORY_ORDER = ['計算', '数の性質', '規則性', '特殊算', '速さ', '割合', '比', '平面図形', '立体図形', '場合の数', 'グラフ・論理']
 
 function MasterUnitDashboard() {
   const [loading, setLoading] = useState(true)
   const [masterUnits, setMasterUnits] = useState([])
   const [stats, setStats] = useState({}) // { unitId: { currentScore, statusLevel, logCount } }
+  const [selectedSubject, setSelectedSubject] = useState('算数')
   const [selectedCategory, setSelectedCategory] = useState('all')
 
   // ドリルダウンモーダル
@@ -143,7 +146,9 @@ function MasterUnitDashboard() {
     return `${type}${log.sourceName ? ': ' + log.sourceName : ''}`
   }
 
-  const filteredUnits = masterUnits.filter(u =>
+  const subjectUnits = masterUnits.filter(u => (u.subject || '算数') === selectedSubject)
+
+  const filteredUnits = subjectUnits.filter(u =>
     selectedCategory === 'all' || u.category === selectedCategory
   )
 
@@ -169,6 +174,30 @@ function MasterUnitDashboard() {
 
   return (
     <div className="master-unit-dashboard">
+      {/* 教科タブ */}
+      <div className="mud-subject-tabs">
+        {SUBJECTS.map(subj => (
+          <button
+            key={subj}
+            className={`mud-subject-btn ${selectedSubject === subj ? 'active' : ''}`}
+            onClick={() => { setSelectedSubject(subj); setSelectedCategory('all') }}
+          >
+            {SUBJECT_ICONS[subj]} {subj}
+          </button>
+        ))}
+      </div>
+
+      {/* 算数以外：準備中 */}
+      {selectedSubject !== '算数' && (
+        <div className="mud-coming-soon">
+          <div className="mud-coming-soon-icon">{SUBJECT_ICONS[selectedSubject]}</div>
+          <div className="mud-coming-soon-title">{selectedSubject}</div>
+          <div className="mud-coming-soon-msg">単元データは現在準備中です。</div>
+        </div>
+      )}
+
+      {/* 算数のみ：サマリー＋グリッド */}
+      {selectedSubject === '算数' && <>
       {/* サマリー */}
       <div className="mud-summary">
         <div className="mud-summary-card">
@@ -247,6 +276,7 @@ function MasterUnitDashboard() {
           </div>
         ))}
       </div>
+      </>}
 
       {/* ドリルダウンモーダル */}
       {drillUnit && (

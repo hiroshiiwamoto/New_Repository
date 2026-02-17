@@ -3,10 +3,9 @@ import '../components/ScheduleView.css'
 import MasterUnitDashboard from './MasterUnitDashboard'
 import Analytics from './Analytics'
 import WeaknessAnalysis from './WeaknessAnalysis'
-import MasterUnitEditor from './MasterUnitEditor'
 
 function UnitAnalysisView({ tasks }) {
-  const [subView, setSubView] = useState('dashboard') // 'dashboard', 'analysis', 'editor'
+  const [subView, setSubView] = useState('dashboard') // 'dashboard' | 'analysis'
 
   return (
     <div className="unit-analysis-view">
@@ -23,24 +22,16 @@ function UnitAnalysisView({ tasks }) {
         >
           📊 学習分析
         </button>
-        <button
-          className={subView === 'editor' ? 'active' : ''}
-          onClick={() => setSubView('editor')}
-        >
-          ✏️ 単元編集
-        </button>
       </div>
 
       {subView === 'dashboard' ? (
         <MasterUnitDashboard />
-      ) : subView === 'analysis' ? (
+      ) : (
         <div className="study-analysis">
           <Analytics tasks={tasks} />
           <div className="analysis-divider" />
           <WeaknessAnalysis />
         </div>
-      ) : (
-        <MasterUnitEditor />
       )}
     </div>
   )

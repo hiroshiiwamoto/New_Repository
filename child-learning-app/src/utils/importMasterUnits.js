@@ -109,6 +109,7 @@ export async function importMasterUnitsToFirestore(onProgress = null) {
       const firestoreData = {
         id: unit.id,
         name: unit.name,
+        subject: unit.subject || '算数',
         category: unit.category,
         difficultyLevel: unit.difficulty_level || null,
         description: unit.description || '',
@@ -142,6 +143,7 @@ export function getStaticMasterUnits() {
   return MASTER_UNITS_DATA.map(u => ({
     id: u.id,
     name: u.name,
+    subject: u.subject || '算数',
     category: u.category,
     difficultyLevel: u.difficulty_level || null,
     description: u.description || '',
