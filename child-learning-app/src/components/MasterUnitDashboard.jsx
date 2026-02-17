@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getAuth } from 'firebase/auth'
-import { collection, getDocs } from 'firebase/firestore'
-import { db } from '../firebase'
-import { getStaticMasterUnits, ensureMasterUnitsSeeded } from '../utils/importMasterUnits'
+import { getStaticMasterUnits } from '../utils/importMasterUnits'
 import {
   getLessonLogs,
   computeAllProficiencies,
@@ -62,7 +60,7 @@ function MasterUnitDashboard() {
       if (!userId) return
 
       const [units, logsResult] = await Promise.all([
-        loadMasterUnits(),
+        Promise.resolve(getStaticMasterUnits()),
         getLessonLogs(userId),
       ])
 
@@ -86,20 +84,6 @@ function MasterUnitDashboard() {
       console.error('データ取得エラー:', err)
     } finally {
       setLoading(false)
-    }
-  }
-
-  const loadMasterUnits = async () => {
-    try {
-      await ensureMasterUnitsSeeded()
-      const snapshot = await getDocs(collection(db, 'masterUnits'))
-      if (snapshot.empty) return getStaticMasterUnits()
-      return snapshot.docs
-        .map(d => ({ id: d.id, ...d.data() }))
-        .filter(u => u.isActive !== false)
-        .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0))
-    } catch {
-      return getStaticMasterUnits()
     }
   }
 
