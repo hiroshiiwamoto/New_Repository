@@ -1,7 +1,16 @@
 import { useState, useEffect } from 'react'
 import { getAuth } from 'firebase/auth'
-import { getAllMasterUnits } from '../utils/weaknessAnalysisApi'
-import { getLessonLogs, computeAllProficiencies, getProficiencyLevel, addLessonLog } from '../utils/lessonLogs'
+import { collection, query, orderBy, getDocs } from 'firebase/firestore'
+import { db } from '../firebase'
+import {
+  getMasterUnitStats,
+  getLessonLogsByUnit,
+  getProficiencyLevel,
+  addLessonLogWithStats,
+  EVALUATION_SCORES,
+  EVALUATION_LABELS,
+  EVALUATION_COLORS,
+} from '../utils/lessonLogs'
 import './MasterUnitDashboard.css'
 
 const CATEGORY_ORDER = ['計算', '数の性質', '規則性', '特殊算', '速さ', '割合', '比', '平面図形', '立体図形', '場合の数', 'グラフ・論理']
@@ -9,10 +18,17 @@ const CATEGORY_ORDER = ['計算', '数の性質', '規則性', '特殊算', '速
 function MasterUnitDashboard() {
   const [loading, setLoading] = useState(true)
   const [masterUnits, setMasterUnits] = useState([])
-  const [proficiencies, setProficiencies] = useState({})
+  const [stats, setStats] = useState({}) // { unitId: { currentScore, statusLevel, logCount } }
   const [selectedCategory, setSelectedCategory] = useState('all')
-  const [practiceModal, setPracticeModal] = useState(null)
-  const [practiceForm, setPracticeForm] = useState({ performance: '', isCorrect: null, notes: '' })
+
+  // ドリルダウンモーダル
+  const [drillUnit, setDrillUnit] = useState(null)
+  const [drillLogs, setDrillLogs] = useState([])
+  const [drillLoading, setDrillLoading] = useState(false)
+
+  // 練習記録モーダル
+  const [practiceUnit, setPracticeUnit] = useState(null)
+  const [practiceEval, setPracticeEval] = useState(null)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -26,16 +42,13 @@ function MasterUnitDashboard() {
       const userId = auth.currentUser?.uid
       if (!userId) return
 
-      const [units, logsResult] = await Promise.all([
-        getAllMasterUnits(),
-        getLessonLogs(userId)
+      const [units, statsResult] = await Promise.all([
+        loadMasterUnits(),
+        getMasterUnitStats(userId)
       ])
 
       setMasterUnits(units)
-
-      if (logsResult.success) {
-        setProficiencies(computeAllProficiencies(logsResult.data))
-      }
+      if (statsResult.success) setStats(statsResult.data)
     } catch (err) {
       console.error('データ取得エラー:', err)
     } finally {
@@ -43,71 +56,107 @@ function MasterUnitDashboard() {
     }
   }
 
-  const handleOpenPractice = (unit) => {
-    setPracticeModal(unit)
-    setPracticeForm({ performance: '', isCorrect: null, notes: '' })
+  const loadMasterUnits = async () => {
+    try {
+      const q = query(collection(db, 'masterUnits'), orderBy('orderIndex'))
+      const snapshot = await getDocs(q)
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
+    } catch {
+      const snapshot = await getDocs(collection(db, 'masterUnits'))
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() })).filter(u => u.isActive !== false)
+    }
   }
 
-  const handleSavePractice = async () => {
-    if (practiceForm.isCorrect === null && practiceForm.performance === '') {
-      alert('結果を入力してください')
-      return
+  // ドリルダウン：単元をタップして詳細表示
+  const handleDrillDown = async (unit) => {
+    setDrillUnit(unit)
+    setDrillLogs([])
+    setDrillLoading(true)
+    try {
+      const auth = getAuth()
+      const userId = auth.currentUser?.uid
+      if (!userId) return
+      const result = await getLessonLogsByUnit(userId, unit.id)
+      if (result.success) setDrillLogs(result.data)
+    } catch (err) {
+      console.error('ドリルダウン取得エラー:', err)
+    } finally {
+      setDrillLoading(false)
     }
+  }
 
+  // 練習記録
+  const handleSavePractice = async () => {
+    if (!practiceEval) return
     const auth = getAuth()
     const userId = auth.currentUser?.uid
     if (!userId) return
 
     setSaving(true)
     try {
-      const performance = practiceForm.performance !== ''
-        ? parseInt(practiceForm.performance)
-        : practiceForm.isCorrect ? 100 : 0
-
-      await addLessonLog(userId, {
-        unitIds: [practiceModal.id],
+      await addLessonLogWithStats(userId, {
+        unitIds: [practiceUnit.id],
         sourceType: 'practice',
-        sourceName: practiceModal.name,
+        sourceName: practiceUnit.name,
         date: new Date(),
-        performance,
-        isCorrect: practiceForm.isCorrect,
-        notes: practiceForm.notes,
+        performance: EVALUATION_SCORES[practiceEval],
+        evaluationKey: practiceEval,
       })
-
-      setPracticeModal(null)
+      setPracticeUnit(null)
+      setPracticeEval(null)
       await loadData()
+      // ドリルダウンを開いていれば更新
+      if (drillUnit?.id === practiceUnit?.id) {
+        await handleDrillDown(practiceUnit)
+      }
     } catch (err) {
-      console.error('練習記録エラー:', err)
-      alert('記録に失敗しました')
+      console.error('記録エラー:', err)
     } finally {
       setSaving(false)
     }
   }
 
-  const categories = ['all', ...CATEGORY_ORDER]
+  // ログのフォーマット
+  const formatLogDate = (ts) => {
+    if (!ts) return '-'
+    const d = ts?.toDate ? ts.toDate() : new Date(ts)
+    return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`
+  }
 
-  const filteredUnits = selectedCategory === 'all'
-    ? masterUnits
-    : masterUnits.filter(u => u.category === selectedCategory)
+  const getEvalEmoji = (log) => {
+    if (log.evaluationKey === 'blue') return '🔵'
+    if (log.evaluationKey === 'yellow') return '🟡'
+    if (log.evaluationKey === 'red') return '🔴'
+    if (log.performance >= 90) return '🔵'
+    if (log.performance >= 60) return '🟡'
+    return '🔴'
+  }
 
-  // カテゴリ順でグループ化
+  const getSourceLabel = (log) => {
+    const type = log.sourceType === 'sapixTask' ? '📘 SAPIXテキスト'
+      : log.sourceType === 'pastPaper' ? '📄 過去問'
+      : '✏️ 練習'
+    return `${type}${log.sourceName ? ': ' + log.sourceName : ''}`
+  }
+
+  const filteredUnits = masterUnits.filter(u =>
+    selectedCategory === 'all' || u.category === selectedCategory
+  )
+
   const groupedUnits = CATEGORY_ORDER.reduce((acc, cat) => {
     const units = filteredUnits.filter(u => u.category === cat)
     if (units.length > 0) acc[cat] = units
     return acc
   }, {})
 
-  // 全体統計
+  // サマリー統計
   const totalUnits = masterUnits.length
-  const studiedUnits = Object.keys(proficiencies).length
+  const studiedUnits = Object.keys(stats).length
   const avgScore = studiedUnits > 0
-    ? Math.round(
-        Object.values(proficiencies).reduce((s, p) => s + Math.max(0, p.score), 0) / studiedUnits
-      )
+    ? Math.round(Object.values(stats).reduce((s, p) => s + (p.currentScore || 0), 0) / studiedUnits)
     : 0
-
   const levelCounts = [0, 1, 2, 3, 4, 5].map(lv =>
-    Object.values(proficiencies).filter(p => p.level === lv).length
+    Object.values(stats).filter(p => p.statusLevel === lv).length
   )
 
   if (loading) {
@@ -116,23 +165,23 @@ function MasterUnitDashboard() {
 
   return (
     <div className="master-unit-dashboard">
-      {/* 全体サマリー */}
+      {/* サマリー */}
       <div className="mud-summary">
         <div className="mud-summary-card">
           <div className="mud-summary-value">{studiedUnits}<span className="mud-summary-total">/{totalUnits}</span></div>
           <div className="mud-summary-label">学習済み単元</div>
         </div>
         <div className="mud-summary-card">
-          <div className="mud-summary-value">{avgScore}</div>
+          <div className="mud-summary-value">{studiedUnits > 0 ? avgScore : '-'}</div>
           <div className="mud-summary-label">平均習熟度</div>
         </div>
         <div className="mud-level-bar">
           {[
-            { lv: 5, label: '得意', color: '#16a34a' },
-            { lv: 4, label: '良好', color: '#2563eb' },
-            { lv: 3, label: '普通', color: '#ca8a04' },
+            { lv: 5, label: '得意',   color: '#16a34a' },
+            { lv: 4, label: '良好',   color: '#2563eb' },
+            { lv: 3, label: '普通',   color: '#ca8a04' },
             { lv: 2, label: '要復習', color: '#ea580c' },
-            { lv: 1, label: '苦手', color: '#dc2626' },
+            { lv: 1, label: '苦手',   color: '#dc2626' },
           ].map(({ lv, label, color }) => (
             <div key={lv} className="mud-level-item">
               <div className="mud-level-dot" style={{ background: color }} />
@@ -144,7 +193,7 @@ function MasterUnitDashboard() {
 
       {/* カテゴリフィルター */}
       <div className="mud-category-filter">
-        {categories.map(cat => (
+        {['all', ...CATEGORY_ORDER].map(cat => (
           <button
             key={cat}
             className={`mud-cat-btn ${selectedCategory === cat ? 'active' : ''}`}
@@ -155,29 +204,38 @@ function MasterUnitDashboard() {
         ))}
       </div>
 
-      {/* 単元グリッド（カテゴリ別） */}
+      {/* 単元グリッド */}
       <div className="mud-categories">
         {Object.entries(groupedUnits).map(([cat, units]) => (
           <div key={cat} className="mud-category-section">
             <h3 className="mud-cat-title">{cat}</h3>
             <div className="mud-unit-grid">
               {units.map(unit => {
-                const prof = proficiencies[unit.id]
-                const level = prof ? getProficiencyLevel(prof.score) : getProficiencyLevel(-1)
+                const unitStat = stats[unit.id]
+                const score = unitStat?.currentScore ?? -1
+                const level = getProficiencyLevel(score)
                 return (
                   <button
                     key={unit.id}
                     className="mud-unit-cell"
-                    style={{ '--prof-color': level.color }}
-                    onClick={() => handleOpenPractice(unit)}
-                    title={`${unit.name}\n難易度: ${'★'.repeat(unit.difficultyLevel || 1)}\n${prof ? `習熟度: ${prof.score}点 (${level.label})` : '未学習'}`}
+                    style={{
+                      '--prof-color': level.color,
+                      background: level.bgColor,
+                      borderColor: level.color,
+                    }}
+                    onClick={() => handleDrillDown(unit)}
+                    title={`${unit.name}\n${unitStat ? `習熟度: ${score}点 (${level.label}) / ${unitStat.logCount}回` : '未学習'}`}
                   >
                     <div className="mud-unit-indicator" style={{ background: level.color }} />
                     <div className="mud-unit-name">{unit.name}</div>
-                    {prof && (
-                      <div className="mud-unit-score">{prof.score}点</div>
+                    {unitStat ? (
+                      <>
+                        <div className="mud-unit-score">{score}点</div>
+                        <div className="mud-unit-level" style={{ color: level.color }}>{level.label}</div>
+                      </>
+                    ) : (
+                      <div className="mud-unit-level" style={{ color: level.color }}>未学習</div>
                     )}
-                    <div className="mud-unit-level" style={{ color: level.color }}>{level.label}</div>
                   </button>
                 )
               })}
@@ -186,65 +244,69 @@ function MasterUnitDashboard() {
         ))}
       </div>
 
-      {/* 練習記録モーダル */}
-      {practiceModal && (
-        <div className="mud-modal-overlay" onClick={() => setPracticeModal(null)}>
-          <div className="mud-modal" onClick={e => e.stopPropagation()}>
-            <h3>✏️ 練習を記録</h3>
-            <p className="mud-modal-unit">{practiceModal.name}</p>
-            <p className="mud-modal-cat">{practiceModal.category} / 難易度 {'★'.repeat(practiceModal.difficultyLevel || 1)}</p>
-
-            <div className="mud-form">
-              <div className="mud-form-group">
-                <label>結果</label>
-                <div className="mud-result-btns">
-                  <button
-                    className={`mud-result-btn correct ${practiceForm.isCorrect === true ? 'selected' : ''}`}
-                    onClick={() => setPracticeForm(f => ({ ...f, isCorrect: true, performance: '' }))}
-                  >⭕ 正解</button>
-                  <button
-                    className={`mud-result-btn incorrect ${practiceForm.isCorrect === false ? 'selected' : ''}`}
-                    onClick={() => setPracticeForm(f => ({ ...f, isCorrect: false, performance: '' }))}
-                  >❌ 不正解</button>
-                </div>
+      {/* ドリルダウンモーダル */}
+      {drillUnit && (
+        <div className="mud-modal-overlay" onClick={() => setDrillUnit(null)}>
+          <div className="mud-modal mud-drill-modal" onClick={e => e.stopPropagation()}>
+            <div className="mud-drill-header">
+              <div>
+                <h3>{drillUnit.name}</h3>
+                <p className="mud-drill-cat">{drillUnit.category} / 難易度 {'★'.repeat(drillUnit.difficultyLevel || 1)}</p>
+                {stats[drillUnit.id] && (
+                  <p className="mud-drill-score" style={{ color: getProficiencyLevel(stats[drillUnit.id].currentScore).color }}>
+                    習熟度: {stats[drillUnit.id].currentScore}点 ({getProficiencyLevel(stats[drillUnit.id].currentScore).label})
+                  </p>
+                )}
               </div>
-
-              <div className="mud-form-group">
-                <label>得点率 (0-100、任意)</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  placeholder="例: 75"
-                  value={practiceForm.performance}
-                  onChange={e => setPracticeForm(f => ({ ...f, performance: e.target.value, isCorrect: null }))}
-                  className="mud-input"
-                />
-              </div>
-
-              <div className="mud-form-group">
-                <label>メモ</label>
-                <textarea
-                  placeholder="気づいたことや次回へのコメント..."
-                  value={practiceForm.notes}
-                  onChange={e => setPracticeForm(f => ({ ...f, notes: e.target.value }))}
-                  className="mud-textarea"
-                  rows={2}
-                />
-              </div>
+              <button className="mud-drill-close" onClick={() => setDrillUnit(null)}>×</button>
             </div>
 
-            <div className="mud-modal-actions">
-              <button className="mud-btn-cancel" onClick={() => setPracticeModal(null)} disabled={saving}>
-                キャンセル
-              </button>
-              <button
-                className="mud-btn-save"
-                onClick={handleSavePractice}
-                disabled={saving || (practiceForm.isCorrect === null && practiceForm.performance === '')}
-              >
-                {saving ? '記録中...' : '記録する'}
-              </button>
+            {/* 練習記録ボタン */}
+            <div className="mud-drill-practice">
+              <span className="mud-drill-practice-label">練習を記録:</span>
+              {['blue', 'yellow', 'red'].map(key => (
+                <button
+                  key={key}
+                  className={`mud-drill-eval-btn ${practiceEval === key ? 'selected' : ''}`}
+                  style={{ '--eval-color': EVALUATION_COLORS[key] }}
+                  onClick={() => setPracticeUnit(drillUnit) || setPracticeEval(key)}
+                  title={EVALUATION_LABELS[key]}
+                >
+                  {key === 'blue' ? '🔵' : key === 'yellow' ? '🟡' : '🔴'}
+                </button>
+              ))}
+              {practiceEval && practiceUnit?.id === drillUnit.id && (
+                <button
+                  className="mud-drill-save-btn"
+                  onClick={handleSavePractice}
+                  disabled={saving}
+                >
+                  {saving ? '記録中...' : '記録する'}
+                </button>
+              )}
+            </div>
+
+            {/* 履歴リスト */}
+            <div className="mud-drill-history">
+              <h4>📋 評価履歴 ({drillLogs.length}件)</h4>
+              {drillLoading ? (
+                <div className="mud-drill-loading">読み込み中...</div>
+              ) : drillLogs.length === 0 ? (
+                <div className="mud-drill-empty">まだ評価がありません。上のボタンで記録してください。</div>
+              ) : (
+                <div className="mud-drill-log-list">
+                  {drillLogs.map(log => (
+                    <div key={log.id} className="mud-drill-log-item">
+                      <span className="mud-log-emoji">{getEvalEmoji(log)}</span>
+                      <div className="mud-log-info">
+                        <span className="mud-log-source">{getSourceLabel(log)}</span>
+                        <span className="mud-log-score">{log.performance}点</span>
+                      </div>
+                      <span className="mud-log-date">{formatLogDate(log.date || log.createdAt)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

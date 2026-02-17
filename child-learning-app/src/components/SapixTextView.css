@@ -433,3 +433,53 @@
     font-size: 0.75rem;
   }
 }
+
+/* 評価ボタン */
+.sapix-eval-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.sapix-eval-label {
+  font-size: 12px;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.sapix-eval-btn {
+  padding: 4px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  background: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+  line-height: 1;
+}
+
+.sapix-eval-btn:hover:not(:disabled) {
+  background: #f3f4f6;
+  transform: scale(1.1);
+}
+
+.sapix-eval-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sapix-eval-saving {
+  font-size: 12px;
+  color: #3b82f6;
+}
+
+/* 単元タグ（複数表示） */
+.sapix-unit-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}

@@ -16,12 +16,9 @@ service cloud.firestore {
     // 弱点分析システム
     // ========================================
 
-    // 単元マスタ（全員読み取り可、ログイン済みユーザーは作成可）
-    // ⚠️ セキュリティ注意: 初期データインポート後は create を false に変更することを推奨
+    // 単元マスタ（認証済みユーザーが管理・編集可能）
     match /masterUnits/{unitId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated(); // iPhoneからのインポートを許可
-      allow update, delete: if false; // 更新・削除は不可
+      allow read, write: if isAuthenticated();
     }
 
     // 過去問マスタ（全員読み取り可、書き込み不可）
@@ -109,6 +106,11 @@ service cloud.firestore {
 
       // 学習履歴ログ（lessonLogs）コレクション
       match /lessonLogs/{logId} {
+        allow read, write: if isAuthenticated() && isOwner(userId);
+      }
+
+      // マスター単元習熟度統計（masterUnitStats）コレクション
+      match /masterUnitStats/{unitId} {
         allow read, write: if isAuthenticated() && isOwner(userId);
       }
     }
