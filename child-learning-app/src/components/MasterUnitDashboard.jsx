@@ -4,8 +4,8 @@ import { collection, getDocs } from 'firebase/firestore'
 import { db } from '../firebase'
 import { getStaticMasterUnits, ensureMasterUnitsSeeded } from '../utils/importMasterUnits'
 import {
-  getMasterUnitStats,
-  getLessonLogsByUnit,
+  getLessonLogs,
+  computeAllProficiencies,
   getProficiencyLevel,
   addLessonLogWithStats,
   EVALUATION_SCORES,
@@ -21,14 +21,16 @@ const CATEGORY_ORDER = ['計算', '数の性質', '規則性', '特殊算', '速
 function MasterUnitDashboard() {
   const [loading, setLoading] = useState(true)
   const [masterUnits, setMasterUnits] = useState([])
-  const [stats, setStats] = useState({}) // { unitId: { currentScore, statusLevel, logCount } }
+  // stats: { unitId: { currentScore, statusLevel, logCount } }
+  const [stats, setStats] = useState({})
+  // allLogs: キャッシュ済み lessonLogs（ドリルダウンにも使用）
+  const [allLogs, setAllLogs] = useState([])
   const [selectedSubject, setSelectedSubject] = useState('算数')
   const [selectedCategory, setSelectedCategory] = useState('all')
 
   // ドリルダウンモーダル
   const [drillUnit, setDrillUnit] = useState(null)
   const [drillLogs, setDrillLogs] = useState([])
-  const [drillLoading, setDrillLoading] = useState(false)
 
   // 練習記録モーダル
   const [practiceUnit, setPracticeUnit] = useState(null)
@@ -39,6 +41,19 @@ function MasterUnitDashboard() {
     loadData()
   }, [])
 
+  // allLogs または drillUnit が変わったらドリルログを自動更新
+  useEffect(() => {
+    if (!drillUnit) return
+    const unitLogs = allLogs
+      .filter(log => log.unitIds?.includes(drillUnit.id))
+      .sort((a, b) => {
+        const ta = a.createdAt?.toMillis?.() ?? new Date(a.createdAt ?? 0).getTime()
+        const tb = b.createdAt?.toMillis?.() ?? new Date(b.createdAt ?? 0).getTime()
+        return tb - ta
+      })
+    setDrillLogs(unitLogs)
+  }, [allLogs, drillUnit])
+
   const loadData = async () => {
     setLoading(true)
     try {
@@ -46,13 +61,27 @@ function MasterUnitDashboard() {
       const userId = auth.currentUser?.uid
       if (!userId) return
 
-      const [units, statsResult] = await Promise.all([
+      const [units, logsResult] = await Promise.all([
         loadMasterUnits(),
-        getMasterUnitStats(userId)
+        getLessonLogs(userId),
       ])
 
       setMasterUnits(units)
-      if (statsResult.success) setStats(statsResult.data)
+
+      const logs = logsResult.success ? logsResult.data : []
+      setAllLogs(logs)
+
+      // lessonLogs から直接習熟度を計算（masterUnitStats に依存しない）
+      const profMap = computeAllProficiencies(logs)
+      const statsData = {}
+      for (const [unitId, data] of Object.entries(profMap)) {
+        statsData[unitId] = {
+          currentScore: data.score,
+          statusLevel: data.level,
+          logCount: data.logCount,
+        }
+      }
+      setStats(statsData)
     } catch (err) {
       console.error('データ取得エラー:', err)
     } finally {
@@ -74,22 +103,10 @@ function MasterUnitDashboard() {
     }
   }
 
-  // ドリルダウン：単元をタップして詳細表示
-  const handleDrillDown = async (unit) => {
+  // ドリルダウン：単元セルをタップ（同期処理。allLogsから即時フィルタ）
+  const handleDrillDown = (unit) => {
     setDrillUnit(unit)
-    setDrillLogs([])
-    setDrillLoading(true)
-    try {
-      const auth = getAuth()
-      const userId = auth.currentUser?.uid
-      if (!userId) return
-      const result = await getLessonLogsByUnit(userId, unit.id)
-      if (result.success) setDrillLogs(result.data)
-    } catch (err) {
-      console.error('ドリルダウン取得エラー:', err)
-    } finally {
-      setDrillLoading(false)
-    }
+    // useEffect が drillUnit の変化を検知して drillLogs を更新する
   }
 
   // 練習記録
@@ -111,11 +128,8 @@ function MasterUnitDashboard() {
       })
       setPracticeUnit(null)
       setPracticeEval(null)
+      // lessonLogs を再読み込みして統計を再計算（drillLogs も自動更新される）
       await loadData()
-      // ドリルダウンを開いていれば更新
-      if (drillUnit?.id === practiceUnit?.id) {
-        await handleDrillDown(practiceUnit)
-      }
     } catch (err) {
       console.error('記録エラー:', err)
     } finally {
@@ -159,13 +173,17 @@ function MasterUnitDashboard() {
   }, {})
 
   // サマリー統計
-  const totalUnits = masterUnits.length
-  const studiedUnits = Object.keys(stats).length
+  const totalUnits = subjectUnits.length
+  const studiedUnits = subjectUnits.filter(u => stats[u.id]).length
   const avgScore = studiedUnits > 0
-    ? Math.round(Object.values(stats).reduce((s, p) => s + (p.currentScore || 0), 0) / studiedUnits)
+    ? Math.round(
+        subjectUnits
+          .filter(u => stats[u.id])
+          .reduce((s, u) => s + (stats[u.id].currentScore || 0), 0) / studiedUnits
+      )
     : 0
   const levelCounts = [0, 1, 2, 3, 4, 5].map(lv =>
-    Object.values(stats).filter(p => p.statusLevel === lv).length
+    subjectUnits.filter(u => (stats[u.id]?.statusLevel ?? 0) === lv).length
   )
 
   if (loading) {
@@ -303,7 +321,7 @@ function MasterUnitDashboard() {
                   key={key}
                   className={`mud-drill-eval-btn ${practiceEval === key ? 'selected' : ''}`}
                   style={{ '--eval-color': EVALUATION_COLORS[key] }}
-                  onClick={() => setPracticeUnit(drillUnit) || setPracticeEval(key)}
+                  onClick={() => { setPracticeUnit(drillUnit); setPracticeEval(key) }}
                   title={EVALUATION_LABELS[key]}
                 >
                   {key === 'blue' ? '🔵' : key === 'yellow' ? '🟡' : '🔴'}
@@ -323,9 +341,7 @@ function MasterUnitDashboard() {
             {/* 履歴リスト */}
             <div className="mud-drill-history">
               <h4>📋 評価履歴 ({drillLogs.length}件)</h4>
-              {drillLoading ? (
-                <div className="mud-drill-loading">読み込み中...</div>
-              ) : drillLogs.length === 0 ? (
+              {drillLogs.length === 0 ? (
                 <div className="mud-drill-empty">まだ評価がありません。上のボタンで記録してください。</div>
               ) : (
                 <div className="mud-drill-log-list">
