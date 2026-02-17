@@ -1,0 +1,343 @@
+.master-unit-editor {
+  padding: 16px;
+}
+
+.mue-loading {
+  text-align: center;
+  padding: 60px;
+  color: #6b7280;
+}
+
+/* ヘッダー */
+.mue-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.mue-stats {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.mue-add-btn {
+  padding: 9px 18px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mue-add-btn:hover {
+  background: #2563eb;
+}
+
+/* フィルター */
+.mue-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.mue-cat-btn {
+  padding: 4px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 16px;
+  background: white;
+  font-size: 12px;
+  cursor: pointer;
+  color: #374151;
+}
+
+.mue-cat-btn:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.mue-cat-btn.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+
+/* 単元リスト */
+.mue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mue-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  transition: box-shadow 0.15s;
+}
+
+.mue-item:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.mue-item.inactive {
+  opacity: 0.5;
+  background: #f9fafb;
+}
+
+.mue-item-main {
+  flex: 1;
+}
+
+.mue-item-info {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.mue-item-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.mue-item-id {
+  font-size: 11px;
+  font-family: monospace;
+  background: #f3f4f6;
+  color: #6b7280;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.mue-item-cat {
+  font-size: 12px;
+  color: #3b82f6;
+  background: #eff6ff;
+  padding: 1px 8px;
+  border-radius: 10px;
+}
+
+.mue-item-diff {
+  font-size: 12px;
+  color: #f59e0b;
+}
+
+.mue-item-desc {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.mue-item-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.mue-toggle-btn,
+.mue-edit-btn,
+.mue-delete-btn {
+  padding: 4px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid;
+}
+
+.mue-toggle-btn.on {
+  background: #dcfce7;
+  color: #15803d;
+  border-color: #86efac;
+}
+
+.mue-toggle-btn.off {
+  background: #f3f4f6;
+  color: #6b7280;
+  border-color: #d1d5db;
+}
+
+.mue-edit-btn {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+.mue-edit-btn:hover {
+  background: #dbeafe;
+}
+
+.mue-delete-btn {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.mue-delete-btn:hover {
+  background: #fee2e2;
+}
+
+.mue-empty {
+  padding: 40px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+/* モーダル */
+.mue-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.mue-modal {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.mue-modal h3 {
+  margin: 0 0 20px;
+  font-size: 18px;
+}
+
+.mue-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mue-form-row label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.required {
+  color: #dc2626;
+}
+
+.mue-input,
+.mue-select,
+.mue-textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.mue-input:focus,
+.mue-select:focus,
+.mue-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.mue-input:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+}
+
+.mue-hint {
+  font-size: 11px;
+  color: #9ca3af;
+  margin: 4px 0 0;
+}
+
+.mue-difficulty {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mue-diff-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #d1d5db;
+  padding: 0;
+  line-height: 1;
+}
+
+.mue-diff-btn.active {
+  color: #f59e0b;
+}
+
+.mue-diff-label {
+  font-size: 12px;
+  color: #6b7280;
+  margin-left: 6px;
+}
+
+.mue-textarea {
+  resize: vertical;
+}
+
+.mue-modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.mue-btn-cancel {
+  flex: 1;
+  padding: 11px;
+  background: white;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.mue-btn-cancel:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.mue-btn-save {
+  flex: 2;
+  padding: 11px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mue-btn-save:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.mue-btn-save:disabled,
+.mue-btn-cancel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

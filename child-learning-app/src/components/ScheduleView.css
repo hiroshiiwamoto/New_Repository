@@ -45,3 +45,9 @@
     font-size: 0.8125rem;
   }
 }
+
+.study-analysis .analysis-divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 20px 0;
+}

@@ -8,7 +8,6 @@ import ScheduleView from './components/ScheduleView'
 import UnitAnalysisView from './components/UnitAnalysisView'
 import PastPaperView from './components/PastPaperView'
 import TestScoreView from './components/TestScoreView'
-import PDFProblemView from './components/PDFProblemView'
 import SapixTextView from './components/SapixTextView'
 import { generateSAPIXScheduleByGrade } from './utils/sampleData'
 import {
@@ -30,7 +29,7 @@ import { toast } from './utils/toast'
 function App() {
   const [user, setUser] = useState(null)
   const [tasks, setTasks] = useState([])
-  const [view, setView] = useState('schedule') // schedule, unitAnalysis, pastpaper, testscore, pdfproblem, sapixtext, edit
+  const [view, setView] = useState('schedule') // schedule, dashboard, pastpaper, testscore, sapixtext, edit
   const [previousView, setPreviousView] = useState('schedule') // Store previous view for returning after edit
   const [editingTask, setEditingTask] = useState(null)
   const [customUnits, setCustomUnits] = useState([]) // カスタム単元
@@ -335,10 +334,10 @@ function App() {
             📅 スケジュール
           </button>
           <button
-            className={view === 'unitAnalysis' ? 'active' : ''}
-            onClick={() => setView('unitAnalysis')}
+            className={view === 'sapixtext' ? 'active' : ''}
+            onClick={() => setView('sapixtext')}
           >
-            📊 単元分析
+            📘 サピックス課題
           </button>
           <button
             className={view === 'pastpaper' ? 'active' : ''}
@@ -353,16 +352,10 @@ function App() {
             📈 テスト成績
           </button>
           <button
-            className={view === 'pdfproblem' ? 'active' : ''}
-            onClick={() => setView('pdfproblem')}
+            className={view === 'dashboard' ? 'active' : ''}
+            onClick={() => setView('dashboard')}
           >
-            📝 PDF問題管理
-          </button>
-          <button
-            className={view === 'sapixtext' ? 'active' : ''}
-            onClick={() => setView('sapixtext')}
-          >
-            📘 SAPIX
+            🏠 ダッシュボード
           </button>
         </div>
 
@@ -374,14 +367,9 @@ function App() {
             onBulkDeleteTasks={bulkDeleteTasks}
             onEditTask={handleEditTask}
           />
-        ) : view === 'unitAnalysis' ? (
+        ) : view === 'dashboard' ? (
           <UnitAnalysisView
             tasks={tasks}
-            onEditTask={handleEditTask}
-            customUnits={customUnits}
-            onAddCustomUnit={addCustomUnit}
-            onUpdateUnit={updateCustomUnit}
-            onDeleteUnit={deleteCustomUnit}
           />
         ) : view === 'pastpaper' ? (
           <PastPaperView
@@ -394,10 +382,6 @@ function App() {
           />
         ) : view === 'testscore' ? (
           <TestScoreView
-            user={user}
-          />
-        ) : view === 'pdfproblem' ? (
-          <PDFProblemView
             user={user}
           />
         ) : view === 'sapixtext' ? (
