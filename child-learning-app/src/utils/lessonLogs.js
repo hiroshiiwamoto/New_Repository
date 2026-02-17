@@ -97,11 +97,17 @@ export async function addLessonLog(userId, data) {
 export async function getLessonLogs(userId) {
   try {
     const q = query(
-      collection(db, 'users', userId, 'lessonLogs'),
-      orderBy('createdAt', 'desc')
+      collection(db, 'users', userId, 'lessonLogs')
+      // orderBy は Firestore インデックスを要求するため除去。クライアント側でソートする
     )
     const snapshot = await getDocs(q)
-    const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
+    const data = snapshot.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => {
+        const ta = a.createdAt?.toMillis?.() ?? new Date(a.createdAt ?? 0).getTime()
+        const tb = b.createdAt?.toMillis?.() ?? new Date(b.createdAt ?? 0).getTime()
+        return tb - ta
+      })
     return { success: true, data }
   } catch (error) {
     console.error('lessonLog 取得エラー:', error)
