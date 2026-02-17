@@ -16,9 +16,10 @@ service cloud.firestore {
     // 弱点分析システム
     // ========================================
 
-    // 単元マスタ（認証済みユーザーが管理・編集可能）
+    // 単元マスタ（固定マスタデータ：読み取りは誰でも可、書き込みは認証済みユーザーのみ）
     match /masterUnits/{unitId} {
-      allow read, write: if isAuthenticated();
+      allow read: if true;
+      allow write: if isAuthenticated();
     }
 
     // 過去問マスタ（全員読み取り可、書き込み不可）

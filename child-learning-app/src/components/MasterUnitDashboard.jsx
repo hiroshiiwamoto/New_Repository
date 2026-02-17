@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { getAuth } from 'firebase/auth'
-import { collection, query, orderBy, getDocs } from 'firebase/firestore'
+import { collection, getDocs } from 'firebase/firestore'
 import { db } from '../firebase'
+import { getStaticMasterUnits, ensureMasterUnitsSeeded } from '../utils/importMasterUnits'
 import {
   getMasterUnitStats,
   getLessonLogsByUnit,
@@ -58,12 +59,15 @@ function MasterUnitDashboard() {
 
   const loadMasterUnits = async () => {
     try {
-      const q = query(collection(db, 'masterUnits'), orderBy('orderIndex'))
-      const snapshot = await getDocs(q)
-      return snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
-    } catch {
+      await ensureMasterUnitsSeeded()
       const snapshot = await getDocs(collection(db, 'masterUnits'))
-      return snapshot.docs.map(d => ({ id: d.id, ...d.data() })).filter(u => u.isActive !== false)
+      if (snapshot.empty) return getStaticMasterUnits()
+      return snapshot.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(u => u.isActive !== false)
+        .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0))
+    } catch {
+      return getStaticMasterUnits()
     }
   }
 

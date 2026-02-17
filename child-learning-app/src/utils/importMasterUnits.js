@@ -3,11 +3,11 @@
  * iPhoneのブラウザから実行可能
  */
 
-import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { collection, doc, setDoc, getDocs, serverTimestamp } from 'firebase/firestore'
 import { db } from '../firebase'
 
-// 単元マスタ初期データ（50単元）
-const MASTER_UNITS_DATA = [
+// 単元マスタ初期データ（50単元）- アプリ内のフォールバック静的データとしても使用
+export const MASTER_UNITS_DATA = [
   // 計算 (4)
   { id: 'CALC_BASIC', name: '四則計算の基礎', category: '計算', difficulty_level: 1, order_index: 10 },
   { id: 'CALC_TRICK', name: '計算のくふう', category: '計算', difficulty_level: 2, order_index: 20 },
@@ -133,6 +133,37 @@ export async function importMasterUnitsToFirestore(onProgress = null) {
   }
 
   return results
+}
+
+/**
+ * 静的な50単元データをFirestoreと同じ形式で返す（オフライン/空コレクション用フォールバック）
+ */
+export function getStaticMasterUnits() {
+  return MASTER_UNITS_DATA.map(u => ({
+    id: u.id,
+    name: u.name,
+    category: u.category,
+    difficultyLevel: u.difficulty_level || null,
+    description: u.description || '',
+    orderIndex: u.order_index || 0,
+    isActive: true,
+  }))
+}
+
+/**
+ * masterUnitsコレクションが空の場合に自動シードする
+ * @returns {Promise<boolean>} - シードした場合はtrue
+ */
+export async function ensureMasterUnitsSeeded() {
+  try {
+    const snapshot = await getDocs(collection(db, 'masterUnits'))
+    if (!snapshot.empty) return false // 既にデータあり
+    await importMasterUnitsToFirestore()
+    return true
+  } catch (err) {
+    console.warn('ensureMasterUnitsSeeded failed:', err)
+    return false
+  }
 }
 
 /**
