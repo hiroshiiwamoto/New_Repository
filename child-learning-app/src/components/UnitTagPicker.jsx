@@ -1,7 +1,5 @@
-import { useState, useEffect, useMemo } from 'react'
-import { collection, getDocs } from 'firebase/firestore'
-import { db } from '../firebase'
-import { getStaticMasterUnits, ensureMasterUnitsSeeded } from '../utils/importMasterUnits'
+import { useState, useMemo } from 'react'
+import { getStaticMasterUnits } from '../utils/importMasterUnits'
 import './UnitTagPicker.css'
 
 /**
@@ -12,34 +10,9 @@ import './UnitTagPicker.css'
  * @param {string} [placeholder] - 検索ボックスのプレースホルダー
  */
 function UnitTagPicker({ value = [], onChange, placeholder = '単元を検索...' }) {
-  const [allUnits, setAllUnits] = useState([])
+  const allUnits = getStaticMasterUnits()
   const [searchText, setSearchText] = useState('')
   const [isOpen, setIsOpen] = useState(false)
-
-  useEffect(() => {
-    loadUnits()
-  }, [])
-
-  const loadUnits = async () => {
-    try {
-      // コレクション未シードの場合は自動初期化
-      await ensureMasterUnitsSeeded()
-      const snapshot = await getDocs(collection(db, 'masterUnits'))
-      if (snapshot.empty) {
-        // Firestoreへの書き込み権限がない場合は静的データにフォールバック
-        setAllUnits(getStaticMasterUnits())
-        return
-      }
-      const units = snapshot.docs
-        .map(d => ({ id: d.id, ...d.data() }))
-        .filter(u => u.isActive !== false)
-        .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0))
-      setAllUnits(units)
-    } catch (e) {
-      console.error('masterUnits 取得エラー:', e)
-      setAllUnits(getStaticMasterUnits())
-    }
-  }
 
   const filteredUnits = useMemo(() => {
     if (!searchText.trim()) return allUnits
