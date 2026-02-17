@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import '../components/ScheduleView.css'
-import UnitDashboard from './UnitDashboard'
+import MasterUnitDashboard from './MasterUnitDashboard'
 import Analytics from './Analytics'
-import UnitManager from './UnitManager'
 import WeaknessAnalysis from './WeaknessAnalysis'
+import MasterUnitEditor from './MasterUnitEditor'
 
-function UnitAnalysisView({ tasks, onEditTask, customUnits, onAddCustomUnit, onUpdateUnit, onDeleteUnit }) {
-  const [subView, setSubView] = useState('dashboard') // 'dashboard', 'analytics', 'unitManager', 'weakness'
+function UnitAnalysisView({ tasks }) {
+  const [subView, setSubView] = useState('dashboard') // 'dashboard', 'analysis', 'editor'
 
   return (
     <div className="unit-analysis-view">
@@ -15,45 +15,32 @@ function UnitAnalysisView({ tasks, onEditTask, customUnits, onAddCustomUnit, onU
           className={subView === 'dashboard' ? 'active' : ''}
           onClick={() => setSubView('dashboard')}
         >
-          単元ダッシュボード
+          🏠 単元ダッシュボード
         </button>
         <button
-          className={subView === 'analytics' ? 'active' : ''}
-          onClick={() => setSubView('analytics')}
+          className={subView === 'analysis' ? 'active' : ''}
+          onClick={() => setSubView('analysis')}
         >
-          学習分析
+          📊 学習分析
         </button>
         <button
-          className={subView === 'weakness' ? 'active' : ''}
-          onClick={() => setSubView('weakness')}
+          className={subView === 'editor' ? 'active' : ''}
+          onClick={() => setSubView('editor')}
         >
-          🎯 弱点分析
-        </button>
-        <button
-          className={subView === 'unitManager' ? 'active' : ''}
-          onClick={() => setSubView('unitManager')}
-        >
-          カスタム単元
+          ✏️ 単元編集
         </button>
       </div>
 
       {subView === 'dashboard' ? (
-        <UnitDashboard
-          tasks={tasks}
-          onEditTask={onEditTask}
-          customUnits={customUnits}
-        />
-      ) : subView === 'analytics' ? (
-        <Analytics tasks={tasks} />
-      ) : subView === 'weakness' ? (
-        <WeaknessAnalysis />
+        <MasterUnitDashboard />
+      ) : subView === 'analysis' ? (
+        <div className="study-analysis">
+          <Analytics tasks={tasks} />
+          <div className="analysis-divider" />
+          <WeaknessAnalysis />
+        </div>
       ) : (
-        <UnitManager
-          customUnits={customUnits}
-          onAddCustomUnit={onAddCustomUnit}
-          onUpdateUnit={onUpdateUnit}
-          onDeleteUnit={onDeleteUnit}
-        />
+        <MasterUnitEditor />
       )}
     </div>
   )
