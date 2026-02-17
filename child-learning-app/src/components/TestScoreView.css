@@ -599,3 +599,623 @@
     flex-wrap: wrap;
   }
 }
+
+/* ============================================================
+   詳細ビュー
+   ============================================================ */
+
+.score-card-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.btn-open-detail {
+  width: 100%;
+  padding: 10px 16px;
+  background: #f0f7ff;
+  color: #007AFF;
+  border: 1px solid #bfdbfe;
+  border-top: none;
+  border-radius: 0 0 16px 16px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.btn-open-detail:hover {
+  background: #dbeafe;
+  color: #0057cc;
+}
+
+/* 詳細ヘッダー */
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: white;
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.06);
+  flex-wrap: wrap;
+}
+
+.back-btn {
+  padding: 8px 16px;
+  background: white;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #64748b;
+  white-space: nowrap;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.back-btn:hover {
+  background: #f5f5f7;
+  border-color: rgba(0,0,0,0.2);
+}
+
+.detail-title-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.detail-test-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1d1d1f;
+  margin: 0;
+}
+
+.detail-test-date {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.detail-deviation-badge {
+  background: linear-gradient(135deg, #3b82f6, #60a5fa);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.detail-header-actions {
+  flex-shrink: 0;
+}
+
+.btn-edit-score {
+  padding: 8px 16px;
+  background: white;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #475569;
+  transition: all 0.2s;
+}
+
+.btn-edit-score:hover {
+  background: #f5f5f7;
+}
+
+/* アクションバー */
+.action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  border-radius: 14px;
+  padding: 14px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.06);
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.action-bar-info {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.problem-count-badge {
+  background: #f1f5f9;
+  color: #475569;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.revenge-count-badge {
+  background: #fff7ed;
+  color: #ea580c;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.action-bar-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-sync-units {
+  padding: 10px 16px;
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-sync-units:hover:not(:disabled) {
+  background: #fecaca;
+}
+
+.btn-sync-units:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-create-tasks {
+  padding: 10px 16px;
+  background: #007AFF;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 6px rgba(0,122,255,0.25);
+  white-space: nowrap;
+}
+
+.btn-create-tasks:hover:not(:disabled) {
+  background: #0071e3;
+}
+
+.btn-create-tasks:disabled {
+  background: #94a3b8;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* セクションカード */
+.section-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.revenge-subtitle {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.btn-add-problem {
+  padding: 8px 16px;
+  background: #007AFF;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-add-problem:hover {
+  background: #0071e3;
+  transform: translateY(-1px);
+}
+
+.empty-problems {
+  text-align: center;
+  padding: 32px 20px;
+  color: #94a3b8;
+  font-size: 0.9rem;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+/* 問題テーブル */
+.problem-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.problem-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.problem-table th {
+  text-align: left;
+  padding: 8px 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #94a3b8;
+  border-bottom: 2px solid #f1f5f9;
+  white-space: nowrap;
+}
+
+.problem-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.problem-row {
+  transition: background 0.15s;
+}
+
+.problem-row:hover {
+  background: #f8fafc;
+}
+
+.wrong-row {
+  background: rgba(254, 226, 226, 0.3);
+}
+
+.wrong-row:hover {
+  background: rgba(254, 226, 226, 0.5);
+}
+
+.revenge-row {
+  background: rgba(255, 237, 213, 0.4) !important;
+}
+
+.revenge-row:hover {
+  background: rgba(255, 237, 213, 0.6) !important;
+}
+
+.cell-num {
+  font-weight: 700;
+  color: #1e293b;
+  white-space: nowrap;
+}
+
+.revenge-marker {
+  margin-left: 4px;
+  font-size: 0.75rem;
+}
+
+.subject-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.subject-算数 { background: #dbeafe; color: #1d4ed8; }
+.subject-国語 { background: #fce7f3; color: #9d174d; }
+.subject-理科 { background: #d1fae5; color: #065f46; }
+.subject-社会 { background: #fef3c7; color: #92400e; }
+
+.cell-units {
+  max-width: 200px;
+}
+
+.unit-tag {
+  display: inline-block;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  margin: 2px;
+  white-space: nowrap;
+}
+
+.no-unit, .no-link {
+  color: #cbd5e1;
+  font-size: 0.875rem;
+}
+
+.correct-rate-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.correct-mark {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #16a34a;
+}
+
+.wrong-mark {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #dc2626;
+}
+
+.status-select {
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.1);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+}
+
+.sapix-text-link {
+  display: inline-block;
+  color: #007AFF;
+  text-decoration: none;
+  font-size: 0.78rem;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: #f0f7ff;
+  border: 1px solid #bfdbfe;
+  transition: all 0.15s;
+  white-space: nowrap;
+  margin: 2px;
+}
+
+.sapix-text-link:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+
+.btn-delete-problem {
+  padding: 4px 8px;
+  background: white;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 6px;
+  cursor: pointer;
+  color: #94a3b8;
+  font-size: 1rem;
+  line-height: 1;
+  transition: all 0.15s;
+}
+
+.btn-delete-problem:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+/* リベンジリスト */
+.revenge-section {
+  border-left: 4px solid #f97316;
+}
+
+.revenge-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.revenge-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  background: #fff7ed;
+  border-radius: 12px;
+  border: 1px solid #fed7aa;
+}
+
+.revenge-rank {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  background: #f97316;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.revenge-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.revenge-title {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.revenge-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.revenge-rate {
+  font-size: 0.875rem;
+  color: #ea580c;
+}
+
+.revenge-units {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.revenge-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.revenge-status {
+  flex-shrink: 0;
+  align-self: center;
+}
+
+/* 問題追加フォーム */
+.problem-form-container {
+  max-width: 600px !important;
+}
+
+.correct-radio-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.radio-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 2px solid rgba(0,0,0,0.1);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.15s;
+  background: white;
+}
+
+.radio-btn input[type="radio"] {
+  display: none;
+}
+
+.radio-correct.active {
+  background: #dcfce7;
+  border-color: #16a34a;
+  color: #16a34a;
+}
+
+.radio-wrong.active {
+  background: #fee2e2;
+  border-color: #dc2626;
+  color: #dc2626;
+}
+
+.unit-checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 6px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+.unit-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: #475569;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+
+.unit-checkbox-label:hover {
+  background: white;
+  border-color: rgba(0,0,0,0.1);
+}
+
+.unit-checkbox-label.checked {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+.unit-checkbox-label input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .detail-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .action-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .action-bar-buttons {
+    width: 100%;
+  }
+
+  .btn-sync-units,
+  .btn-create-tasks {
+    flex: 1;
+    text-align: center;
+  }
+
+  .revenge-item {
+    flex-wrap: wrap;
+  }
+}
