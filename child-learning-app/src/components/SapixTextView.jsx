@@ -1,14 +1,16 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import './SapixTextView.css'
-import { subjects, unitsDatabase, grades } from '../utils/unitsDatabase'
+import { subjects, grades } from '../utils/unitsDatabase'
 import { subjectColors, subjectEmojis } from '../utils/constants'
 import { getSapixTexts, addSapixText, updateSapixText, deleteSapixText } from '../utils/sapixTexts'
 import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
 import { refreshGoogleAccessToken } from './Auth'
 import { toast } from '../utils/toast'
 import DriveFilePicker from './DriveFilePicker'
+import UnitTagPicker from './UnitTagPicker'
+import { addLessonLogWithStats, EVALUATION_SCORES, EVALUATION_LABELS } from '../utils/lessonLogs'
 
-function SapixTextView({ user, customUnits = [] }) {
+function SapixTextView({ user }) {
   const [texts, setTexts] = useState([])
   const [selectedSubject, setSelectedSubject] = useState('算数')
   const [showAddForm, setShowAddForm] = useState(false)
@@ -18,13 +20,14 @@ function SapixTextView({ user, customUnits = [] }) {
   const [uploading, setUploading] = useState(false)
   const [showDrivePicker, setShowDrivePicker] = useState(null) // 'add' | 'edit' | null
   const [expandedText, setExpandedText] = useState(null) // スキャンテキスト展開中のID
+  const [evaluating, setEvaluating] = useState(null) // 評価処理中の firestoreId
 
   const [addForm, setAddForm] = useState({
     textName: '',
     textNumber: '',
     subject: '算数',
     grade: '4年生',
-    unitId: '',
+    unitIds: [],
     fileUrl: '',
     fileName: '',
     scannedText: '',
@@ -36,7 +39,7 @@ function SapixTextView({ user, customUnits = [] }) {
     textNumber: '',
     subject: '算数',
     grade: '4年生',
-    unitId: '',
+    unitIds: [],
     fileUrl: '',
     fileName: '',
     scannedText: '',
@@ -108,21 +111,30 @@ function SapixTextView({ user, customUnits = [] }) {
     return fileUrl
   }
 
-  // 単元名を取得
-  const getUnitName = (unitId) => {
-    if (!unitId) return ''
-    const customUnit = customUnits.find(u => u.id === unitId)
-    if (customUnit) return customUnit.name
-    for (const subject of subjects) {
-      const gradeData = unitsDatabase[subject]
-      if (gradeData) {
-        for (const grade in gradeData) {
-          const unit = gradeData[grade].find(u => u.id === unitId)
-          if (unit) return unit.name
-        }
-      }
+  // 評価ボタン（🔵/🟡/🔴）押下
+  const handleEvaluate = async (text, evalKey) => {
+    if (!text.unitIds?.length) {
+      toast.error('単元タグが設定されていません。編集から単元タグを追加してください。')
+      return
     }
-    return unitId
+    setEvaluating(text.firestoreId)
+    try {
+      await addLessonLogWithStats(user.uid, {
+        unitIds: text.unitIds,
+        sourceType: 'sapixTask',
+        sourceId: text.firestoreId,
+        sourceName: `${text.textName}${text.textNumber ? ' ' + text.textNumber : ''}`,
+        date: new Date(),
+        performance: EVALUATION_SCORES[evalKey],
+        evaluationKey: evalKey,
+      })
+      toast.success(`評価を記録しました: ${EVALUATION_LABELS[evalKey]}`)
+    } catch (err) {
+      toast.error('評価の記録に失敗しました')
+      console.error(err)
+    } finally {
+      setEvaluating(null)
+    }
   }
 
   // テキスト追加
@@ -136,7 +148,7 @@ function SapixTextView({ user, customUnits = [] }) {
       textNumber: addForm.textNumber.trim(),
       subject: addForm.subject,
       grade: addForm.grade,
-      unitId: addForm.unitId,
+      unitIds: addForm.unitIds,
       fileUrl: addForm.fileUrl,
       fileName: addForm.fileName,
       scannedText: addForm.scannedText,
@@ -144,7 +156,7 @@ function SapixTextView({ user, customUnits = [] }) {
     })
     if (result.success) {
       toast.success('SAPIXテキストを追加しました')
-      setAddForm({ textName: '', textNumber: '', subject: '算数', grade: '4年生', unitId: '', fileUrl: '', fileName: '', scannedText: '', studyDate: '' })
+      setAddForm({ textName: '', textNumber: '', subject: '算数', grade: '4年生', unitIds: [], fileUrl: '', fileName: '', scannedText: '', studyDate: '' })
       setShowAddForm(false)
       await loadTexts()
     } else {
@@ -160,7 +172,7 @@ function SapixTextView({ user, customUnits = [] }) {
       textNumber: text.textNumber || '',
       subject: text.subject || '算数',
       grade: text.grade || '4年生',
-      unitId: text.unitId || '',
+      unitIds: text.unitIds || (text.unitId ? [text.unitId] : []),
       fileUrl: text.fileUrl || '',
       fileName: text.fileName || '',
       scannedText: text.scannedText || '',
@@ -179,7 +191,7 @@ function SapixTextView({ user, customUnits = [] }) {
       textNumber: editForm.textNumber.trim(),
       subject: editForm.subject,
       grade: editForm.grade,
-      unitId: editForm.unitId,
+      unitIds: editForm.unitIds,
       fileUrl: editForm.fileUrl,
       fileName: editForm.fileName,
       scannedText: editForm.scannedText,
@@ -216,10 +228,8 @@ function SapixTextView({ user, customUnits = [] }) {
     }
   }
 
-  // フォームの単元セレクタ（共通）
+  // フォームの単元タグピッカー（共通）
   const renderUnitSelector = (form, setForm) => {
-    const defaultUnits = unitsDatabase[form.subject]?.[form.grade] || []
-    const filteredCustom = customUnits.filter(u => u.subject === form.subject && u.grade === form.grade)
     return (
       <>
         <div className="sapix-form-section">
@@ -230,7 +240,7 @@ function SapixTextView({ user, customUnits = [] }) {
                 key={g}
                 type="button"
                 className={`sapix-grade-btn ${form.grade === g ? 'active' : ''}`}
-                onClick={() => setForm(prev => ({ ...prev, grade: g, unitId: '' }))}
+                onClick={() => setForm(prev => ({ ...prev, grade: g }))}
               >
                 {g}
               </button>
@@ -238,39 +248,11 @@ function SapixTextView({ user, customUnits = [] }) {
           </div>
         </div>
         <div className="sapix-form-section">
-          <label className="sapix-section-label">単元タグ（任意）:</label>
-          <div className="sapix-units-grid">
-            {defaultUnits.map(unit => (
-              <label key={unit.id} className={`sapix-unit-tag ${form.unitId === unit.id ? 'selected' : ''}`}>
-                <input
-                  type="radio"
-                  name={`unitId-${form === addForm ? 'add' : 'edit'}`}
-                  checked={form.unitId === unit.id}
-                  onChange={() => setForm(prev => ({ ...prev, unitId: unit.id }))}
-                />
-                <span>{unit.name}</span>
-              </label>
-            ))}
-            {filteredCustom.map(unit => (
-              <label key={unit.id} className={`sapix-unit-tag custom ${form.unitId === unit.id ? 'selected' : ''}`}>
-                <input
-                  type="radio"
-                  name={`unitId-${form === addForm ? 'add' : 'edit'}`}
-                  checked={form.unitId === unit.id}
-                  onChange={() => setForm(prev => ({ ...prev, unitId: unit.id }))}
-                />
-                <span>{unit.name}</span>
-              </label>
-            ))}
-          </div>
-          {form.unitId && (
-            <div className="sapix-selected-unit">
-              選択中: {getUnitName(form.unitId)}
-              <button type="button" className="sapix-clear-unit" onClick={() => setForm(prev => ({ ...prev, unitId: '' }))}>
-                &times;
-              </button>
-            </div>
-          )}
+          <label className="sapix-section-label">単元タグ（複数選択可）:</label>
+          <UnitTagPicker
+            value={form.unitIds}
+            onChange={(unitIds) => setForm(prev => ({ ...prev, unitIds }))}
+          />
         </div>
       </>
     )
@@ -432,7 +414,7 @@ function SapixTextView({ user, customUnits = [] }) {
           <div className="add-form-actions">
             <button
               className="btn-secondary"
-              onClick={() => { setShowAddForm(false); setAddForm({ textName: '', textNumber: '', subject: '算数', grade: '4年生', unitId: '', fileUrl: '', fileName: '', scannedText: '', studyDate: '' }) }}
+              onClick={() => { setShowAddForm(false); setAddForm({ textName: '', textNumber: '', subject: '算数', grade: '4年生', unitIds: [], fileUrl: '', fileName: '', scannedText: '', studyDate: '' }) }}
             >
               キャンセル
             </button>
@@ -523,8 +505,12 @@ function SapixTextView({ user, customUnits = [] }) {
                         {text.textNumber && <span className="sapix-text-number">{text.textNumber}</span>}
                         {text.studyDate && <span className="sapix-study-date">📅 {text.studyDate}</span>}
                       </span>
-                      {text.unitId && (
-                        <span className="sapix-unit-badge">{getUnitName(text.unitId)}</span>
+                      {(text.unitIds?.length > 0) && (
+                        <div className="sapix-unit-tags">
+                          {text.unitIds.map(uid => (
+                            <span key={uid} className="sapix-unit-badge">{uid}</span>
+                          ))}
+                        </div>
                       )}
                     </div>
                     <div className="sapix-text-actions">
@@ -577,6 +563,25 @@ function SapixTextView({ user, customUnits = [] }) {
                       </div>
                     </div>
                   )}
+
+                  {/* 評価ボタン */}
+                  <div className="sapix-eval-row">
+                    <span className="sapix-eval-label">評価:</span>
+                    {['blue', 'yellow', 'red'].map(key => (
+                      <button
+                        key={key}
+                        className="sapix-eval-btn"
+                        disabled={evaluating === text.firestoreId}
+                        onClick={() => handleEvaluate(text, key)}
+                        title={EVALUATION_LABELS[key]}
+                      >
+                        {key === 'blue' ? '🔵' : key === 'yellow' ? '🟡' : '🔴'}
+                      </button>
+                    ))}
+                    {evaluating === text.firestoreId && (
+                      <span className="sapix-eval-saving">記録中...</span>
+                    )}
+                  </div>
 
                   {/* スキャンテキスト表示 */}
                   {expandedText === text.firestoreId && text.scannedText && (

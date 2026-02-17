@@ -343,3 +343,160 @@
     gap: 12px;
   }
 }
+
+/* ドリルダウンモーダル */
+.mud-drill-modal {
+  max-width: 480px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.mud-drill-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.mud-drill-header h3 {
+  margin: 0 0 4px;
+  font-size: 20px;
+}
+
+.mud-drill-cat {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0 0 2px;
+}
+
+.mud-drill-score {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.mud-drill-close {
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+/* 練習記録ボタン行 */
+.mud-drill-practice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  background: #f9fafb;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.mud-drill-practice-label {
+  font-size: 12px;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.mud-drill-eval-btn {
+  padding: 4px 12px;
+  border: 2px solid transparent;
+  border-radius: 20px;
+  background: white;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.mud-drill-eval-btn.selected {
+  border-color: var(--eval-color, #3b82f6);
+  background: #f0f9ff;
+}
+
+.mud-drill-eval-btn:hover:not(.selected) {
+  background: #f3f4f6;
+}
+
+.mud-drill-save-btn {
+  padding: 6px 14px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.mud-drill-save-btn:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+/* 履歴リスト */
+.mud-drill-history {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.mud-drill-history h4 {
+  font-size: 14px;
+  color: #374151;
+  margin: 0 0 10px;
+}
+
+.mud-drill-loading,
+.mud-drill-empty {
+  text-align: center;
+  color: #9ca3af;
+  font-size: 13px;
+  padding: 20px 0;
+}
+
+.mud-drill-log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mud-drill-log-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.mud-log-emoji {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.mud-log-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.mud-log-source {
+  font-size: 12px;
+  color: #374151;
+}
+
+.mud-log-score {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.mud-log-date {
+  font-size: 11px;
+  color: #9ca3af;
+  flex-shrink: 0;
+}

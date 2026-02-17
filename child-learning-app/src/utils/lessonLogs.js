@@ -9,6 +9,7 @@ import {
   collection,
   doc,
   addDoc,
+  setDoc,
   getDocs,
   updateDoc,
   deleteDoc,
@@ -19,29 +20,40 @@ import {
 } from 'firebase/firestore'
 import { db } from '../firebase'
 
-/**
- * @typedef {Object} LessonLog
- * @property {string} id - ドキュメントID
- * @property {string[]} unitIds - 関連するマスター単元IDのリスト
- * @property {'sapixTask'|'pastPaper'|'practice'} sourceType - 学習の種類
- * @property {string} [sourceId] - 参照元ドキュメントID
- * @property {string} [sourceName] - 参照元の名称（表示用）
- * @property {Date|Timestamp} date - 学習日
- * @property {number} performance - 得点率 0-100
- * @property {boolean} [isCorrect] - 正解/不正解（practice用）
- * @property {number} [timeSpent] - 所要時間（秒）
- * @property {string} [notes] - メモ
- * @property {number} [grade] - 記録時の学年（4/5/6）
- * @property {Timestamp} createdAt
- */
+// ========================================
+// 評価スコア定数
+// ========================================
+
+/** 🔵/🟡/🔴 ボタンに対応するスコア値 */
+export const EVALUATION_SCORES = {
+  blue: 90,   // 🔵 よくできた
+  yellow: 65, // 🟡 まあまあ
+  red: 30,    // 🔴 むずかしかった
+}
+
+export const EVALUATION_LABELS = {
+  blue: '🔵 よくできた',
+  yellow: '🟡 まあまあ',
+  red: '🔴 むずかしかった',
+}
+
+export const EVALUATION_COLORS = {
+  blue: '#2563eb',
+  yellow: '#ca8a04',
+  red: '#dc2626',
+}
+
+// ========================================
+// lessonLogs CRUD
+// ========================================
 
 /**
- * lessonLog を追加
+ * lessonLog を追加し、関連する masterUnitStats を更新
  * @param {string} userId
  * @param {Object} data
- * @returns {Promise<{success: boolean, data?: LessonLog, error?: string}>}
+ * @returns {Promise<{success: boolean, data?: Object, error?: string}>}
  */
-export async function addLessonLog(userId, data) {
+export async function addLessonLogWithStats(userId, data) {
   try {
     const docData = {
       unitIds: data.unitIds || [],
@@ -50,7 +62,7 @@ export async function addLessonLog(userId, data) {
       sourceName: data.sourceName || '',
       date: data.date || serverTimestamp(),
       performance: data.performance ?? 0,
-      isCorrect: data.isCorrect ?? null,
+      evaluationKey: data.evaluationKey || null, // 'blue' | 'yellow' | 'red'
       timeSpent: data.timeSpent || null,
       notes: data.notes || '',
       grade: data.grade || null,
@@ -62,6 +74,11 @@ export async function addLessonLog(userId, data) {
       docData
     )
 
+    // 関連するすべての単元のスタッツを更新
+    await Promise.all(
+      (data.unitIds || []).map(unitId => updateMasterUnitStats(userId, unitId))
+    )
+
     return { success: true, data: { id: ref.id, ...docData } }
   } catch (error) {
     console.error('lessonLog 追加エラー:', error)
@@ -69,10 +86,13 @@ export async function addLessonLog(userId, data) {
   }
 }
 
+/** @deprecated addLessonLogWithStats を使用してください */
+export async function addLessonLog(userId, data) {
+  return addLessonLogWithStats(userId, data)
+}
+
 /**
  * ユーザーの全 lessonLog を取得
- * @param {string} userId
- * @returns {Promise<{success: boolean, data?: LessonLog[], error?: string}>}
  */
 export async function getLessonLogs(userId) {
   try {
@@ -91,9 +111,6 @@ export async function getLessonLogs(userId) {
 
 /**
  * 特定の単元に紐づく lessonLog を取得
- * @param {string} userId
- * @param {string} unitId
- * @returns {Promise<{success: boolean, data?: LessonLog[], error?: string}>}
  */
 export async function getLessonLogsByUnit(userId, unitId) {
   try {
@@ -112,33 +129,12 @@ export async function getLessonLogsByUnit(userId, unitId) {
 }
 
 /**
- * lessonLog を更新
- * @param {string} userId
- * @param {string} logId
- * @param {Object} updates
- * @returns {Promise<{success: boolean, error?: string}>}
+ * lessonLog を削除し、関連する masterUnitStats を更新
  */
-export async function updateLessonLog(userId, logId, updates) {
+export async function deleteLessonLog(userId, logId, unitIds = []) {
   try {
-    const ref = doc(db, 'users', userId, 'lessonLogs', logId)
-    await updateDoc(ref, { ...updates, updatedAt: serverTimestamp() })
-    return { success: true }
-  } catch (error) {
-    console.error('lessonLog 更新エラー:', error)
-    return { success: false, error: error.message }
-  }
-}
-
-/**
- * lessonLog を削除
- * @param {string} userId
- * @param {string} logId
- * @returns {Promise<{success: boolean, error?: string}>}
- */
-export async function deleteLessonLog(userId, logId) {
-  try {
-    const ref = doc(db, 'users', userId, 'lessonLogs', logId)
-    await deleteDoc(ref)
+    await deleteDoc(doc(db, 'users', userId, 'lessonLogs', logId))
+    await Promise.all(unitIds.map(unitId => updateMasterUnitStats(userId, unitId)))
     return { success: true }
   } catch (error) {
     console.error('lessonLog 削除エラー:', error)
@@ -147,7 +143,59 @@ export async function deleteLessonLog(userId, logId) {
 }
 
 // ========================================
-// 習熟度計算ロジック
+// masterUnitStats CRUD
+// ========================================
+
+/**
+ * ユーザーの全 masterUnitStats を取得
+ */
+export async function getMasterUnitStats(userId) {
+  try {
+    const snapshot = await getDocs(
+      collection(db, 'users', userId, 'masterUnitStats')
+    )
+    const data = {}
+    snapshot.docs.forEach(d => {
+      data[d.id] = d.data()
+    })
+    return { success: true, data }
+  } catch (error) {
+    console.error('masterUnitStats 取得エラー:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * 特定単元の masterUnitStats を更新（lessonLogs から再計算）
+ */
+export async function updateMasterUnitStats(userId, unitId) {
+  try {
+    // その単元に紐づく全 lessonLog を取得
+    const result = await getLessonLogsByUnit(userId, unitId)
+    const logs = result.success ? result.data : []
+
+    const score = computeProficiencyScore(logs)
+    const profLevel = getProficiencyLevel(score)
+
+    const statsData = {
+      currentScore: Math.max(0, score),
+      statusLevel: profLevel.level,
+      logCount: logs.length,
+      lastUpdated: serverTimestamp(),
+    }
+
+    await setDoc(
+      doc(db, 'users', userId, 'masterUnitStats', unitId),
+      statsData,
+      { merge: true }
+    )
+  } catch (error) {
+    console.error(`masterUnitStats 更新エラー (${unitId}):`, error)
+  }
+}
+
+// ========================================
+// 習熟度計算ロジック（時間減衰加重平均）
 // ========================================
 
 const HALF_LIFE_DAYS = 90
@@ -155,22 +203,23 @@ const LAMBDA = Math.LN2 / HALF_LIFE_DAYS
 
 /**
  * 時間減衰係数を計算
- * @param {Date|Timestamp} date - 学習日
- * @returns {number} - 0.0〜1.0 の減衰係数
+ * w_i = exp(-ln(2)/90 × daysSince_i)
  */
 function getDecayWeight(date) {
+  if (!date) return 1
   const studyDate = date?.toDate ? date.toDate() : new Date(date)
   const daysSince = (Date.now() - studyDate.getTime()) / (1000 * 60 * 60 * 24)
   return Math.exp(-LAMBDA * Math.max(0, daysSince))
 }
 
 /**
- * 単元の習熟度スコアを計算（0〜100）
- * @param {LessonLog[]} logs - 単元に紐づくログ
- * @returns {number} - 習熟度スコア 0-100
+ * 習熟度スコアを計算
+ * score = Σ(performance_i × w_i) / Σ(w_i)
+ * @param {Array} logs - lessonLogs
+ * @returns {number} - 0〜100 or -1（データなし）
  */
 export function computeProficiencyScore(logs) {
-  if (logs.length === 0) return -1 // データなし
+  if (logs.length === 0) return -1
 
   let weightedSum = 0
   let totalWeight = 0
@@ -188,26 +237,21 @@ export function computeProficiencyScore(logs) {
 }
 
 /**
- * 習熟度スコアから習熟度レベルを取得
- * @param {number} score - 習熟度スコア (-1 〜 100)
- * @returns {{ level: number, label: string, color: string }}
+ * 習熟度スコアから習熟度レベルを取得（6段階）
  */
 export function getProficiencyLevel(score) {
-  if (score < 0) return { level: 0, label: '未学習', color: '#d1d5db' }
-  if (score >= 90) return { level: 5, label: '得意', color: '#16a34a' }
-  if (score >= 75) return { level: 4, label: '良好', color: '#2563eb' }
-  if (score >= 60) return { level: 3, label: '普通', color: '#ca8a04' }
-  if (score >= 40) return { level: 2, label: '要復習', color: '#ea580c' }
-  return { level: 1, label: '苦手', color: '#dc2626' }
+  if (score < 0) return { level: 0, label: '未学習', color: '#d1d5db', bgColor: '#f9fafb' }
+  if (score >= 90) return { level: 5, label: '得意',   color: '#16a34a', bgColor: '#dcfce7' }
+  if (score >= 75) return { level: 4, label: '良好',   color: '#2563eb', bgColor: '#dbeafe' }
+  if (score >= 60) return { level: 3, label: '普通',   color: '#ca8a04', bgColor: '#fef9c3' }
+  if (score >= 40) return { level: 2, label: '要復習', color: '#ea580c', bgColor: '#ffedd5' }
+  return              { level: 1, label: '苦手',   color: '#dc2626', bgColor: '#fee2e2' }
 }
 
 /**
- * 全マスター単元の習熟度マップを計算
- * @param {LessonLog[]} allLogs - ユーザーの全 lessonLog
- * @returns {Object} - { unitId: { score, level, label, color, logCount } }
+ * 全単元の習熟度マップを lessonLogs から計算（ダッシュボード表示用）
  */
 export function computeAllProficiencies(allLogs) {
-  // 単元IDごとにログをグループ化
   const logsByUnit = {}
   for (const log of allLogs) {
     for (const unitId of (log.unitIds || [])) {
@@ -216,7 +260,6 @@ export function computeAllProficiencies(allLogs) {
     }
   }
 
-  // 各単元の習熟度を計算
   const result = {}
   for (const [unitId, logs] of Object.entries(logsByUnit)) {
     const score = computeProficiencyScore(logs)
@@ -228,6 +271,5 @@ export function computeAllProficiencies(allLogs) {
       lastStudied: logs[0]?.date || logs[0]?.createdAt || null,
     }
   }
-
   return result
 }

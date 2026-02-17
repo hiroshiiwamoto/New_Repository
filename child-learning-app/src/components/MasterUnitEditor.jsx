@@ -12,6 +12,7 @@ import {
   serverTimestamp,
 } from 'firebase/firestore'
 import { db } from '../firebase'
+import { importMasterUnitsToFirestore } from '../utils/importMasterUnits'
 import './MasterUnitEditor.css'
 
 const CATEGORIES = ['計算', '数の性質', '規則性', '特殊算', '速さ', '割合', '比', '平面図形', '立体図形', '場合の数', 'グラフ・論理']
@@ -34,6 +35,8 @@ function MasterUnitEditor() {
   const [form, setForm] = useState(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [editingDocId, setEditingDocId] = useState(null)
+  const [initializing, setInitializing] = useState(false)
+  const [initProgress, setInitProgress] = useState('')
 
   useEffect(() => {
     loadUnits()
@@ -49,6 +52,30 @@ function MasterUnitEditor() {
       console.error('マスター単元取得エラー:', err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleInitialize = async () => {
+    if (!confirm('既存の単元データを全て上書きして、50単元の固定マスタで初期化しますか？\nこの操作は取り消せません。')) return
+
+    setInitializing(true)
+    setInitProgress('初期化中...')
+    try {
+      const result = await importMasterUnitsToFirestore((current, total, message) => {
+        setInitProgress(`${message} (${current}/${total})`)
+      })
+      if (result.failed === 0) {
+        setInitProgress(`完了: ${result.success}単元を初期化しました`)
+      } else {
+        setInitProgress(`完了: ${result.success}件成功, ${result.failed}件失敗`)
+      }
+      await loadUnits()
+    } catch (err) {
+      console.error('初期化エラー:', err)
+      setInitProgress('初期化に失敗しました: ' + err.message)
+    } finally {
+      setInitializing(false)
+      setTimeout(() => setInitProgress(''), 4000)
     }
   }
 
@@ -157,10 +184,23 @@ function MasterUnitEditor() {
         <div className="mue-stats">
           <span>{units.length} 単元 / {units.filter(u => u.isActive !== false).length} 有効</span>
         </div>
-        <button className="mue-add-btn" onClick={handleOpenAdd}>
-          ＋ 単元を追加
-        </button>
+        <div className="mue-header-actions">
+          <button
+            className="mue-init-btn"
+            onClick={handleInitialize}
+            disabled={initializing}
+            title="50単元の固定マスタで初期化"
+          >
+            {initializing ? '初期化中...' : '50単元で初期化'}
+          </button>
+          <button className="mue-add-btn" onClick={handleOpenAdd}>
+            ＋ 単元を追加
+          </button>
+        </div>
       </div>
+      {initProgress && (
+        <div className="mue-init-progress">{initProgress}</div>
+      )}
 
       {/* カテゴリフィルター */}
       <div className="mue-filter">
