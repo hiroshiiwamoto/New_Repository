@@ -5,7 +5,8 @@ import {
   getUserOverallStats,
   getCategoryStats,
   getAllMasterUnits,
-  getCategories
+  getCategories,
+  recordUnitPractice
 } from '../utils/weaknessAnalysisApi'
 import {
   importMasterUnitsToFirestore,
@@ -26,6 +27,11 @@ function WeaknessAnalysis() {
   const [importing, setImporting] = useState(false)
   const [importProgress, setImportProgress] = useState({ current: 0, total: 0, message: '' })
   const [importResult, setImportResult] = useState(null)
+
+  // 練習記録モーダル
+  const [practiceModal, setPracticeModal] = useState(null) // { unit }
+  const [practiceForm, setPracticeForm] = useState({ isCorrect: null, timeSpent: '', notes: '' })
+  const [recordingPractice, setRecordingPractice] = useState(false)
 
   useEffect(() => {
     loadWeaknessData()
@@ -120,6 +126,47 @@ function WeaknessAnalysis() {
     if (level === 3) return '#f97316'
     if (level === 4) return '#ef4444'
     return '#dc2626'
+  }
+
+  const handleOpenPracticeModal = (unit) => {
+    setPracticeModal({ unit })
+    setPracticeForm({ isCorrect: null, timeSpent: '', notes: '' })
+  }
+
+  const handleClosePracticeModal = () => {
+    setPracticeModal(null)
+    setPracticeForm({ isCorrect: null, timeSpent: '', notes: '' })
+  }
+
+  const handleRecordPractice = async () => {
+    if (practiceForm.isCorrect === null) {
+      alert('正解・不正解を選択してください')
+      return
+    }
+
+    const auth = getAuth()
+    const userId = auth.currentUser?.uid
+    if (!userId) {
+      alert('ログインしてください')
+      return
+    }
+
+    setRecordingPractice(true)
+    try {
+      await recordUnitPractice(userId, practiceModal.unit.id, {
+        isCorrect: practiceForm.isCorrect,
+        timeSpent: practiceForm.timeSpent ? parseInt(practiceForm.timeSpent) * 60 : null,
+        notes: practiceForm.notes
+      })
+      handleClosePracticeModal()
+      // データを再読み込み
+      await loadWeaknessData()
+    } catch (err) {
+      console.error('練習記録エラー:', err)
+      alert('記録に失敗しました: ' + err.message)
+    } finally {
+      setRecordingPractice(false)
+    }
   }
 
   const filteredUnits = selectedCategory === 'all'
@@ -374,22 +421,109 @@ function WeaknessAnalysis() {
 
           {/* 単元一覧 */}
           <div className="tag-grid">
-            {filteredUnits.map(unit => (
-              <div key={unit.id} className="tag-card">
-                <div className="tag-header">
-                  <div className="tag-name">{unit.name}</div>
-                  {unit.difficultyLevel && (
-                    <div className="tag-difficulty">
-                      難易度: {'★'.repeat(unit.difficultyLevel)}
+            {filteredUnits.map(unit => {
+              const weakScore = weaknesses.find(w => w.score?.unitId === unit.id)
+              return (
+                <div key={unit.id} className="tag-card">
+                  <div className="tag-header">
+                    <div className="tag-name">{unit.name}</div>
+                    {unit.difficultyLevel && (
+                      <div className="tag-difficulty">
+                        難易度: {'★'.repeat(unit.difficultyLevel)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="tag-category">{unit.category}</div>
+                  {unit.description && (
+                    <div className="tag-description">{unit.description}</div>
+                  )}
+                  {weakScore && (
+                    <div className="tag-weakness-info">
+                      <span>正答率: {(weakScore.score.accuracyRate * 100).toFixed(0)}%</span>
+                      <span>({weakScore.score.totalAttempts}回)</span>
                     </div>
                   )}
+                  <button
+                    className="practice-record-btn"
+                    onClick={() => handleOpenPracticeModal(unit)}
+                  >
+                    ✏️ 練習を記録
+                  </button>
                 </div>
-                <div className="tag-category">{unit.category}</div>
-                {unit.description && (
-                  <div className="tag-description">{unit.description}</div>
-                )}
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 練習記録モーダル */}
+      {practiceModal && (
+        <div className="modal-overlay" onClick={handleClosePracticeModal}>
+          <div className="modal-content practice-modal" onClick={e => e.stopPropagation()}>
+            <h3>✏️ 練習を記録</h3>
+            <p className="modal-unit-name">{practiceModal.unit.name}</p>
+            <p className="modal-unit-category">{practiceModal.unit.category}</p>
+
+            <div className="practice-form">
+              <div className="form-group">
+                <label>結果</label>
+                <div className="result-buttons">
+                  <button
+                    className={`result-btn correct ${practiceForm.isCorrect === true ? 'selected' : ''}`}
+                    onClick={() => setPracticeForm(f => ({ ...f, isCorrect: true }))}
+                  >
+                    ⭕ 正解
+                  </button>
+                  <button
+                    className={`result-btn incorrect ${practiceForm.isCorrect === false ? 'selected' : ''}`}
+                    onClick={() => setPracticeForm(f => ({ ...f, isCorrect: false }))}
+                  >
+                    ❌ 不正解
+                  </button>
+                </div>
               </div>
-            ))}
+
+              <div className="form-group">
+                <label>所要時間（分）</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="120"
+                  placeholder="例: 5"
+                  value={practiceForm.timeSpent}
+                  onChange={e => setPracticeForm(f => ({ ...f, timeSpent: e.target.value }))}
+                  className="time-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>メモ</label>
+                <textarea
+                  placeholder="気づいたことや次回へのコメント..."
+                  value={practiceForm.notes}
+                  onChange={e => setPracticeForm(f => ({ ...f, notes: e.target.value }))}
+                  className="notes-input"
+                  rows={3}
+                />
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button
+                className="btn-cancel"
+                onClick={handleClosePracticeModal}
+                disabled={recordingPractice}
+              >
+                キャンセル
+              </button>
+              <button
+                className="btn-record"
+                onClick={handleRecordPractice}
+                disabled={recordingPractice || practiceForm.isCorrect === null}
+              >
+                {recordingPractice ? '記録中...' : '記録する'}
+              </button>
+            </div>
           </div>
         </div>
       )}

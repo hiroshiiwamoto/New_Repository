@@ -516,3 +516,109 @@ export function calculateWeaknessLevel(accuracyRate, totalAttempts) {
   if (accuracyRate >= 0.1) return 4; // 非常に重度の弱点
   return 5; // 致命的な弱点
 }
+
+// ========================================
+// 7. 練習記録（単元直接記録）
+// ========================================
+
+/**
+ * 単元の練習セッションを記録し、弱点スコアを更新
+ * @param {string} userId - ユーザーID
+ * @param {string} unitId - 単元ID
+ * @param {Object} data - 練習データ
+ * @param {boolean} data.isCorrect - 正解/不正解
+ * @param {number} [data.timeSpent] - 所要時間（秒）
+ * @param {string} [data.notes] - メモ
+ * @returns {Promise<string>} - 作成されたドキュメントID
+ */
+export async function recordUnitPractice(userId, unitId, data) {
+  // answerHistory に記録（unitId フィールドを使用、problemId は null）
+  const docData = {
+    userId,
+    unitId,
+    problemId: null,
+    isCorrect: data.isCorrect,
+    timeSpent: data.timeSpent || null,
+    notes: data.notes || '',
+    answeredAt: serverTimestamp(),
+    createdAt: serverTimestamp()
+  };
+
+  const docRef = await addDoc(collection(db, 'answerHistory'), docData);
+
+  // 弱点スコアを再計算・更新
+  await recalculateWeaknessScore(userId, unitId);
+
+  return docRef.id;
+}
+
+/**
+ * ユーザーの特定単元の解答履歴を取得（単元直接記録分）
+ * @param {string} userId - ユーザーID
+ * @param {string} unitId - 単元ID
+ * @returns {Promise<AnswerHistory[]>}
+ */
+export async function getUnitPracticeHistory(userId, unitId) {
+  const q = query(
+    collection(db, 'answerHistory'),
+    where('userId', '==', userId),
+    where('unitId', '==', unitId),
+    orderBy('answeredAt', 'desc')
+  );
+
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+/**
+ * 弱点スコアを再計算して Firestore に保存
+ * @param {string} userId - ユーザーID
+ * @param {string} unitId - 単元ID
+ * @returns {Promise<void>}
+ */
+export async function recalculateWeaknessScore(userId, unitId) {
+  // 単元の練習履歴を取得
+  const history = await getUnitPracticeHistory(userId, unitId);
+
+  if (history.length === 0) return;
+
+  const correctCount = history.filter(h => h.isCorrect).length;
+  const totalAttempts = history.length;
+  const accuracyRate = correctCount / totalAttempts;
+  const timeSpenks = history.map(h => h.timeSpent).filter(t => t !== null);
+  const avgTimeSpent = timeSpenks.length > 0
+    ? timeSpenks.reduce((a, b) => a + b, 0) / timeSpenks.length
+    : null;
+  const weaknessLevel = calculateWeaknessLevel(accuracyRate, totalAttempts);
+
+  // 既存のスコアを検索
+  const existingScore = await getUserWeaknessScoreByUnit(userId, unitId);
+
+  if (existingScore) {
+    // 更新
+    const docRef = doc(db, 'userWeaknessScores', existingScore.id);
+    await updateDoc(docRef, {
+      totalAttempts,
+      correctCount,
+      accuracyRate,
+      avgTimeSpent,
+      lastAttemptedAt: serverTimestamp(),
+      weaknessLevel,
+      updatedAt: serverTimestamp()
+    });
+  } else {
+    // 新規作成
+    await addDoc(collection(db, 'userWeaknessScores'), {
+      userId,
+      unitId,
+      totalAttempts,
+      correctCount,
+      accuracyRate,
+      avgTimeSpent,
+      lastAttemptedAt: serverTimestamp(),
+      weaknessLevel,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+  }
+}

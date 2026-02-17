@@ -43,10 +43,12 @@ service cloud.firestore {
       allow update, delete: if isAuthenticated() && isOwner(resource.data.userId);
     }
 
-    // ユーザー弱点スコア（自分のみ読み取り可、書き込み不可）
+    // ユーザー弱点スコア（自分のみ読み書き可）
     match /userWeaknessScores/{id} {
       allow read: if isAuthenticated() && isOwner(resource.data.userId);
-      allow write: if false; // Cloud Functionsから自動計算
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+      allow update: if isAuthenticated() && isOwner(resource.data.userId);
+      allow delete: if false; // 削除は不可
     }
 
     // レコメンド履歴（自分のみ読み書き可）
