@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import './PastPaperView.css'
-import { subjects, unitsDatabase, grades } from '../utils/unitsDatabase'
+import { subjects } from '../utils/unitsDatabase'
+import { getStaticMasterUnits } from '../utils/importMasterUnits'
 import {
   getSessionsByTaskId,
   addPastPaperSession,
@@ -13,9 +14,19 @@ import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
 import { refreshGoogleAccessToken } from './Auth'
 import DriveFilePicker from './DriveFilePicker'
 
+const MASTER_CATEGORY_ORDER = ['計算', '数の性質', '規則性', '特殊算', '速さ', '割合', '比', '平面図形', '立体図形', '場合の数', 'グラフ・論理']
+
+const EMPTY_ADD_FORM = { schoolName: '', year: '', subject: '算数', unitIds: [], fileUrl: '', fileName: '' }
+const EMPTY_EDIT_FORM = { schoolName: '', year: '', subject: '算数', unitIds: [], fileUrl: '', fileName: '' }
+
+// タスクの unitIds を正規化（旧 unitId との後方互換）
+const getTaskUnitIds = (task) =>
+  task.unitIds?.length ? task.unitIds : (task.unitId ? [task.unitId] : [])
+
 function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask, onDeleteTask }) {
   const [viewMode, setViewMode] = useState('school') // 'school' or 'unit'
   const [selectedSubject, setSelectedSubject] = useState('算数')
+  const [masterUnits, setMasterUnits] = useState([])
   const [sessions, setSessions] = useState({}) // taskId -> sessions[]
   const [showSessionForm, setShowSessionForm] = useState(null) // taskId
   const [sessionForm, setSessionForm] = useState({
@@ -25,36 +36,23 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     timeSpent: '',
     notes: ''
   })
-  const [showAddForm, setShowAddForm] = useState(false) // 過去問追加フォーム
-  const [addForm, setAddForm] = useState({
-    schoolName: '',
-    year: '',
-    round: '',
-    subject: '算数',  // フォーム内で独立して科目を管理
-    grade: '4年生',
-    unitId: '',  // 単一の単元ID
-    fileUrl: '',  // GoogleドライブやPDFのURL
-    fileName: ''  // ファイル名
-  })
-  const [editingTaskId, setEditingTaskId] = useState(null) // 編集中の過去問タスクID
-  const [editForm, setEditForm] = useState({
-    schoolName: '',
-    year: '',
-    round: '',
-    subject: '算数',
-    grade: '4年生',
-    unitId: '',  // 単一の単元ID
-    fileUrl: '',  // GoogleドライブやPDFのURL
-    fileName: ''  // ファイル名
-  })
-  const [expandedSessions, setExpandedSessions] = useState({}) // 学習記録の展開状態 (taskId -> boolean)
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [addForm, setAddForm] = useState({ ...EMPTY_ADD_FORM })
+  const [editingTaskId, setEditingTaskId] = useState(null)
+  const [editForm, setEditForm] = useState({ ...EMPTY_EDIT_FORM })
+  const [expandedSessions, setExpandedSessions] = useState({}) // taskId -> boolean
   const [uploading, setUploading] = useState(false)
-  const [uploadTarget, setUploadTarget] = useState(null) // 'add' | taskId (for edit)
+  const [uploadTarget, setUploadTarget] = useState(null) // 'add' | taskId | null
   const [showDrivePicker, setShowDrivePicker] = useState(null) // 'add' | 'edit' | null
-  const [viewingPDF, setViewingPDF] = useState(null) // { taskId, fileUrl, title } - PDF閲覧中のタスク
-  const [fullscreenPDF, setFullscreenPDF] = useState(null) // { fileUrl, title } - フルスクリーン表示
+  const [viewingPDF, setViewingPDF] = useState(null) // { taskId, fileUrl, title }
+  const [fullscreenPDF, setFullscreenPDF] = useState(null) // { fileUrl, title }
   const addFileInputRef = useRef(null)
   const editFileInputRef = useRef(null)
+
+  // マスター単元を読み込み
+  useEffect(() => {
+    setMasterUnits(getStaticMasterUnits())
+  }, [])
 
   // PDF を Google Drive にアップロードする共通処理
   const handlePDFUpload = async (file, target) => {
@@ -68,7 +66,6 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       return
     }
 
-    // Google Drive 接続確認
     const hasAccess = await checkDriveAccess()
     if (!hasAccess) {
       const token = await refreshGoogleAccessToken()
@@ -98,33 +95,12 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     }
   }
 
-  // 過去問タスクのみフィルタリング（学年無関係）
+  // 過去問タスクのみフィルタリング
   const pastPaperTasks = useMemo(() => {
-    const filtered = tasks.filter(
-      t => t.taskType === 'pastpaper' &&
-           t.subject === selectedSubject
+    return tasks.filter(
+      t => t.taskType === 'pastpaper' && t.subject === selectedSubject
     )
-
-    // デバッグ情報を出力
-    console.log('=== 過去問デバッグ情報 ===')
-    console.log('科目:', selectedSubject)
-    console.log('過去問タスク数:', filtered.length)
-    console.log('customUnits:', customUnits)
-    filtered.forEach((task, index) => {
-      console.log(`\n過去問 ${index + 1}:`, {
-        id: task.id,
-        title: task.title,
-        schoolName: task.schoolName || '(空)',
-        year: task.year,
-        round: task.round,
-        unitId: task.unitId,
-        grade: task.grade
-      })
-    })
-    console.log('========================\n')
-
-    return filtered
-  }, [tasks, selectedSubject, customUnits])
+  }, [tasks, selectedSubject])
 
   // セッションデータを読み込み
   const loadSessions = useCallback(async () => {
@@ -144,93 +120,39 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     loadSessions()
   }, [loadSessions])
 
-  // 削除されたカスタム単元への参照をクリーンアップ
-  useEffect(() => {
-    if (!user || !onUpdateTask) return
-
-    // customUnitsに存在しないIDを持つunitIdを持つタスクを探す
-    const customUnitIds = customUnits.map(u => u.id)
-
-    pastPaperTasks.forEach(task => {
-      if (task.unitId && task.unitId.startsWith('custom_')) {
-        // カスタム単元が削除されている場合
-        if (!customUnitIds.includes(task.unitId)) {
-          console.warn(`⚠️ タスク「${task.title}」に削除された単元への参照があります:`, task.unitId)
-
-          // 単元IDをクリア
-          onUpdateTask(task.id, { unitId: '' })
-          toast.info(`「${task.title}」の削除された単元への参照を修正しました`)
-        }
-      }
-    })
-  }, [user, pastPaperTasks, customUnits, onUpdateTask])
-
   // 学校別にグループ化
   const groupBySchool = () => {
     const grouped = {}
-    console.log('\n=== 学校別グループ化デバッグ ===')
     pastPaperTasks.forEach(task => {
       const school = task.schoolName || '学校名未設定'
-      console.log(`タスク「${task.title}」→ 学校「${school}」`)
-      if (!grouped[school]) {
-        grouped[school] = []
-      }
+      if (!grouped[school]) grouped[school] = []
       grouped[school].push(task)
     })
-    console.log('グループ化結果:', Object.keys(grouped))
-    console.log('===========================\n')
     return grouped
   }
 
-  // 単元別にグループ化
+  // 単元別にグループ化（複数unitIds対応）
   const groupByUnit = () => {
     const grouped = {}
-    console.log('\n=== 単元別グループ化デバッグ ===')
     pastPaperTasks.forEach(task => {
-      if (task.unitId) {
-        console.log(`タスク「${task.title}」の単元:`, task.unitId)
-        if (!grouped[task.unitId]) {
-          grouped[task.unitId] = []
-        }
-        grouped[task.unitId].push(task)
+      const ids = getTaskUnitIds(task)
+      if (ids.length === 0) {
+        grouped['未分類'] = [...(grouped['未分類'] || []), task]
       } else {
-        console.log(`タスク「${task.title}」は未分類（unitIdが空）`)
-        if (!grouped['未分類']) {
-          grouped['未分類'] = []
-        }
-        grouped['未分類'].push(task)
+        ids.forEach(id => {
+          grouped[id] = [...(grouped[id] || []), task]
+        })
       }
     })
-    console.log('グループ化結果:', Object.keys(grouped))
-    console.log('===========================\n')
     return grouped
   }
 
   // 単元IDから単元名を取得
   const getUnitName = (unitId) => {
-    // customUnitsから検索
-    const customUnit = customUnits.find(u => u.id === unitId)
-    if (customUnit) {
-      console.log(`単元ID「${unitId}」→ カスタム単元「${customUnit.name}」`)
-      return customUnit.name
-    }
-
-    // unitsDatabaseから検索
-    for (const subject of subjects) {
-      const gradeData = unitsDatabase[subject]
-      if (gradeData) {
-        for (const grade in gradeData) {
-          const units = gradeData[grade]
-          const unit = units.find(u => u.id === unitId)
-          if (unit) {
-            console.log(`単元ID「${unitId}」→ デフォルト単元「${unit.name}」`)
-            return unit.name
-          }
-        }
-      }
-    }
-
-    console.warn(`⚠️ 単元ID「${unitId}」が見つかりません！IDをそのまま表示します`)
+    const mu = masterUnits.find(u => u.id === unitId)
+    if (mu) return mu.name
+    const cu = customUnits.find(u => u.id === unitId)
+    if (cu) return cu.name
     return unitId
   }
 
@@ -266,7 +188,6 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     const result = await addPastPaperSession(user.uid, taskId, sessionData)
 
     if (result.success) {
-      // Firestoreから最新データを再読み込み
       await loadSessions()
       setShowSessionForm(null)
       toast.success('学習記録を保存しました')
@@ -283,38 +204,29 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     return null
   }
 
-  // 単元を選択
-  const selectUnit = (unitId) => {
-    setAddForm({
-      ...addForm,
-      unitId: unitId
-    })
-  }
-
   // 過去問タスクを追加
   const handleAddPastPaper = async () => {
-    if (!addForm.schoolName || !addForm.year || !addForm.round) {
-      toast.error('学校名、年度、回を入力してください')
+    if (!addForm.schoolName || !addForm.year) {
+      toast.error('学校名と年度を入力してください')
       return
     }
 
     const newTask = {
-      title: `${addForm.schoolName} ${addForm.year} ${addForm.round}`,
+      title: `${addForm.schoolName} ${addForm.year}`,
       taskType: 'pastpaper',
-      subject: addForm.subject,  // フォーム内の科目を使用
-      grade: '全学年', // 過去問は学年無関係
+      subject: addForm.subject,
+      grade: '全学年',
       schoolName: addForm.schoolName,
       year: addForm.year,
-      round: addForm.round,
-      unitId: addForm.unitId,  // 単一の単元ID
-      fileUrl: addForm.fileUrl,  // 問題ファイルのURL
-      fileName: addForm.fileName,  // ファイル名
+      unitIds: addForm.unitIds,
+      fileUrl: addForm.fileUrl,
+      fileName: addForm.fileName,
       dueDate: '',
       priority: 'medium'
     }
 
     await onAddTask(newTask)
-    setAddForm({ schoolName: '', year: '', round: '', subject: '算数', grade: '4年生', unitId: '', fileUrl: '', fileName: '' })
+    setAddForm({ ...EMPTY_ADD_FORM })
     setShowAddForm(false)
     toast.success('過去問を追加しました')
   }
@@ -326,7 +238,6 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       return
     }
 
-    // 確認ダイアログ
     const confirmed = window.confirm(
       `「${taskTitle}」を削除しますか？\n\nこの過去問に関連する学習記録もすべて削除されます。`
     )
@@ -334,17 +245,12 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     if (!confirmed) return
 
     try {
-      // 先に関連するセッションデータを削除
       const sessionResult = await deleteSessionsByTaskId(user.uid, taskId)
-
       if (!sessionResult.success) {
         toast.error('学習記録の削除に失敗しました: ' + sessionResult.error)
         return
       }
-
-      // タスクを削除
       await onDeleteTask(taskId)
-
       toast.success('過去問を削除しました')
     } catch (error) {
       toast.error('削除に失敗しました: ' + error.message)
@@ -357,10 +263,8 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     setEditForm({
       schoolName: task.schoolName || '',
       year: task.year || '',
-      round: task.round || '',
       subject: task.subject || '算数',
-      grade: task.grade || '4年生',
-      unitId: task.unitId || '',
+      unitIds: getTaskUnitIds(task),
       fileUrl: task.fileUrl || '',
       fileName: task.fileName || ''
     })
@@ -369,32 +273,22 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
   // 過去問タスクの編集をキャンセル
   const handleCancelEdit = () => {
     setEditingTaskId(null)
-    setEditForm({
-      schoolName: '',
-      year: '',
-      round: '',
-      subject: '算数',
-      grade: '4年生',
-      unitId: '',
-      fileUrl: '',
-      fileName: ''
-    })
+    setEditForm({ ...EMPTY_EDIT_FORM })
   }
 
   // 過去問タスクの編集を保存
   const handleSaveEdit = async () => {
-    if (!editForm.schoolName || !editForm.year || !editForm.round) {
-      toast.error('学校名、年度、回を入力してください')
+    if (!editForm.schoolName || !editForm.year) {
+      toast.error('学校名と年度を入力してください')
       return
     }
 
     const updatedTask = {
-      title: `${editForm.schoolName} ${editForm.year} ${editForm.round}`,
+      title: `${editForm.schoolName} ${editForm.year}`,
       schoolName: editForm.schoolName,
       year: editForm.year,
-      round: editForm.round,
       subject: editForm.subject,
-      unitId: editForm.unitId,
+      unitIds: editForm.unitIds,
       fileUrl: editForm.fileUrl,
       fileName: editForm.fileName
     }
@@ -404,18 +298,60 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     toast.success('過去問を更新しました')
   }
 
-  // 編集フォームで単元を選択
-  const selectEditUnit = (unitId) => {
-    setEditForm({
-      ...editForm,
-      unitId: unitId
-    })
+  // addForm の単元タグをトグル
+  const toggleAddUnit = (unitId) => {
+    setAddForm(prev => ({
+      ...prev,
+      unitIds: prev.unitIds.includes(unitId)
+        ? prev.unitIds.filter(id => id !== unitId)
+        : [...prev.unitIds, unitId]
+    }))
+  }
+
+  // editForm の単元タグをトグル
+  const toggleEditUnit = (unitId) => {
+    setEditForm(prev => ({
+      ...prev,
+      unitIds: prev.unitIds.includes(unitId)
+        ? prev.unitIds.filter(id => id !== unitId)
+        : [...prev.unitIds, unitId]
+    }))
+  }
+
+  // 単元タグセレクター（共通UI）
+  const renderUnitTagSelector = (subject, selectedIds, onToggle) => {
+    const subjectUnits = masterUnits.filter(u => (u.subject || '算数') === subject)
+    if (subjectUnits.length === 0) {
+      return (
+        <p className="unit-tags-empty">この教科の単元はまだ準備中です</p>
+      )
+    }
+    return MASTER_CATEGORY_ORDER.map(cat => {
+      const catUnits = subjectUnits.filter(u => u.category === cat)
+      if (catUnits.length === 0) return null
+      return (
+        <div key={cat} className="unit-tag-category">
+          <div className="unit-tag-cat-label">{cat}</div>
+          <div className="unit-tag-list">
+            {catUnits.map(unit => (
+              <button
+                key={unit.id}
+                type="button"
+                className={`unit-tag-btn${selectedIds.includes(unit.id) ? ' selected' : ''}`}
+                onClick={() => onToggle(unit.id)}
+              >
+                {unit.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )
+    }).filter(Boolean)
   }
 
   // Google Drive URLから埋め込みプレビューURLを生成
   const getEmbedUrl = (fileUrl) => {
     if (!fileUrl) return null
-    // https://drive.google.com/file/d/{ID}/view → https://drive.google.com/file/d/{ID}/preview
     const match = fileUrl.match(/\/file\/d\/([^/]+)/)
     if (match) {
       return `https://drive.google.com/file/d/${match[1]}/preview`
@@ -426,7 +362,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
   // PDFプレビューを表示
   const handleViewPDF = (task) => {
     if (viewingPDF?.taskId === task.id) {
-      setViewingPDF(null) // 同じタスクなら閉じる
+      setViewingPDF(null)
     } else {
       setViewingPDF({ taskId: task.id, fileUrl: task.fileUrl, title: task.title })
     }
@@ -438,6 +374,69 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       ...prev,
       [taskId]: !prev[taskId]
     }))
+  }
+
+  // ファイルエリア（新規アップロード or Driveから選択）
+  const renderFileArea = (form, setForm, target) => {
+    const isAdd = target === 'add'
+    const fileInputRef = isAdd ? addFileInputRef : editFileInputRef
+
+    if (form.fileUrl) {
+      return (
+        <div className="file-url-preview">
+          <span className="file-url-preview-icon">📎</span>
+          <a href={form.fileUrl} target="_blank" rel="noopener noreferrer">
+            {form.fileName || (form.fileUrl.includes('drive.google.com') ? 'Google Drive のファイル' : form.fileUrl)}
+          </a>
+          <button
+            type="button"
+            className="clear-url-btn"
+            onClick={() => setForm(prev => ({ ...prev, fileUrl: '', fileName: '' }))}
+          >
+            &times;
+          </button>
+        </div>
+      )
+    }
+
+    return (
+      <div className="file-upload-area">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="application/pdf"
+          style={{ display: 'none' }}
+          onChange={(e) => {
+            handlePDFUpload(e.target.files[0], target)
+            e.target.value = ''
+          }}
+        />
+        <button
+          type="button"
+          className="pdf-upload-btn"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading && uploadTarget === target}
+        >
+          {uploading && uploadTarget === target ? 'アップロード中...' : '新規アップロード'}
+        </button>
+        <span className="file-or-divider">または</span>
+        <button
+          type="button"
+          className="drive-select-btn"
+          onClick={() => setShowDrivePicker(isAdd ? 'add' : 'edit')}
+        >
+          <svg width="16" height="16" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg">
+            <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
+            <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-20.4 35.3c-.8 1.4-1.2 2.95-1.2 4.5h27.5z" fill="#00ac47"/>
+            <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/>
+            <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
+            <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/>
+            <path d="m73.4 26.5-10.1-17.5c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 23.8h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
+          </svg>
+          Driveから選択
+        </button>
+      </div>
+    )
   }
 
   const groupedData = viewMode === 'school' ? groupBySchool() : groupByUnit()
@@ -510,7 +509,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
         <div className="add-pastpaper-form">
           <h3>📝 新しい過去問を追加</h3>
 
-          {/* 科目選択（最優先） */}
+          {/* 科目選択 */}
           <div className="add-form-section">
             <label className="section-label">科目:</label>
             <div className="subject-selector-inline">
@@ -519,14 +518,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                   key={subject}
                   type="button"
                   className={`subject-btn ${addForm.subject === subject ? 'active' : ''}`}
-                  onClick={() => {
-                    // 科目変更時に単元選択をクリア
-                    setAddForm({
-                      ...addForm,
-                      subject,
-                      relatedUnits: []  // 科目が変わったら単元選択をリセット
-                    })
-                  }}
+                  onClick={() => setAddForm({ ...addForm, subject, unitIds: [] })}
                   style={{
                     borderColor: addForm.subject === subject ? subjectColors[subject] : '#e2e8f0',
                     background: addForm.subject === subject ? `${subjectColors[subject]}15` : 'white',
@@ -539,6 +531,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
             </div>
           </div>
 
+          {/* 学校名 */}
           <div className="add-form-field" style={{ marginBottom: '12px' }}>
             <label>学校名:</label>
             <input
@@ -549,140 +542,37 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
             />
           </div>
 
-          <div className="add-form-grid-two-cols">
-            <div className="add-form-field">
-              <label>年度:</label>
-              <input
-                type="text"
-                placeholder="例: 2024年度"
-                value={addForm.year}
-                onChange={(e) => setAddForm({ ...addForm, year: e.target.value })}
-              />
-            </div>
-            <div className="add-form-field">
-              <label>回:</label>
-              <input
-                type="text"
-                placeholder="例: 第1回"
-                value={addForm.round}
-                onChange={(e) => setAddForm({ ...addForm, round: e.target.value })}
-              />
-            </div>
+          {/* 年度 */}
+          <div className="add-form-field" style={{ marginBottom: '16px' }}>
+            <label>年度:</label>
+            <input
+              type="text"
+              placeholder="例: 2024年度"
+              value={addForm.year}
+              onChange={(e) => setAddForm({ ...addForm, year: e.target.value })}
+            />
           </div>
 
           {/* 問題ファイル */}
           <div className="add-form-section">
             <label className="section-label">問題ファイル（任意）:</label>
-            {addForm.fileUrl ? (
-              <div className="file-url-preview">
-                <span className="file-url-preview-icon">📎</span>
-                <a href={addForm.fileUrl} target="_blank" rel="noopener noreferrer">
-                  {addForm.fileName || (addForm.fileUrl.includes('drive.google.com') ? 'Google Drive のファイル' : addForm.fileUrl)}
-                </a>
-                <button
-                  type="button"
-                  className="clear-url-btn"
-                  onClick={() => setAddForm({ ...addForm, fileUrl: '', fileName: '' })}
-                >
-                  &times;
-                </button>
-              </div>
-            ) : (
-              <div className="file-upload-area">
-                <input
-                  ref={addFileInputRef}
-                  type="file"
-                  accept="application/pdf"
-                  style={{ display: 'none' }}
-                  onChange={(e) => {
-                    handlePDFUpload(e.target.files[0], 'add')
-                    e.target.value = ''
-                  }}
-                />
-                <button
-                  type="button"
-                  className="pdf-upload-btn"
-                  onClick={() => addFileInputRef.current?.click()}
-                  disabled={uploading && uploadTarget === 'add'}
-                >
-                  {uploading && uploadTarget === 'add' ? 'アップロード中...' : '新規アップロード'}
-                </button>
-                <span className="file-or-divider">または</span>
-                <button
-                  type="button"
-                  className="drive-select-btn"
-                  onClick={() => setShowDrivePicker('add')}
-                >
-                  <svg width="16" height="16" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg">
-                    <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
-                    <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-20.4 35.3c-.8 1.4-1.2 2.95-1.2 4.5h27.5z" fill="#00ac47"/>
-                    <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/>
-                    <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
-                    <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/>
-                    <path d="m73.4 26.5-10.1-17.5c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 23.8h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
-                  </svg>
-                  Driveから選択
-                </button>
-              </div>
-            )}
+            {renderFileArea(addForm, setAddForm, 'add')}
             <small className="input-hint">
               PDFを新規アップロード、またはGoogle Driveの既存ファイルを選択
             </small>
           </div>
 
-          {/* 学年選択 */}
+          {/* 単元タグ */}
           <div className="add-form-section">
-            <label className="section-label">学年（単元選択用）:</label>
-            <div className="grade-selector-inline">
-              {grades.map((grade) => (
-                <button
-                  key={grade}
-                  type="button"
-                  className={`grade-btn-small ${addForm.grade === grade ? 'active' : ''}`}
-                  onClick={() => setAddForm({ ...addForm, grade })}
-                >
-                  {grade}
-                </button>
-              ))}
+            <label className="section-label">
+              単元タグ（任意）:
+              {addForm.unitIds.length > 0 && (
+                <span className="unit-selected-count">{addForm.unitIds.length}個選択中</span>
+              )}
+            </label>
+            <div className="unit-tags-selector">
+              {renderUnitTagSelector(addForm.subject, addForm.unitIds, toggleAddUnit)}
             </div>
-          </div>
-
-          {/* 単元選択 */}
-          <div className="add-form-section">
-            <label className="section-label">単元（任意）:</label>
-            <div className="units-checkbox-grid">
-              {/* デフォルト単元 */}
-              {unitsDatabase[addForm.subject]?.[addForm.grade]?.map((unit) => (
-                <label key={unit.id} className="unit-checkbox-label">
-                  <input
-                    type="radio"
-                    name="unitId"
-                    checked={addForm.unitId === unit.id}
-                    onChange={() => selectUnit(unit.id)}
-                  />
-                  <span>{unit.name}</span>
-                </label>
-              ))}
-              {/* カスタム単元 */}
-              {customUnits
-                .filter(u => u.subject === addForm.subject && u.grade === addForm.grade)
-                .map((unit) => (
-                  <label key={unit.id} className="unit-checkbox-label custom">
-                    <input
-                      type="radio"
-                      name="unitId"
-                      checked={addForm.unitId === unit.id}
-                      onChange={() => selectUnit(unit.id)}
-                    />
-                    <span>⭐ {unit.name}</span>
-                  </label>
-                ))}
-            </div>
-            {addForm.unitId && (
-              <div className="selected-units-summary">
-                選択中: {getUnitName(addForm.unitId)}
-              </div>
-            )}
           </div>
 
           <div className="add-form-actions">
@@ -690,15 +580,12 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
               className="btn-secondary"
               onClick={() => {
                 setShowAddForm(false)
-                setAddForm({ schoolName: '', year: '', round: '', subject: '算数', grade: '4年生', unitId: '', fileUrl: '', fileName: '' })
+                setAddForm({ ...EMPTY_ADD_FORM })
               }}
             >
               キャンセル
             </button>
-            <button
-              className="btn-primary"
-              onClick={handleAddPastPaper}
-            >
+            <button className="btn-primary" onClick={handleAddPastPaper}>
               ✓ 追加する
             </button>
           </div>
@@ -711,13 +598,13 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           <div className="no-data">
             📝 この条件の過去問タスクがありません
             <br />
-            <small>タスク追加画面で「📄 過去問」タイプのタスクを作成してください</small>
+            <small>「+ 過去問を追加」から追加してください</small>
           </div>
         ) : (
           Object.entries(groupedData).map(([key, taskList]) => (
             <div key={key} className="pastpaper-group">
               <h3 className="group-title">
-                {viewMode === 'school' ? `🏫 ${key}` : `📚 ${getUnitName(key)}`}
+                {viewMode === 'school' ? `🏫 ${key}` : `📚 ${key === '未分類' ? '未分類' : getUnitName(key)}`}
                 <span className="task-count">({taskList.length}問)</span>
               </h3>
 
@@ -725,6 +612,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                 {taskList.map(task => {
                   const taskSessions = (sessions[task.id] || []).sort((a, b) => a.attemptNumber - b.attemptNumber)
                   const lastSession = taskSessions[taskSessions.length - 1]
+                  const taskUnitIds = getTaskUnitIds(task)
 
                   return (
                     <div key={task.id} className="pastpaper-card">
@@ -742,13 +630,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                                   key={subject}
                                   type="button"
                                   className={`subject-btn ${editForm.subject === subject ? 'active' : ''}`}
-                                  onClick={() => {
-                                    setEditForm({
-                                      ...editForm,
-                                      subject,
-                                      unitId: ''
-                                    })
-                                  }}
+                                  onClick={() => setEditForm({ ...editForm, subject, unitIds: [] })}
                                   style={{
                                     borderColor: editForm.subject === subject ? subjectColors[subject] : '#e2e8f0',
                                     background: editForm.subject === subject ? `${subjectColors[subject]}15` : 'white',
@@ -761,6 +643,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                             </div>
                           </div>
 
+                          {/* 学校名 */}
                           <div className="edit-form-field" style={{ marginBottom: '12px' }}>
                             <label>学校名:</label>
                             <input
@@ -770,136 +653,36 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                             />
                           </div>
 
-                          <div className="edit-form-grid-two-cols">
-                            <div className="edit-form-field">
-                              <label>年度:</label>
-                              <input
-                                type="text"
-                                value={editForm.year}
-                                onChange={(e) => setEditForm({ ...editForm, year: e.target.value })}
-                              />
-                            </div>
-                            <div className="edit-form-field">
-                              <label>回:</label>
-                              <input
-                                type="text"
-                                value={editForm.round}
-                                onChange={(e) => setEditForm({ ...editForm, round: e.target.value })}
-                              />
-                            </div>
+                          {/* 年度 */}
+                          <div className="edit-form-field" style={{ marginBottom: '16px' }}>
+                            <label>年度:</label>
+                            <input
+                              type="text"
+                              value={editForm.year}
+                              onChange={(e) => setEditForm({ ...editForm, year: e.target.value })}
+                            />
                           </div>
 
                           {/* 問題ファイル */}
                           <div className="edit-form-section">
                             <label className="section-label">問題ファイル（任意）:</label>
-                            {editForm.fileUrl ? (
-                              <div className="file-url-preview">
-                                <span className="file-url-preview-icon">📎</span>
-                                <a href={editForm.fileUrl} target="_blank" rel="noopener noreferrer">
-                                  {editForm.fileName || (editForm.fileUrl.includes('drive.google.com') ? 'Google Drive のファイル' : editForm.fileUrl)}
-                                </a>
-                                <button
-                                  type="button"
-                                  className="clear-url-btn"
-                                  onClick={() => setEditForm({ ...editForm, fileUrl: '', fileName: '' })}
-                                >
-                                  &times;
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="file-upload-area">
-                                <input
-                                  ref={editFileInputRef}
-                                  type="file"
-                                  accept="application/pdf"
-                                  style={{ display: 'none' }}
-                                  onChange={(e) => {
-                                    handlePDFUpload(e.target.files[0], task.id)
-                                    e.target.value = ''
-                                  }}
-                                />
-                                <button
-                                  type="button"
-                                  className="pdf-upload-btn"
-                                  onClick={() => editFileInputRef.current?.click()}
-                                  disabled={uploading && uploadTarget === task.id}
-                                >
-                                  {uploading && uploadTarget === task.id ? 'アップロード中...' : '新規アップロード'}
-                                </button>
-                                <span className="file-or-divider">または</span>
-                                <button
-                                  type="button"
-                                  className="drive-select-btn"
-                                  onClick={() => setShowDrivePicker('edit')}
-                                >
-                                  <svg width="16" height="16" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
-                                    <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-20.4 35.3c-.8 1.4-1.2 2.95-1.2 4.5h27.5z" fill="#00ac47"/>
-                                    <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/>
-                                    <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
-                                    <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/>
-                                    <path d="m73.4 26.5-10.1-17.5c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 23.8h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
-                                  </svg>
-                                  Driveから選択
-                                </button>
-                              </div>
-                            )}
+                            {renderFileArea(editForm, setEditForm, task.id)}
                             <small className="input-hint">
                               PDFを新規アップロード、またはGoogle Driveの既存ファイルを選択
                             </small>
                           </div>
 
-                          {/* 学年選択 */}
+                          {/* 単元タグ */}
                           <div className="edit-form-section">
-                            <label className="section-label">学年（単元選択用）:</label>
-                            <div className="grade-selector-inline">
-                              {grades.map((grade) => (
-                                <button
-                                  key={grade}
-                                  type="button"
-                                  className={`grade-btn-small ${editForm.grade === grade ? 'active' : ''}`}
-                                  onClick={() => setEditForm({ ...editForm, grade })}
-                                >
-                                  {grade}
-                                </button>
-                              ))}
+                            <label className="section-label">
+                              単元タグ（任意）:
+                              {editForm.unitIds.length > 0 && (
+                                <span className="unit-selected-count">{editForm.unitIds.length}個選択中</span>
+                              )}
+                            </label>
+                            <div className="unit-tags-selector">
+                              {renderUnitTagSelector(editForm.subject, editForm.unitIds, toggleEditUnit)}
                             </div>
-                          </div>
-
-                          {/* 単元選択 */}
-                          <div className="edit-form-section">
-                            <label className="section-label">単元:</label>
-                            <div className="units-checkbox-grid">
-                              {unitsDatabase[editForm.subject]?.[editForm.grade]?.map((unit) => (
-                                <label key={unit.id} className="unit-checkbox-label">
-                                  <input
-                                    type="radio"
-                                    name="editUnitId"
-                                    checked={editForm.unitId === unit.id}
-                                    onChange={() => selectEditUnit(unit.id)}
-                                  />
-                                  <span>{unit.name}</span>
-                                </label>
-                              ))}
-                              {customUnits
-                                .filter(u => u.subject === editForm.subject && u.grade === editForm.grade)
-                                .map((unit) => (
-                                  <label key={unit.id} className="unit-checkbox-label custom">
-                                    <input
-                                      type="radio"
-                                      name="editUnitId"
-                                      checked={editForm.unitId === unit.id}
-                                      onChange={() => selectEditUnit(unit.id)}
-                                    />
-                                    <span>⭐ {unit.name}</span>
-                                  </label>
-                                ))}
-                            </div>
-                            {editForm.unitId && (
-                              <div className="selected-units-summary">
-                                選択中: {getUnitName(editForm.unitId)}
-                              </div>
-                            )}
                           </div>
 
                           <div className="edit-form-actions">
@@ -916,14 +699,14 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                         <>
                           <div className="card-header">
                             <div className="task-title">
-                              <span className="task-name">
-                                {task.title}
-                                {task.unitId && (
-                                  <span className="unit-tag" style={{ marginLeft: '8px' }}>
-                                    {getUnitName(task.unitId)}
-                                  </span>
-                                )}
-                              </span>
+                              <span className="task-name">{task.title}</span>
+                              {taskUnitIds.length > 0 && (
+                                <div className="task-unit-tags">
+                                  {taskUnitIds.map(id => (
+                                    <span key={id} className="unit-tag">{getUnitName(id)}</span>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                             <div className="card-header-actions">
                               <div className="attempt-count">
@@ -997,7 +780,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                         </div>
                       )}
 
-                      {/* 最新の学習記録（編集モードでない場合のみ表示） */}
+                      {/* 最新の学習記録 */}
                       {editingTaskId !== task.id && lastSession && (
                         <div className="last-session">
                           <span className="session-label">最新:</span>
@@ -1012,7 +795,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                         </div>
                       )}
 
-                      {/* 学習記録の展開/折りたたみボタン（編集モードでなく、セッションがある場合のみ表示） */}
+                      {/* 学習記録の展開/折りたたみ */}
                       {editingTaskId !== task.id && taskSessions.length > 0 && (
                         <button
                           className="toggle-sessions-btn"
@@ -1022,7 +805,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                         </button>
                       )}
 
-                      {/* セッション一覧（編集モードでなく、展開されている場合のみ表示） */}
+                      {/* セッション一覧 */}
                       {editingTaskId !== task.id && expandedSessions[task.id] && taskSessions.length > 0 && (
                         <div className="sessions-list">
                           {taskSessions.map(session => (
@@ -1047,7 +830,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                         </div>
                       )}
 
-                      {/* セッション記録フォーム（編集モードでない場合のみ表示） */}
+                      {/* セッション記録フォーム */}
                       {editingTaskId !== task.id && showSessionForm === task.id ? (
                         <div className="session-form">
                           <h4>📝 学習記録を追加</h4>
@@ -1128,6 +911,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           ))
         )}
       </div>
+
       {/* PDFフルスクリーン表示 */}
       {fullscreenPDF && (
         <div className="pdf-fullscreen-overlay" onClick={() => setFullscreenPDF(null)}>
