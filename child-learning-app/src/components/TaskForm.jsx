@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import './TaskForm.css'
-import { unitsDatabase, grades } from '../utils/unitsDatabase'
-import CustomUnitForm from './CustomUnitForm'
 import PastPaperFields from './PastPaperFields'
+import UnitTagPicker from './UnitTagPicker'
 import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
 import { refreshGoogleAccessToken } from './Auth'
 import { toast } from '../utils/toast'
@@ -11,15 +10,10 @@ import DriveFilePicker from './DriveFilePicker'
 function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUnits = [], onAddCustomUnit }) {
   const [title, setTitle] = useState('')
   const [subject, setSubject] = useState('算数')
-  const [grade, setGrade] = useState('4年生')
-  const [unitId, setUnitId] = useState('')
+  const [unitIds, setUnitIds] = useState([]) // マスター単元タグ（複数選択）
   const [taskType, setTaskType] = useState('daily')
   const [priority, setPriority] = useState('B')
   const [dueDate, setDueDate] = useState('')
-  const [showCustomUnitForm, setShowCustomUnitForm] = useState(false)
-  const [customUnitName, setCustomUnitName] = useState('')
-  const [customUnitCategory, setCustomUnitCategory] = useState('過去問')
-  const [lastAddedCustomUnit, setLastAddedCustomUnit] = useState(null) // 最近追加したカスタム単元を一時保存
 
   // PDF/ファイル関連
   const [fileUrl, setFileUrl] = useState('')
@@ -39,8 +33,12 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
     if (editingTask) {
       setTitle(editingTask.title || '')
       setSubject(editingTask.subject || '算数')
-      setGrade(editingTask.grade || '4年生')
-      setUnitId(editingTask.unitId || '')
+      // 旧 unitId（単一）との後方互換
+      setUnitIds(
+        editingTask.unitIds?.length ? editingTask.unitIds
+          : editingTask.unitId ? [editingTask.unitId]
+          : []
+      )
       setTaskType(editingTask.taskType || 'daily')
       setPriority(editingTask.priority || 'B')
       setDueDate(editingTask.dueDate || '')
@@ -57,13 +55,12 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
   const handleSubmit = (e) => {
     e.preventDefault()
     if (title.trim()) {
-      const unitName = getUnitName(unitId)
       const taskData = {
         title: title.trim(),
         subject,
-        grade,
-        unitId,
-        unit: unitName,
+        grade: '全学年',
+        unitIds,           // マスター単元タグ（配列）
+        unitId: unitIds[0] || '', // 後方互換
         taskType,
         priority,
         dueDate: dueDate || null,
@@ -87,10 +84,9 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
 
       // フォームをリセット
       setTitle('')
-      setUnitId('')
+      setUnitIds([])
       setFileUrl('')
       setFileName('')
-      setLastAddedCustomUnit(null) // 一時保存した単元情報をクリア
       // 過去問フィールドをリセット
       setSchoolName('')
       setYear('')
@@ -102,73 +98,9 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
     }
   }
 
-  const getUnitName = (unitId) => {
-    if (!unitId) return ''
-
-    // 最近追加したカスタム単元を優先的にチェック（状態更新が間に合わない場合の対策）
-    if (lastAddedCustomUnit && lastAddedCustomUnit.id === unitId) {
-      return lastAddedCustomUnit.name
-    }
-
-    // デフォルト単元から検索
-    const defaultUnits = unitsDatabase[subject]?.[grade] || []
-    const defaultUnit = defaultUnits.find(u => u.id === unitId)
-    if (defaultUnit) {
-      return defaultUnit.name
-    }
-
-    // カスタム単元から検索
-    const customUnit = customUnits.find(u => u.id === unitId)
-    if (customUnit) {
-      return customUnit.name
-    }
-    return ''
-  }
-
-  const handleAddCustomUnit = async () => {
-    if (!customUnitName.trim()) {
-      alert('単元名を入力してください')
-      return
-    }
-
-    if (!onAddCustomUnit) {
-      alert('カスタム単元の追加機能が利用できません')
-      return
-    }
-
-    const { generateCustomUnitId } = await import('../utils/customUnits')
-    const unitId = generateCustomUnitId(subject, grade, customUnitName)
-
-    const unitData = {
-      id: unitId,
-      subject,
-      grade,
-      name: customUnitName.trim(),
-      category: customUnitCategory,
-    }
-
-    const result = await onAddCustomUnit(unitData)
-
-    if (result.success) {
-      // 最近追加したカスタム単元として保存（状態更新が間に合わない場合の対策）
-      const addedUnitName = customUnitName.trim()
-      setLastAddedCustomUnit({ id: result.data.id, name: addedUnitName })
-
-      // フォームをリセット
-      setCustomUnitName('')
-      setCustomUnitCategory('過去問')
-      setShowCustomUnitForm(false)
-      // 追加した単元を選択
-      setUnitId(result.data.id)
-      alert(`✅ 単元「${addedUnitName}」を追加しました`)
-    } else {
-      alert(`❌ カスタム単元の追加に失敗しました: ${result.error || '不明なエラー'}`)
-    }
-  }
-
   const handleCancel = () => {
     setTitle('')
-    setUnitId('')
+    setUnitIds([])
     if (onCancelEdit) {
       onCancelEdit()
     }
@@ -207,15 +139,6 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
     }
   }
 
-  // 関連単元のトグル処理
-  const handleToggleRelatedUnit = (unitId) => {
-    if (relatedUnits.includes(unitId)) {
-      setRelatedUnits(relatedUnits.filter(id => id !== unitId))
-    } else {
-      setRelatedUnits([...relatedUnits, unitId])
-    }
-  }
-
   const taskTypes = [
     { value: 'daily', label: 'デイリー復習', emoji: '📖' },
     { value: 'basic', label: '基礎トレ', emoji: '✏️' },
@@ -232,16 +155,11 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
 
   const subjects = ['国語', '算数', '理科', '社会']
 
-  // デフォルト単元とカスタム単元を統合
-  const defaultUnits = unitsDatabase[subject]?.[grade] || []
-  const filteredCustomUnits = customUnits.filter(u => u.subject === subject && u.grade === grade)
-  const currentUnits = [...defaultUnits, ...filteredCustomUnits]
-
   return (
     <form className="task-form sapix-form" onSubmit={handleSubmit}>
       <h2>{editingTask ? '✏️ タスクを編集' : '✏️ 学習タスクを追加'}</h2>
 
-      <div className="form-row three-cols">
+      <div className="form-row two-cols">
         <div className="form-group">
           <label htmlFor="subject">科目</label>
           <select
@@ -249,7 +167,7 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
             value={subject}
             onChange={(e) => {
               setSubject(e.target.value)
-              setUnitId('')
+              setUnitIds([])
             }}
           >
             {subjects.map(s => (
@@ -257,78 +175,16 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
             ))}
           </select>
         </div>
-
-        <div className="form-group">
-          <label htmlFor="grade">学年</label>
-          <select
-            id="grade"
-            value={grade}
-            onChange={(e) => {
-              setGrade(e.target.value)
-              setUnitId('')
-            }}
-          >
-            {grades.map(g => (
-              <option key={g} value={g}>{g}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="unit">単元</label>
-          <div className="unit-select-container">
-            <select
-              id="unit"
-              value={unitId}
-              onChange={(e) => setUnitId(e.target.value)}
-            >
-              <option value="">選択してください</option>
-              {defaultUnits.length > 0 && (
-                <optgroup label="標準単元">
-                  {defaultUnits.map(u => (
-                    <option key={u.id} value={u.id}>
-                      {u.name} ({u.category})
-                    </option>
-                  ))}
-                </optgroup>
-              )}
-              {filteredCustomUnits.length > 0 && (
-                <optgroup label="カスタム単元">
-                  {filteredCustomUnits.map(u => (
-                    <option key={u.id} value={u.id}>
-                      {u.name} ({u.category})
-                    </option>
-                  ))}
-                </optgroup>
-              )}
-            </select>
-            <button
-              type="button"
-              className="add-custom-unit-btn"
-              onClick={() => setShowCustomUnitForm(!showCustomUnitForm)}
-              title="カスタム単元を追加"
-            >
-              ➕
-            </button>
-          </div>
-        </div>
       </div>
 
-      {/* カスタム単元追加フォーム */}
-      {showCustomUnitForm && (
-        <CustomUnitForm
-          customUnitName={customUnitName}
-          setCustomUnitName={setCustomUnitName}
-          customUnitCategory={customUnitCategory}
-          setCustomUnitCategory={setCustomUnitCategory}
-          onAdd={handleAddCustomUnit}
-          onCancel={() => {
-            setShowCustomUnitForm(false)
-            setCustomUnitName('')
-            setCustomUnitCategory('過去問')
-          }}
+      <div className="form-group">
+        <label>単元タグ（マスター単元から選択）</label>
+        <UnitTagPicker
+          value={unitIds}
+          onChange={setUnitIds}
+          placeholder="単元を検索..."
         />
-      )}
+      </div>
 
       <div className="form-group">
         <label htmlFor="title">学習内容</label>
@@ -368,8 +224,10 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
           round={round}
           setRound={setRound}
           relatedUnits={relatedUnits}
-          onToggleRelatedUnit={handleToggleRelatedUnit}
-          currentUnits={currentUnits}
+          onToggleRelatedUnit={(uid) => setRelatedUnits(prev =>
+            prev.includes(uid) ? prev.filter(id => id !== uid) : [...prev, uid]
+          )}
+          currentUnits={[]}
         />
       )}
 
