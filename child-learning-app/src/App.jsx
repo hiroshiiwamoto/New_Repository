@@ -8,6 +8,7 @@ import ScheduleView from './components/ScheduleView'
 import UnitAnalysisView from './components/UnitAnalysisView'
 import PastPaperView from './components/PastPaperView'
 import TestScoreView from './components/TestScoreView'
+import GradesView from './components/GradesView'
 import SapixTextView from './components/SapixTextView'
 import {
   addTaskToFirestore,
@@ -304,10 +305,16 @@ function App() {
             📄 過去問
           </button>
           <button
+            className={view === 'grades' ? 'active' : ''}
+            onClick={() => setView('grades')}
+          >
+            📈 成績
+          </button>
+          <button
             className={view === 'testscore' ? 'active' : ''}
             onClick={() => setView('testscore')}
           >
-            📈 テスト成績
+            📋 テスト分析
           </button>
           <button
             className={view === 'dashboard' ? 'active' : ''}
@@ -337,6 +344,10 @@ function App() {
             onAddTask={addTask}
             onUpdateTask={updateTask}
             onDeleteTask={deleteTask}
+          />
+        ) : view === 'grades' ? (
+          <GradesView
+            user={user}
           />
         ) : view === 'testscore' ? (
           <TestScoreView
