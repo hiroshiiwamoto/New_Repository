@@ -1193,6 +1193,147 @@
   flex-shrink: 0;
 }
 
+/* ============================================================
+   テスト選択リスト（テストタブ）
+   ============================================================ */
+
+.test-selector-header {
+  background: white;
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.test-selector-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 6px 0;
+}
+
+.test-selector-desc {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.test-select-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.test-select-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  background: white;
+  border: 1px solid rgba(0,0,0,0.07);
+  border-radius: 14px;
+  padding: 14px 18px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.18s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.test-select-item:hover {
+  border-color: #007AFF;
+  box-shadow: 0 4px 14px rgba(0,122,255,0.12);
+  transform: translateY(-1px);
+}
+
+.test-select-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.test-select-name {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #1e293b;
+  white-space: nowrap;
+}
+
+.test-select-date {
+  font-size: 0.8rem;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.test-select-grade {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.test-select-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.badge-deviation {
+  background: linear-gradient(135deg, #3b82f6, #60a5fa);
+  color: white;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.badge-problems {
+  background: #f1f5f9;
+  color: #475569;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-revenge {
+  background: #fff7ed;
+  color: #ea580c;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.test-select-arrow {
+  font-size: 1.4rem;
+  color: #cbd5e1;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+@media (max-width: 640px) {
+  .test-select-item {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .test-select-badges {
+    width: 100%;
+  }
+
+  .test-select-arrow {
+    display: none;
+  }
+}
+
 @media (max-width: 640px) {
   .detail-header {
     flex-direction: column;
