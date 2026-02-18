@@ -1661,6 +1661,48 @@
 }
 .pdf-attach-remove:hover { color: #dc2626; }
 
+/* PdfCropper 科目切り替えタブ */
+.pdf-cropper-subject-tabs {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 0;
+  background: #1e293b;
+  padding: 6px 12px 0;
+  z-index: 2100;
+}
+
+.pdf-cropper-subject-tab {
+  padding: 8px 18px;
+  border: none;
+  border-radius: 8px 8px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #334155;
+  color: #94a3b8;
+  transition: all 0.15s;
+}
+.pdf-cropper-subject-tab:hover:not(:disabled) {
+  background: #475569;
+  color: #e2e8f0;
+}
+.pdf-cropper-subject-tab.active {
+  background: #0ea5e9;
+  color: white;
+}
+.pdf-cropper-subject-tab.no-pdf {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* PdfCropper のオーバーレイにタブ分の余白を追加 */
+.pdf-cropper-subject-tabs ~ .pdfcropper-overlay {
+  padding-top: 50px;
+}
+
 /* PDFピッカーモーダル */
 .pdf-picker-overlay {
   position: fixed;
