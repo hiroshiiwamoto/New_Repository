@@ -13,8 +13,9 @@ import { toast } from '../utils/toast'
 import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
 import { refreshGoogleAccessToken } from './Auth'
 import DriveFilePicker from './DriveFilePicker'
+import UnitTagPicker from './UnitTagPicker'
 
-const MASTER_CATEGORY_ORDER = ['計算', '数の性質', '規則性', '特殊算', '速さ', '割合', '比', '平面図形', '立体図形', '場合の数', 'グラフ・論理']
+const YEAR_OPTIONS = Array.from({ length: 2031 - 2000 }, (_, i) => 2000 + i)
 
 const EMPTY_ADD_FORM = { schoolName: '', year: '', subject: '算数', unitIds: [], fileUrl: '', fileName: '' }
 const EMPTY_EDIT_FORM = { schoolName: '', year: '', subject: '算数', unitIds: [], fileUrl: '', fileName: '' }
@@ -298,57 +299,6 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     toast.success('過去問を更新しました')
   }
 
-  // addForm の単元タグをトグル
-  const toggleAddUnit = (unitId) => {
-    setAddForm(prev => ({
-      ...prev,
-      unitIds: prev.unitIds.includes(unitId)
-        ? prev.unitIds.filter(id => id !== unitId)
-        : [...prev.unitIds, unitId]
-    }))
-  }
-
-  // editForm の単元タグをトグル
-  const toggleEditUnit = (unitId) => {
-    setEditForm(prev => ({
-      ...prev,
-      unitIds: prev.unitIds.includes(unitId)
-        ? prev.unitIds.filter(id => id !== unitId)
-        : [...prev.unitIds, unitId]
-    }))
-  }
-
-  // 単元タグセレクター（共通UI）
-  const renderUnitTagSelector = (subject, selectedIds, onToggle) => {
-    const subjectUnits = masterUnits.filter(u => (u.subject || '算数') === subject)
-    if (subjectUnits.length === 0) {
-      return (
-        <p className="unit-tags-empty">この教科の単元はまだ準備中です</p>
-      )
-    }
-    return MASTER_CATEGORY_ORDER.map(cat => {
-      const catUnits = subjectUnits.filter(u => u.category === cat)
-      if (catUnits.length === 0) return null
-      return (
-        <div key={cat} className="unit-tag-category">
-          <div className="unit-tag-cat-label">{cat}</div>
-          <div className="unit-tag-list">
-            {catUnits.map(unit => (
-              <button
-                key={unit.id}
-                type="button"
-                className={`unit-tag-btn${selectedIds.includes(unit.id) ? ' selected' : ''}`}
-                onClick={() => onToggle(unit.id)}
-              >
-                {unit.name}
-              </button>
-            ))}
-          </div>
-        </div>
-      )
-    }).filter(Boolean)
-  }
-
   // Google Drive URLから埋め込みプレビューURLを生成
   const getEmbedUrl = (fileUrl) => {
     if (!fileUrl) return null
@@ -383,14 +333,13 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
 
     if (form.fileUrl) {
       return (
-        <div className="file-url-preview">
-          <span className="file-url-preview-icon">📎</span>
+        <div className="sapix-file-preview">
+          <span>📎</span>
           <a href={form.fileUrl} target="_blank" rel="noopener noreferrer">
             {form.fileName || (form.fileUrl.includes('drive.google.com') ? 'Google Drive のファイル' : form.fileUrl)}
           </a>
           <button
             type="button"
-            className="clear-url-btn"
             onClick={() => setForm(prev => ({ ...prev, fileUrl: '', fileName: '' }))}
           >
             &times;
@@ -400,7 +349,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     }
 
     return (
-      <div className="file-upload-area">
+      <div className="sapix-file-upload-area">
         <input
           ref={fileInputRef}
           type="file"
@@ -413,26 +362,18 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
         />
         <button
           type="button"
-          className="pdf-upload-btn"
+          className="sapix-upload-btn"
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading && uploadTarget === target}
         >
           {uploading && uploadTarget === target ? 'アップロード中...' : '新規アップロード'}
         </button>
-        <span className="file-or-divider">または</span>
+        <span className="sapix-or">または</span>
         <button
           type="button"
-          className="drive-select-btn"
+          className="sapix-drive-btn"
           onClick={() => setShowDrivePicker(isAdd ? 'add' : 'edit')}
         >
-          <svg width="16" height="16" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg">
-            <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
-            <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-20.4 35.3c-.8 1.4-1.2 2.95-1.2 4.5h27.5z" fill="#00ac47"/>
-            <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/>
-            <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
-            <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/>
-            <path d="m73.4 26.5-10.1-17.5c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 23.8h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
-          </svg>
           Driveから選択
         </button>
       </div>
@@ -545,34 +486,32 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           {/* 年度 */}
           <div className="add-form-field" style={{ marginBottom: '16px' }}>
             <label>年度:</label>
-            <input
-              type="text"
-              placeholder="例: 2024年度"
+            <select
               value={addForm.year}
               onChange={(e) => setAddForm({ ...addForm, year: e.target.value })}
-            />
+              style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}
+            >
+              <option value="">年度を選択</option>
+              {YEAR_OPTIONS.map(y => (
+                <option key={y} value={`${y}年度`}>{y}年度</option>
+              ))}
+            </select>
           </div>
 
           {/* 問題ファイル */}
-          <div className="add-form-section">
-            <label className="section-label">問題ファイル（任意）:</label>
+          <div className="sapix-form-section">
+            <label className="sapix-section-label">問題PDF（任意）:</label>
             {renderFileArea(addForm, setAddForm, 'add')}
-            <small className="input-hint">
-              PDFを新規アップロード、またはGoogle Driveの既存ファイルを選択
-            </small>
           </div>
 
           {/* 単元タグ */}
-          <div className="add-form-section">
-            <label className="section-label">
-              単元タグ（任意）:
-              {addForm.unitIds.length > 0 && (
-                <span className="unit-selected-count">{addForm.unitIds.length}個選択中</span>
-              )}
-            </label>
-            <div className="unit-tags-selector">
-              {renderUnitTagSelector(addForm.subject, addForm.unitIds, toggleAddUnit)}
-            </div>
+          <div className="sapix-form-section">
+            <label className="sapix-section-label">単元タグ（任意）:</label>
+            <UnitTagPicker
+              subject={addForm.subject}
+              value={addForm.unitIds}
+              onChange={(unitIds) => setAddForm(prev => ({ ...prev, unitIds }))}
+            />
           </div>
 
           <div className="add-form-actions">
@@ -656,33 +595,32 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                           {/* 年度 */}
                           <div className="edit-form-field" style={{ marginBottom: '16px' }}>
                             <label>年度:</label>
-                            <input
-                              type="text"
+                            <select
                               value={editForm.year}
                               onChange={(e) => setEditForm({ ...editForm, year: e.target.value })}
-                            />
+                              style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}
+                            >
+                              <option value="">年度を選択</option>
+                              {YEAR_OPTIONS.map(y => (
+                                <option key={y} value={`${y}年度`}>{y}年度</option>
+                              ))}
+                            </select>
                           </div>
 
                           {/* 問題ファイル */}
-                          <div className="edit-form-section">
-                            <label className="section-label">問題ファイル（任意）:</label>
+                          <div className="sapix-form-section">
+                            <label className="sapix-section-label">問題PDF（任意）:</label>
                             {renderFileArea(editForm, setEditForm, task.id)}
-                            <small className="input-hint">
-                              PDFを新規アップロード、またはGoogle Driveの既存ファイルを選択
-                            </small>
                           </div>
 
                           {/* 単元タグ */}
-                          <div className="edit-form-section">
-                            <label className="section-label">
-                              単元タグ（任意）:
-                              {editForm.unitIds.length > 0 && (
-                                <span className="unit-selected-count">{editForm.unitIds.length}個選択中</span>
-                              )}
-                            </label>
-                            <div className="unit-tags-selector">
-                              {renderUnitTagSelector(editForm.subject, editForm.unitIds, toggleEditUnit)}
-                            </div>
+                          <div className="sapix-form-section">
+                            <label className="sapix-section-label">単元タグ（任意）:</label>
+                            <UnitTagPicker
+                              subject={editForm.subject}
+                              value={editForm.unitIds}
+                              onChange={(unitIds) => setEditForm(prev => ({ ...prev, unitIds }))}
+                            />
                           </div>
 
                           <div className="edit-form-actions">
