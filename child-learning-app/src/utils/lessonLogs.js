@@ -68,6 +68,7 @@ export async function addLessonLogWithStats(userId, data) {
       performance: data.performance ?? 0,
       evaluationKey: data.evaluationKey || null, // 'blue' | 'yellow' | 'red'
       missType: data.missType || null,           // NEW: 'understanding' | 'careless' | 'not_studied' | null
+      problemIds: data.problemIds || [],         // 紐づく problems ドキュメント ID 一覧
       timeSpent: data.timeSpent || null,
       notes: data.notes || '',
       grade: data.grade || null,
