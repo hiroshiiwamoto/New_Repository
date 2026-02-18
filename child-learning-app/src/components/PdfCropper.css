@@ -9,6 +9,7 @@
   justify-content: center;
   padding: 20px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* iOS でのスムーズスクロール */
 }
 
 .pdfcropper-modal {
@@ -191,6 +192,49 @@
   margin-left: auto;
 }
 
+/* モード切り替えボタン */
+.pdfcropper-mode-btn {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 2px solid;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+.pdfcropper-mode-btn.pan {
+  background: white;
+  border-color: #6b7280;
+  color: #374151;
+}
+.pdfcropper-mode-btn.pan:hover {
+  border-color: #10b981;
+  color: #059669;
+  background: #f0fdf4;
+}
+.pdfcropper-mode-btn.select {
+  background: #10b981;
+  border-color: #10b981;
+  color: white;
+}
+.pdfcropper-mode-btn.select:hover {
+  background: #059669;
+  border-color: #059669;
+}
+
+/* 切り出しモード中のガイドバナー */
+.pdfcropper-select-banner {
+  padding: 8px 16px;
+  background: #ecfdf5;
+  border-top: 1px solid #a7f3d0;
+  border-bottom: 1px solid #a7f3d0;
+  font-size: 13px;
+  color: #065f46;
+  font-weight: 600;
+  text-align: center;
+}
+
 /* Canvas エリア */
 .pdfcropper-canvas-wrapper {
   position: relative;
@@ -201,6 +245,7 @@
   justify-content: center;
   align-items: flex-start;
   padding: 10px;
+  -webkit-overflow-scrolling: touch; /* iOS でのスムーズスクロール */
 }
 
 .pdfcropper-canvas {
@@ -214,6 +259,17 @@
   left: 50%;
   transform: translateX(-50%);
   cursor: crosshair;
+}
+/* パンモード: タッチ・マウスイベントを下の要素に透過 */
+.pdfcropper-overlay-canvas.pan-mode {
+  pointer-events: none;
+  cursor: default;
+}
+/* 切り出しモード: タッチ操作を全てJSで処理 */
+.pdfcropper-overlay-canvas.select-active {
+  pointer-events: auto;
+  cursor: crosshair;
+  touch-action: none;
 }
 
 /* プレビュー */

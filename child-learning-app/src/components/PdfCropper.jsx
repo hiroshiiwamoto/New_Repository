@@ -40,6 +40,7 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
   const [urlInput, setUrlInput] = useState('')
 
   // 選択・切り出し
+  const [selectMode, setSelectMode] = useState(false) // false=パン/スクロール, true=切り出し選択
   const [selection, setSelection] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState(null)
@@ -232,19 +233,25 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
 
   // ── タッチイベント用ネイティブリスナー（passive:false でスクロール防止） ──
   // React合成イベントはpassiveがデフォルトでpreventDefaultが効かないため
+  // selectModeのときのみリスナーを登録し、パンモード時はpointer-events:noneで透過させる
   useEffect(() => {
     const overlay = overlayRef.current
-    if (!overlay) return
+    if (!overlay || !selectMode) return
 
     const onTouchStart = (e) => {
+      // 選択モード中は即座にドラッグ開始、スクロール防止
       e.preventDefault()
       startDrag(getCanvasPos(e))
     }
 
     const onTouchMove = (e) => {
-      e.preventDefault()
-      if (!isDraggingRef.current || !dragStartRef.current) return
-      drawSelectionRect(normRect(dragStartRef.current, getCanvasPos(e)))
+      // ドラッグ中のみスクロール防止（選択範囲を描画）
+      if (isDraggingRef.current) {
+        e.preventDefault()
+        if (dragStartRef.current) {
+          drawSelectionRect(normRect(dragStartRef.current, getCanvasPos(e)))
+        }
+      }
     }
 
     const onTouchEnd = (e) => {
@@ -266,9 +273,8 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
       overlay.removeEventListener('touchmove', onTouchMove)
       overlay.removeEventListener('touchend', onTouchEnd)
     }
-  // pdfDocが変わるとcanvasが再描画されるのでリスナーも再登録
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pdfDoc, currentPage, scale])
+  }, [pdfDoc, currentPage, scale, selectMode])
 
   function cropToPreview(sel) {
     const src = canvasRef.current
@@ -456,18 +462,38 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
                 <span>{Math.round(scale * 100)}%</span>
                 <button onClick={() => setScale(s => Math.min(3, Math.round((s + 0.25) * 100) / 100))}>＋</button>
               </div>
-              <span className="pdfcropper-hint">ドラッグで問題範囲を選択</span>
+              {/* モード切り替えトグル */}
+              <button
+                className={`pdfcropper-mode-btn ${selectMode ? 'select' : 'pan'}`}
+                onClick={() => {
+                  setSelectMode(m => !m)
+                  if (selectMode) { clearOverlay(); setSelection(null); setCroppedPreview(null); setCroppedBlob(null) }
+                }}
+                title={selectMode ? 'スクロール/パンモードに切り替え' : '切り出し範囲を選択するモードに切り替え'}
+              >
+                {selectMode ? '✋ スクロール' : '✂️ 切り出し'}
+              </button>
+              <span className="pdfcropper-hint">
+                {selectMode ? 'ドラッグで範囲を選択' : 'スクロール・ズームが可能'}
+              </span>
             </div>
+
+            {/* 切り出しモード時のガイドバナー */}
+            {selectMode && (
+              <div className="pdfcropper-select-banner">
+                ✂️ 切り出しモード — 問題の範囲をドラッグして選択してください
+              </div>
+            )}
 
             <div className="pdfcropper-canvas-wrapper">
               <canvas ref={canvasRef} className="pdfcropper-canvas" />
               <canvas
                 ref={overlayRef}
-                className="pdfcropper-overlay-canvas"
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
+                className={`pdfcropper-overlay-canvas ${selectMode ? 'select-active' : 'pan-mode'}`}
+                onMouseDown={selectMode ? handleMouseDown : undefined}
+                onMouseMove={selectMode ? handleMouseMove : undefined}
+                onMouseUp={selectMode ? handleMouseUp : undefined}
+                onMouseLeave={selectMode ? handleMouseUp : undefined}
               />
             </div>
 
