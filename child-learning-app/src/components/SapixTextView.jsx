@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import './SapixTextView.css'
 import { subjects, grades } from '../utils/unitsDatabase'
 import { subjectColors, subjectEmojis } from '../utils/constants'
@@ -9,10 +9,18 @@ import { toast } from '../utils/toast'
 import DriveFilePicker from './DriveFilePicker'
 import UnitTagPicker from './UnitTagPicker'
 import { addLessonLogWithStats, EVALUATION_SCORES, EVALUATION_LABELS } from '../utils/lessonLogs'
+import { getStaticMasterUnits } from '../utils/importMasterUnits'
 
 function SapixTextView({ user }) {
   const [texts, setTexts] = useState([])
   const [selectedSubject, setSelectedSubject] = useState('算数')
+
+  // 単元IDから単元名へのマップ
+  const unitNameMap = useMemo(() => {
+    const map = {}
+    getStaticMasterUnits().forEach(u => { map[u.id] = u.name })
+    return map
+  }, [])
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [viewingPDF, setViewingPDF] = useState(null)
@@ -513,7 +521,7 @@ function SapixTextView({ user }) {
                       {(text.unitIds?.length > 0) && (
                         <div className="sapix-unit-tags">
                           {text.unitIds.map(uid => (
-                            <span key={uid} className="sapix-unit-badge">{uid}</span>
+                            <span key={uid} className="sapix-unit-badge">{unitNameMap[uid] || uid}</span>
                           ))}
                         </div>
                       )}
