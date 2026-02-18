@@ -560,3 +560,70 @@
   color: #9ca3af;
   flex-shrink: 0;
 }
+
+/* 直接・間接カウント表示 */
+.mud-unit-counts {
+  display: flex;
+  gap: 3px;
+  justify-content: center;
+  margin-top: 1px;
+}
+
+.mud-direct-count {
+  font-size: 9px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.mud-indirect-count {
+  font-size: 9px;
+  background: #f3f4f6;
+  color: #6b7280;
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+/* 共起サブ単元 */
+.mud-cooccurring {
+  margin: 10px 0;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.mud-cooccurring-label {
+  font-size: 11px;
+  color: #6b7280;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.mud-cooccurring-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.mud-cooccurring-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px;
+  background: #e0f2fe;
+  color: #0369a1;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.mud-cooccurring-count {
+  font-size: 10px;
+  color: #0284c7;
+  font-weight: 700;
+}

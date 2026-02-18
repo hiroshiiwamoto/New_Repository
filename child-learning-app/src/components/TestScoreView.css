@@ -1360,3 +1360,100 @@
     flex-wrap: wrap;
   }
 }
+
+/* ミスの種類選択 */
+.miss-type-btns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.miss-type-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 14px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.15s;
+  min-width: 90px;
+}
+
+.miss-type-btn:hover {
+  border-color: #9ca3af;
+  background: #f9fafb;
+}
+
+.miss-type-btn.selected.miss-understanding {
+  border-color: #dc2626;
+  background: #fee2e2;
+}
+
+.miss-type-btn.selected.miss-careless {
+  border-color: #ca8a04;
+  background: #fef9c3;
+}
+
+.miss-type-btn.selected.miss-not-studied {
+  border-color: #6b7280;
+  background: #f3f4f6;
+}
+
+.miss-type-btn.selected {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.miss-type-icon {
+  font-size: 18px;
+}
+
+.miss-type-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.miss-type-desc {
+  font-size: 10px;
+  color: #6b7280;
+}
+
+/* 不正解セル */
+.wrong-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.miss-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.miss-understanding {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.miss-careless {
+  background: #fef9c3;
+  color: #a16207;
+}
+
+.miss-not-studied {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.miss-high-accuracy {
+  font-size: 13px;
+  cursor: default;
+}

@@ -51,6 +51,27 @@ function MasterUnitDashboard() {
     setDrillLogs(unitLogs)
   }, [allLogs, drillUnit])
 
+  // ドリルダウン：メイン単元として評価されたログに共起するサブ単元を集計
+  const coOccurringUnits = drillUnit
+    ? (() => {
+        const subCount = {}
+        for (const log of allLogs) {
+          const mainId = log.mainUnitId || (log.unitIds || [])[0]
+          if (mainId !== drillUnit.id) continue
+          for (const id of (log.unitIds || [])) {
+            if (id !== drillUnit.id) subCount[id] = (subCount[id] || 0) + 1
+          }
+        }
+        return Object.entries(subCount)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5)
+          .map(([id, count]) => ({
+            id, count,
+            name: masterUnits.find(u => u.id === id)?.name || id,
+          }))
+      })()
+    : []
+
   const loadData = async () => {
     setLoading(true)
     try {
@@ -80,6 +101,8 @@ function MasterUnitDashboard() {
           currentScore: data.score,
           statusLevel: data.level,
           logCount: data.logCount,
+          directCount: data.directCount || 0,    // メイン単元として評価された回数
+          indirectCount: data.indirectCount || 0, // サブ単元として登場した回数
         }
       }
       setStats(statsData)
@@ -259,14 +282,27 @@ function MasterUnitDashboard() {
                       borderColor: level.color,
                     }}
                     onClick={() => handleDrillDown(unit)}
-                    title={`${unit.name}\n${unitStat ? `習熟度: ${score}点 (${level.label}) / ${unitStat.logCount}回` : '未学習'}`}
+                    title={`${unit.name}\n${unitStat?.directCount > 0 ? `習熟度: ${score}点 (${level.label}) / 直接${unitStat.directCount}回` : '未学習'}`}
                   >
                     <div className="mud-unit-indicator" style={{ background: level.color }} />
                     <div className="mud-unit-name">{unit.name}</div>
-                    {unitStat ? (
+                    {unitStat?.directCount > 0 ? (
                       <>
                         <div className="mud-unit-score">{score}点</div>
                         <div className="mud-unit-level" style={{ color: level.color }}>{level.label}</div>
+                        <div className="mud-unit-counts">
+                          <span className="mud-direct-count">直{unitStat.directCount}</span>
+                          {unitStat.indirectCount > 0 && (
+                            <span className="mud-indirect-count">間{unitStat.indirectCount}</span>
+                          )}
+                        </div>
+                      </>
+                    ) : unitStat?.indirectCount > 0 ? (
+                      <>
+                        <div className="mud-unit-level" style={{ color: level.color }}>未学習</div>
+                        <div className="mud-unit-counts">
+                          <span className="mud-indirect-count">間{unitStat.indirectCount}</span>
+                        </div>
                       </>
                     ) : (
                       <div className="mud-unit-level" style={{ color: level.color }}>未学習</div>
@@ -296,6 +332,21 @@ function MasterUnitDashboard() {
               </div>
               <button className="mud-drill-close" onClick={() => setDrillUnit(null)}>×</button>
             </div>
+
+            {/* 共起サブ単元 */}
+            {coOccurringUnits.length > 0 && (
+              <div className="mud-cooccurring">
+                <span className="mud-cooccurring-label">よく一緒に出てくる単元:</span>
+                <div className="mud-cooccurring-tags">
+                  {coOccurringUnits.map(u => (
+                    <span key={u.id} className="mud-cooccurring-tag">
+                      {u.name}
+                      <span className="mud-cooccurring-count">×{u.count}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* 練習記録ボタン */}
             <div className="mud-drill-practice">

@@ -30,6 +30,7 @@ function TestScoreView({ user }) {
       unitIds: [],
       correctRate: '',
       isCorrect: false,
+      missType: null,  // null=正解時, 'understanding'|'careless'|'not_studied' for wrong
       points: '',
     }
   }
@@ -106,6 +107,7 @@ function TestScoreView({ user }) {
       unitIds: problemForm.unitIds,
       correctRate: parseFloat(problemForm.correctRate) || 0,
       isCorrect: problemForm.isCorrect,
+      missType: problemForm.isCorrect ? null : (problemForm.missType || 'understanding'),
       reviewStatus: 'pending',
       points: parseInt(problemForm.points) || null,
     }
@@ -146,14 +148,24 @@ function TestScoreView({ user }) {
   // ============================================================
 
   const handleSyncToMasterUnits = async () => {
-    const wrongWithUnits = getProblemLogs(selectedScore).filter(p => !p.isCorrect && p.unitIds?.length > 0)
-    if (wrongWithUnits.length === 0) {
-      toast.error('単元タグが設定された不正解問題がありません')
+    const problems = getProblemLogs(selectedScore)
+    // 理解不足のみ弱点マップに反映（ケアレスミス・未習は除外）
+    const targetProblems = problems.filter(p =>
+      !p.isCorrect &&
+      p.unitIds?.length > 0 &&
+      (p.missType == null || p.missType === 'understanding')
+    )
+    const carelessCount = problems.filter(p => !p.isCorrect && p.missType === 'careless').length
+    const notStudiedCount = problems.filter(p => !p.isCorrect && p.missType === 'not_studied').length
+
+    if (targetProblems.length === 0) {
+      toast.error('弱点マップに反映する問題がありません（ケアレスミス・未習は除外されます）')
       return
     }
     setSyncingUnits(true)
     try {
-      for (const problem of wrongWithUnits) {
+      for (const problem of targetProblems) {
+        const isHighAccuracyMiss = parseFloat(problem.correctRate) >= 60
         await addLessonLogWithStats(user.uid, {
           unitIds: problem.unitIds,
           sourceType: 'testScore',
@@ -162,11 +174,16 @@ function TestScoreView({ user }) {
           date: selectedScore.testDate,
           performance: EVALUATION_SCORES.red,
           evaluationKey: 'red',
+          missType: 'understanding',
           grade: selectedScore.grade,
-          notes: `正答率 ${problem.correctRate}%（テスト結果自動反映）`,
+          notes: `正答率${problem.correctRate}%${isHighAccuracyMiss ? ' ⚠️高正答率' : ''}（テスト結果自動反映）`,
         })
       }
-      toast.success(`${wrongWithUnits.length}問をマスター単元に反映しました（🔴 要復習）`)
+      const skipped = carelessCount + notStudiedCount
+      toast.success(
+        `${targetProblems.length}問を弱点マップに反映しました（🔴）` +
+        (skipped > 0 ? `\nケアレスミス${carelessCount}問・未習${notStudiedCount}問はスキップ` : '')
+      )
     } catch {
       toast.error('反映に失敗しました')
     } finally {
@@ -392,10 +409,23 @@ function TestScoreView({ user }) {
                           </span>
                         </td>
                         <td className="cell-correct">
-                          {problem.isCorrect
-                            ? <span className="correct-mark">○</span>
-                            : <span className="wrong-mark">✗</span>
-                          }
+                          {problem.isCorrect ? (
+                            <span className="correct-mark">○</span>
+                          ) : (
+                            <div className="wrong-cell">
+                              <span className="wrong-mark">✗</span>
+                              {problem.missType === 'careless' && <span className="miss-badge miss-careless">ケアレス</span>}
+                              {problem.missType === 'not_studied' && <span className="miss-badge miss-not-studied">未習</span>}
+                              {(problem.missType === 'understanding' || problem.missType == null) && (
+                                <>
+                                  <span className="miss-badge miss-understanding">理解不足</span>
+                                  {parseFloat(problem.correctRate) >= 60 && (
+                                    <span className="miss-high-accuracy" title="正答率60%以上の問題を間違えています">⚠️</span>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          )}
                         </td>
                         <td className="cell-status">
                           <select
@@ -566,7 +596,7 @@ function TestScoreView({ user }) {
                     <input
                       type="radio"
                       checked={problemForm.isCorrect === true}
-                      onChange={() => setProblemForm({ ...problemForm, isCorrect: true })}
+                      onChange={() => setProblemForm({ ...problemForm, isCorrect: true, missType: null })}
                     />
                     ○ 正解
                   </label>
@@ -581,6 +611,30 @@ function TestScoreView({ user }) {
                 </div>
               </div>
             </div>
+
+            {!problemForm.isCorrect && (
+              <div className="form-field">
+                <label>ミスの種類</label>
+                <div className="miss-type-btns">
+                  {[
+                    { key: 'understanding', label: '理解不足', icon: '🧠', desc: '弱点マップに反映' },
+                    { key: 'careless', label: 'ケアレスミス', icon: '😅', desc: 'マップ反映なし' },
+                    { key: 'not_studied', label: '未習', icon: '📚', desc: 'マップ反映なし' },
+                  ].map(({ key, label, icon, desc }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      className={`miss-type-btn miss-${key} ${problemForm.missType === key ? 'selected' : ''}`}
+                      onClick={() => setProblemForm({ ...problemForm, missType: key })}
+                    >
+                      <span className="miss-type-icon">{icon}</span>
+                      <span className="miss-type-label">{label}</span>
+                      <span className="miss-type-desc">{desc}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {unitsForSubject.length > 0 && (
               <div className="form-field">
