@@ -2,8 +2,14 @@ import { useState, useEffect } from 'react'
 import './TestScoreView.css'
 import {
   getAllTestScores,
-  updateTestScore
+  updateTestScore,
+  getProblemsForTestScore,
 } from '../utils/testScores'
+import {
+  addProblem,
+  updateProblem,
+  deleteProblem,
+} from '../utils/problems'
 import { getSapixTexts } from '../utils/sapixTexts'
 import { addLessonLogWithStats, EVALUATION_SCORES } from '../utils/lessonLogs'
 import { addTaskToFirestore } from '../utils/firestore'
@@ -31,7 +37,8 @@ function TestScoreView({ user }) {
   const [creatingTasks, setCreatingTasks] = useState(false)
   const [showPdfCropper, setShowPdfCropper] = useState(false)
   const [pdfList, setPdfList] = useState([])
-  const [showPdfPicker, setShowPdfPicker] = useState(false)
+  const [pdfPickerSubject, setPdfPickerSubject] = useState(null)  // null | '算数' | '国語' | etc.
+  const [problemsCache, setProblemsCache] = useState([])   // embedded + collection のマージ済み問題一覧
 
   const masterUnits = getStaticMasterUnits()
 
@@ -63,6 +70,9 @@ function TestScoreView({ user }) {
     getAllPDFs(user.uid).then(result => {
       if (result.success) setPdfList(result.data)
     })
+    getProblemsForTestScore(user.uid, selectedScore).then(merged => {
+      setProblemsCache(merged)
+    })
   }, [user, selectedScore?.firestoreId])
 
   useEffect(() => {
@@ -70,6 +80,16 @@ function TestScoreView({ user }) {
     const updated = scores.find(s => s.firestoreId === selectedScore.firestoreId)
     if (updated) setSelectedScore(updated)
   }, [scores])
+
+  // ============================================================
+  // 問題キャッシュリロード（CRUD 後に呼ぶ）
+  // ============================================================
+
+  const reloadProblems = async (score = selectedScore) => {
+    if (!user || !score) return
+    const merged = await getProblemsForTestScore(user.uid, score)
+    setProblemsCache(merged)
+  }
 
   // ============================================================
   // ヘルパー
@@ -101,6 +121,22 @@ function TestScoreView({ user }) {
     return masterUnits.filter(u => !u.subject || u.subject === subject)
   }
 
+  // 科目別PDF（subjectPdfs優先、旧pdfDocumentIdは無視）
+  function getSubjectPdfs(score) {
+    return score?.subjectPdfs || {}
+  }
+
+  function getPdfForSubject(subject) {
+    const pdfId = getSubjectPdfs(selectedScore)[subject]
+    return pdfId ? pdfList.find(p => p.firestoreId === pdfId) || null : null
+  }
+
+  // 問題追加フォームのデフォルト科目（PDFが紐付いている科目を優先）
+  function getDefaultSubject() {
+    const pdfs = getSubjectPdfs(selectedScore)
+    return SUBJECTS.find(s => pdfs[s]) || '算数'
+  }
+
   function reviewStatusLabel(status) {
     if (status === 'done') return { label: '解き直し済', color: '#16a34a', bg: '#dcfce7' }
     if (status === 'retry') return { label: '要再挑戦', color: '#dc2626', bg: '#fee2e2' }
@@ -111,30 +147,26 @@ function TestScoreView({ user }) {
   // 問題ログ CRUD
   // ============================================================
 
+  // 新規保存 → problems コレクション
   const handleSaveProblem = async () => {
     if (!problemForm.problemNumber) {
       toast.error('問題番号を入力してください')
       return
     }
-    const newProblem = {
-      id: `problem_${Date.now()}`,
+    const result = await addProblem(user.uid, {
+      sourceType: 'test',
+      sourceId: selectedScore.firestoreId,
       subject: problemForm.subject,
-      problemNumber: parseInt(problemForm.problemNumber),
+      problemNumber: parseInt(problemForm.problemNumber) || problemForm.problemNumber,
       unitIds: problemForm.unitIds,
-      correctRate: parseFloat(problemForm.correctRate) || 0,
       isCorrect: problemForm.isCorrect,
       missType: problemForm.isCorrect ? null : (problemForm.missType || 'understanding'),
-      reviewStatus: 'pending',
+      correctRate: parseFloat(problemForm.correctRate) || 0,
       points: parseInt(problemForm.points) || null,
       imageUrl: problemForm.imageUrl || null,
-    }
-    const currentProblems = getProblemLogs(selectedScore)
-    const result = await updateTestScore(user.uid, selectedScore.firestoreId, {
-      problemLogs: [...currentProblems, newProblem]
     })
     if (result.success) {
-      const refreshResult = await getAllTestScores(user.uid)
-      if (refreshResult.success) setScores(refreshResult.data)
+      await reloadProblems()
       setProblemForm(getEmptyProblemForm())
       setShowProblemForm(false)
       toast.success('問題を追加しました')
@@ -143,20 +175,34 @@ function TestScoreView({ user }) {
     }
   }
 
+  // 解き直しステータス更新：コレクション問題は updateProblem、embedded は updateTestScore
   const handleUpdateProblemStatus = async (problemId, reviewStatus) => {
-    const updatedProblems = getProblemLogs(selectedScore).map(p =>
-      p.id === problemId ? { ...p, reviewStatus } : p
-    )
-    await updateTestScore(user.uid, selectedScore.firestoreId, { problemLogs: updatedProblems })
-    const refreshResult = await getAllTestScores(user.uid)
-    if (refreshResult.success) setScores(refreshResult.data)
+    const problem = problemsCache.find(p => p.id === problemId)
+    if (problem?._source === 'collection') {
+      await updateProblem(user.uid, problem.firestoreId, { reviewStatus })
+    } else {
+      const updatedProblems = (selectedScore.problemLogs || []).map(p =>
+        p.id === problemId ? { ...p, reviewStatus } : p
+      )
+      await updateTestScore(user.uid, selectedScore.firestoreId, { problemLogs: updatedProblems })
+      const refreshResult = await getAllTestScores(user.uid)
+      if (refreshResult.success) setScores(refreshResult.data)
+    }
+    await reloadProblems()
   }
 
+  // 削除：コレクション問題は deleteProblem、embedded は updateTestScore
   const handleDeleteProblem = async (problemId) => {
-    const updatedProblems = getProblemLogs(selectedScore).filter(p => p.id !== problemId)
-    await updateTestScore(user.uid, selectedScore.firestoreId, { problemLogs: updatedProblems })
-    const refreshResult = await getAllTestScores(user.uid)
-    if (refreshResult.success) setScores(refreshResult.data)
+    const problem = problemsCache.find(p => p.id === problemId)
+    if (problem?._source === 'collection') {
+      await deleteProblem(user.uid, problem.firestoreId)
+    } else {
+      const updatedProblems = (selectedScore.problemLogs || []).filter(p => p.id !== problemId)
+      await updateTestScore(user.uid, selectedScore.firestoreId, { problemLogs: updatedProblems })
+      const refreshResult = await getAllTestScores(user.uid)
+      if (refreshResult.success) setScores(refreshResult.data)
+    }
+    await reloadProblems()
     toast.success('削除しました')
   }
 
@@ -165,7 +211,7 @@ function TestScoreView({ user }) {
   // ============================================================
 
   const handleSyncToMasterUnits = async () => {
-    const problems = getProblemLogs(selectedScore)
+    const problems = problemsCache
     // 理解不足のみ弱点マップに反映（ケアレスミス・未習は除外）
     const targetProblems = problems.filter(p =>
       !p.isCorrect &&
@@ -213,7 +259,9 @@ function TestScoreView({ user }) {
   // ============================================================
 
   const handleCreateRevengeTasks = async () => {
-    const revengeList = getRevengeList(selectedScore)
+    const revengeList = problemsCache
+      .filter(p => !p.isCorrect && parseFloat(p.correctRate) >= 50)
+      .sort((a, b) => parseFloat(b.correctRate) - parseFloat(a.correctRate))
     if (revengeList.length === 0) {
       toast.error('リベンジリストが空です（正答率50%以上の不正解問題がありません）')
       return
@@ -249,23 +297,26 @@ function TestScoreView({ user }) {
   // PDF紐付けハンドラ
   // ============================================================
 
-  const handleAttachPdf = async (pdf) => {
+  const handleAttachPdf = async (subject, pdf) => {
+    const updated = { ...getSubjectPdfs(selectedScore), [subject]: pdf.firestoreId }
     const result = await updateTestScore(user.uid, selectedScore.firestoreId, {
-      pdfDocumentId: pdf.firestoreId
+      subjectPdfs: updated
     })
     if (result.success) {
       const refreshResult = await getAllTestScores(user.uid)
       if (refreshResult.success) setScores(refreshResult.data)
-      setShowPdfPicker(false)
-      toast.success(`「${pdf.fileName}」を紐付けました`)
+      setPdfPickerSubject(null)
+      toast.success(`${subject}：「${pdf.fileName}」を紐付けました`)
     } else {
       toast.error('保存に失敗しました')
     }
   }
 
-  const handleDetachPdf = async () => {
+  const handleDetachPdf = async (subject) => {
+    const updated = { ...getSubjectPdfs(selectedScore) }
+    delete updated[subject]
     const result = await updateTestScore(user.uid, selectedScore.firestoreId, {
-      pdfDocumentId: null
+      subjectPdfs: updated
     })
     if (result.success) {
       const refreshResult = await getAllTestScores(user.uid)
@@ -343,8 +394,10 @@ function TestScoreView({ user }) {
   // RENDER - 詳細ビュー
   // ============================================================
 
-  const problemLogs = getProblemLogs(selectedScore)
-  const revengeList = getRevengeList(selectedScore)
+  const problemLogs = problemsCache
+  const revengeList = problemsCache
+    .filter(p => !p.isCorrect && parseFloat(p.correctRate) >= 50)
+    .sort((a, b) => parseFloat(b.correctRate) - parseFloat(a.correctRate))
   const unitsForSubject = getUnitsForSubject(problemForm.subject)
 
   return (
@@ -365,34 +418,39 @@ function TestScoreView({ user }) {
         </div>
       </div>
 
-      {/* PDF紐付けバー */}
-      <div className="pdf-attach-bar">
-        {selectedScore.pdfDocumentId ? (
-          <>
-            <span className="pdf-attach-label">📎 問題用紙PDF:</span>
-            <span className="pdf-attach-name">
-              {pdfList.find(p => p.firestoreId === selectedScore.pdfDocumentId)?.fileName || '読込中...'}
-            </span>
-            <button className="pdf-attach-change" onClick={() => setShowPdfPicker(true)}>変更</button>
-            <button className="pdf-attach-remove" onClick={handleDetachPdf}>✕</button>
-          </>
-        ) : (
-          <>
-            <span className="pdf-attach-label">📎 問題用紙PDF:</span>
-            <button className="pdf-attach-add" onClick={() => setShowPdfPicker(true)}>
-              未設定 — 紐付ける
-            </button>
-          </>
-        )}
+      {/* 科目別PDF紐付けバー */}
+      <div className="subject-pdf-bar">
+        <span className="subject-pdf-bar-label">📎 科目別PDF</span>
+        <div className="subject-pdf-slots">
+          {SUBJECTS.map(subject => {
+            const pdf = getPdfForSubject(subject)
+            return (
+              <div key={subject} className="subject-pdf-slot">
+                <span className="subject-pdf-slot-name">{subject}</span>
+                {pdf ? (
+                  <div className="subject-pdf-slot-linked">
+                    <span className="subject-pdf-slot-filename" title={pdf.fileName}>{pdf.fileName}</span>
+                    <button className="pdf-attach-change" onClick={() => setPdfPickerSubject(subject)}>変更</button>
+                    <button className="pdf-attach-remove" onClick={() => handleDetachPdf(subject)}>✕</button>
+                  </div>
+                ) : (
+                  <button className="pdf-attach-add" onClick={() => setPdfPickerSubject(subject)}>
+                    未設定 — 紐付ける
+                  </button>
+                )}
+              </div>
+            )
+          })}
+        </div>
       </div>
 
-      {/* PDFピッカーモーダル */}
-      {showPdfPicker && (
-        <div className="pdf-picker-overlay" onClick={() => setShowPdfPicker(false)}>
+      {/* PDFピッカーモーダル（科目別） */}
+      {pdfPickerSubject && (
+        <div className="pdf-picker-overlay" onClick={() => setPdfPickerSubject(null)}>
           <div className="pdf-picker-modal" onClick={e => e.stopPropagation()}>
             <div className="pdf-picker-header">
-              <span>テスト問題用紙PDFを選択</span>
-              <button onClick={() => setShowPdfPicker(false)}>✕</button>
+              <span>{pdfPickerSubject}の問題用紙PDFを選択</span>
+              <button onClick={() => setPdfPickerSubject(null)}>✕</button>
             </div>
             {pdfList.length === 0 ? (
               <div className="pdf-picker-empty">
@@ -401,18 +459,21 @@ function TestScoreView({ user }) {
               </div>
             ) : (
               <ul className="pdf-picker-list">
-                {pdfList.map(pdf => (
-                  <li
-                    key={pdf.firestoreId}
-                    className={`pdf-picker-item ${pdf.firestoreId === selectedScore.pdfDocumentId ? 'selected' : ''}`}
-                    onClick={() => handleAttachPdf(pdf)}
-                  >
-                    <span className="pdf-picker-type-badge">{PDF_TYPE_LABELS[pdf.type] || pdf.type || '—'}</span>
-                    <span className="pdf-picker-filename">{pdf.fileName}</span>
-                    {pdf.subject && <span className="pdf-picker-meta">{pdf.subject}</span>}
-                    {pdf.year && <span className="pdf-picker-meta">{pdf.year}年</span>}
-                  </li>
-                ))}
+                {pdfList.map(pdf => {
+                  const currentPdfId = getSubjectPdfs(selectedScore)[pdfPickerSubject]
+                  return (
+                    <li
+                      key={pdf.firestoreId}
+                      className={`pdf-picker-item ${pdf.firestoreId === currentPdfId ? 'selected' : ''}`}
+                      onClick={() => handleAttachPdf(pdfPickerSubject, pdf)}
+                    >
+                      <span className="pdf-picker-type-badge">{PDF_TYPE_LABELS[pdf.type] || pdf.type || '—'}</span>
+                      <span className="pdf-picker-filename">{pdf.fileName}</span>
+                      {pdf.subject && <span className="pdf-picker-meta">{pdf.subject}</span>}
+                      {pdf.year && <span className="pdf-picker-meta">{pdf.year}年</span>}
+                    </li>
+                  )
+                })}
               </ul>
             )}
           </div>
@@ -452,7 +513,7 @@ function TestScoreView({ user }) {
           <div className="problem-add-btns">
             <button
               className="btn-add-problem"
-              onClick={() => { setProblemForm(getEmptyProblemForm()); setShowProblemForm(true) }}
+              onClick={() => { setProblemForm({ ...getEmptyProblemForm(), subject: getDefaultSubject() }); setShowProblemForm(true) }}
             >
               ＋ 問題を追加
             </button>
@@ -825,7 +886,7 @@ function TestScoreView({ user }) {
         <PdfCropper
           userId={user.uid}
           attachedPdf={(() => {
-            const pdf = pdfList.find(p => p.firestoreId === selectedScore?.pdfDocumentId)
+            const pdf = getPdfForSubject(problemForm.subject)
             return pdf ? { firestoreId: pdf.firestoreId, driveFileId: pdf.driveFileId, fileName: pdf.fileName } : null
           })()}
           onCropComplete={handlePdfCropComplete}
