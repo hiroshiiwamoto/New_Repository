@@ -55,14 +55,19 @@ export const EVALUATION_COLORS = {
  */
 export async function addLessonLogWithStats(userId, data) {
   try {
+    const unitIds = data.unitIds || []
+    const mainUnitId = unitIds[0] || null  // 最初のタグ = メイン単元
+
     const docData = {
-      unitIds: data.unitIds || [],
+      unitIds,
+      mainUnitId,                               // NEW: メイン単元ID（習熟度スコアの対象）
       sourceType: data.sourceType || 'practice',
       sourceId: data.sourceId || null,
       sourceName: data.sourceName || '',
       date: data.date || serverTimestamp(),
       performance: data.performance ?? 0,
       evaluationKey: data.evaluationKey || null, // 'blue' | 'yellow' | 'red'
+      missType: data.missType || null,           // NEW: 'understanding' | 'careless' | 'not_studied' | null
       timeSpent: data.timeSpent || null,
       notes: data.notes || '',
       grade: data.grade || null,
@@ -74,10 +79,10 @@ export async function addLessonLogWithStats(userId, data) {
       docData
     )
 
-    // 関連するすべての単元のスタッツを更新
-    await Promise.all(
-      (data.unitIds || []).map(unitId => updateMasterUnitStats(userId, unitId))
-    )
+    // メイン単元のスタッツのみ更新（サブ単元は影響なし）
+    if (mainUnitId) {
+      await updateMasterUnitStats(userId, mainUnitId)
+    }
 
     return { success: true, data: { id: ref.id, ...docData } }
   } catch (error) {
@@ -262,26 +267,57 @@ export function getProficiencyLevel(score) {
 
 /**
  * 全単元の習熟度マップを lessonLogs から計算（ダッシュボード表示用）
+ *
+ * メイン単元（mainUnitId = unitIds[0]）のみ習熟度スコアに影響する。
+ * サブ単元（2番目以降の unitIds）は登場回数（indirectCount）として記録するのみ。
  */
 export function computeAllProficiencies(allLogs) {
-  const logsByUnit = {}
+  // メイン単元ごとにログを集める
+  const mainLogsByUnit = {}
+  // サブ単元として登場した回数
+  const subCountByUnit = {}
+
   for (const log of allLogs) {
-    for (const unitId of (log.unitIds || [])) {
-      if (!logsByUnit[unitId]) logsByUnit[unitId] = []
-      logsByUnit[unitId].push(log)
+    const mainId = log.mainUnitId || (log.unitIds || [])[0] || null
+    if (mainId) {
+      if (!mainLogsByUnit[mainId]) mainLogsByUnit[mainId] = []
+      mainLogsByUnit[mainId].push(log)
+    }
+    // サブ単元（メイン以外）の登場回数をカウント
+    for (const id of (log.unitIds || [])) {
+      if (id !== mainId) subCountByUnit[id] = (subCountByUnit[id] || 0) + 1
     }
   }
 
   const result = {}
-  for (const [unitId, logs] of Object.entries(logsByUnit)) {
+
+  // メイン単元：習熟度スコアを計算
+  for (const [unitId, logs] of Object.entries(mainLogsByUnit)) {
     const score = computeProficiencyScore(logs)
     const profLevel = getProficiencyLevel(score)
     result[unitId] = {
       score,
       ...profLevel,
       logCount: logs.length,
+      directCount: logs.length,    // メイン単元として評価された回数
+      indirectCount: 0,
       lastStudied: logs[0]?.date || logs[0]?.createdAt || null,
     }
   }
+
+  // サブ単元：登場回数を追記
+  for (const [unitId, count] of Object.entries(subCountByUnit)) {
+    if (!result[unitId]) {
+      result[unitId] = {
+        score: -1,
+        ...getProficiencyLevel(-1),
+        logCount: 0,
+        directCount: 0,
+        lastStudied: null,
+      }
+    }
+    result[unitId].indirectCount = (result[unitId].indirectCount || 0) + count
+  }
+
   return result
 }
