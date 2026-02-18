@@ -499,14 +499,14 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           </div>
 
           {/* 問題ファイル */}
-          <div className="sapix-form-section">
-            <label className="sapix-section-label">問題PDF（任意）:</label>
+          <div className="add-form-section">
+            <label className="section-label">問題PDF（任意）:</label>
             {renderFileArea(addForm, setAddForm, 'add')}
           </div>
 
           {/* 単元タグ */}
-          <div className="sapix-form-section">
-            <label className="sapix-section-label">単元タグ（任意）:</label>
+          <div className="add-form-section">
+            <label className="section-label">単元タグ（任意）:</label>
             <UnitTagPicker
               subject={addForm.subject}
               value={addForm.unitIds}
@@ -554,7 +554,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                   const taskUnitIds = getTaskUnitIds(task)
 
                   return (
-                    <div key={task.id} className="pastpaper-card">
+                    <div key={task.id} className={`pastpaper-card${editingTaskId === task.id ? ' editing' : ''}`}>
                       {editingTaskId === task.id ? (
                         // 編集モード
                         <div className="edit-form-container">
@@ -608,14 +608,14 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                           </div>
 
                           {/* 問題ファイル */}
-                          <div className="sapix-form-section">
-                            <label className="sapix-section-label">問題PDF（任意）:</label>
+                          <div className="edit-form-section">
+                            <label className="section-label">問題PDF（任意）:</label>
                             {renderFileArea(editForm, setEditForm, task.id)}
                           </div>
 
                           {/* 単元タグ */}
-                          <div className="sapix-form-section">
-                            <label className="sapix-section-label">単元タグ（任意）:</label>
+                          <div className="edit-form-section">
+                            <label className="section-label">単元タグ（任意）:</label>
                             <UnitTagPicker
                               subject={editForm.subject}
                               value={editForm.unitIds}

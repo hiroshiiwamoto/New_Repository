@@ -41,12 +41,29 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  padding: 2px 8px 2px 8px;
+  padding: 2px 8px;
   background: #dbeafe;
   color: #1d4ed8;
   border-radius: 12px;
   font-size: 12px;
   font-weight: 500;
+}
+
+/* メイン単元（最初に選択したタグ）は色を強調 */
+.utp-chip-main {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.utp-main-badge {
+  background: #f59e0b;
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 3px;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
 }
 
 .utp-chip-remove {
