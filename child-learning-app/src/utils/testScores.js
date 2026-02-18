@@ -1,5 +1,6 @@
 // テスト成績管理（Firestore）
 
+import { getProblemsBySource } from './problems'
 import {
   collection,
   addDoc,
@@ -174,6 +175,27 @@ export async function deleteTestScore(userId, firestoreId) {
       error: error.message
     }
   }
+}
+
+/**
+ * テストスコアに紐づく問題を取得する互換レイヤー
+ *
+ * - embedded: testScore.problemLogs[]（旧形式）
+ * - collection: users/{uid}/problems（新形式、sourceType='test'）
+ * 両方をマージして返す。_source フィールドで区別可能。
+ * collection 側は id フィールドを firestoreId に正規化。
+ *
+ * @param {string} userId
+ * @param {object} score - testScore ドキュメント
+ * @returns {Promise<Array>}
+ */
+export async function getProblemsForTestScore(userId, score) {
+  const embedded = (score.problemLogs || []).map(p => ({ ...p, _source: 'embedded' }))
+  const result = await getProblemsBySource(userId, 'test', score.firestoreId)
+  const fromCollection = result.success
+    ? result.data.map(p => ({ ...p, id: p.firestoreId, _source: 'collection' }))
+    : []
+  return [...embedded, ...fromCollection]
 }
 
 /**

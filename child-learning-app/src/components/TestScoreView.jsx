@@ -2,8 +2,14 @@ import { useState, useEffect } from 'react'
 import './TestScoreView.css'
 import {
   getAllTestScores,
-  updateTestScore
+  updateTestScore,
+  getProblemsForTestScore,
 } from '../utils/testScores'
+import {
+  addProblem,
+  updateProblem,
+  deleteProblem,
+} from '../utils/problems'
 import { getSapixTexts } from '../utils/sapixTexts'
 import { addLessonLogWithStats, EVALUATION_SCORES } from '../utils/lessonLogs'
 import { addTaskToFirestore } from '../utils/firestore'
@@ -32,6 +38,7 @@ function TestScoreView({ user }) {
   const [showPdfCropper, setShowPdfCropper] = useState(false)
   const [pdfList, setPdfList] = useState([])
   const [showPdfPicker, setShowPdfPicker] = useState(false)
+  const [problemsCache, setProblemsCache] = useState([])   // embedded + collection のマージ済み問題一覧
 
   const masterUnits = getStaticMasterUnits()
 
@@ -63,6 +70,9 @@ function TestScoreView({ user }) {
     getAllPDFs(user.uid).then(result => {
       if (result.success) setPdfList(result.data)
     })
+    getProblemsForTestScore(user.uid, selectedScore).then(merged => {
+      setProblemsCache(merged)
+    })
   }, [user, selectedScore?.firestoreId])
 
   useEffect(() => {
@@ -70,6 +80,16 @@ function TestScoreView({ user }) {
     const updated = scores.find(s => s.firestoreId === selectedScore.firestoreId)
     if (updated) setSelectedScore(updated)
   }, [scores])
+
+  // ============================================================
+  // 問題キャッシュリロード（CRUD 後に呼ぶ）
+  // ============================================================
+
+  const reloadProblems = async (score = selectedScore) => {
+    if (!user || !score) return
+    const merged = await getProblemsForTestScore(user.uid, score)
+    setProblemsCache(merged)
+  }
 
   // ============================================================
   // ヘルパー
@@ -111,30 +131,26 @@ function TestScoreView({ user }) {
   // 問題ログ CRUD
   // ============================================================
 
+  // 新規保存 → problems コレクション
   const handleSaveProblem = async () => {
     if (!problemForm.problemNumber) {
       toast.error('問題番号を入力してください')
       return
     }
-    const newProblem = {
-      id: `problem_${Date.now()}`,
+    const result = await addProblem(user.uid, {
+      sourceType: 'test',
+      sourceId: selectedScore.firestoreId,
       subject: problemForm.subject,
-      problemNumber: parseInt(problemForm.problemNumber),
+      problemNumber: parseInt(problemForm.problemNumber) || problemForm.problemNumber,
       unitIds: problemForm.unitIds,
-      correctRate: parseFloat(problemForm.correctRate) || 0,
       isCorrect: problemForm.isCorrect,
       missType: problemForm.isCorrect ? null : (problemForm.missType || 'understanding'),
-      reviewStatus: 'pending',
+      correctRate: parseFloat(problemForm.correctRate) || 0,
       points: parseInt(problemForm.points) || null,
       imageUrl: problemForm.imageUrl || null,
-    }
-    const currentProblems = getProblemLogs(selectedScore)
-    const result = await updateTestScore(user.uid, selectedScore.firestoreId, {
-      problemLogs: [...currentProblems, newProblem]
     })
     if (result.success) {
-      const refreshResult = await getAllTestScores(user.uid)
-      if (refreshResult.success) setScores(refreshResult.data)
+      await reloadProblems()
       setProblemForm(getEmptyProblemForm())
       setShowProblemForm(false)
       toast.success('問題を追加しました')
@@ -143,20 +159,34 @@ function TestScoreView({ user }) {
     }
   }
 
+  // 解き直しステータス更新：コレクション問題は updateProblem、embedded は updateTestScore
   const handleUpdateProblemStatus = async (problemId, reviewStatus) => {
-    const updatedProblems = getProblemLogs(selectedScore).map(p =>
-      p.id === problemId ? { ...p, reviewStatus } : p
-    )
-    await updateTestScore(user.uid, selectedScore.firestoreId, { problemLogs: updatedProblems })
-    const refreshResult = await getAllTestScores(user.uid)
-    if (refreshResult.success) setScores(refreshResult.data)
+    const problem = problemsCache.find(p => p.id === problemId)
+    if (problem?._source === 'collection') {
+      await updateProblem(user.uid, problem.firestoreId, { reviewStatus })
+    } else {
+      const updatedProblems = (selectedScore.problemLogs || []).map(p =>
+        p.id === problemId ? { ...p, reviewStatus } : p
+      )
+      await updateTestScore(user.uid, selectedScore.firestoreId, { problemLogs: updatedProblems })
+      const refreshResult = await getAllTestScores(user.uid)
+      if (refreshResult.success) setScores(refreshResult.data)
+    }
+    await reloadProblems()
   }
 
+  // 削除：コレクション問題は deleteProblem、embedded は updateTestScore
   const handleDeleteProblem = async (problemId) => {
-    const updatedProblems = getProblemLogs(selectedScore).filter(p => p.id !== problemId)
-    await updateTestScore(user.uid, selectedScore.firestoreId, { problemLogs: updatedProblems })
-    const refreshResult = await getAllTestScores(user.uid)
-    if (refreshResult.success) setScores(refreshResult.data)
+    const problem = problemsCache.find(p => p.id === problemId)
+    if (problem?._source === 'collection') {
+      await deleteProblem(user.uid, problem.firestoreId)
+    } else {
+      const updatedProblems = (selectedScore.problemLogs || []).filter(p => p.id !== problemId)
+      await updateTestScore(user.uid, selectedScore.firestoreId, { problemLogs: updatedProblems })
+      const refreshResult = await getAllTestScores(user.uid)
+      if (refreshResult.success) setScores(refreshResult.data)
+    }
+    await reloadProblems()
     toast.success('削除しました')
   }
 
@@ -165,7 +195,7 @@ function TestScoreView({ user }) {
   // ============================================================
 
   const handleSyncToMasterUnits = async () => {
-    const problems = getProblemLogs(selectedScore)
+    const problems = problemsCache
     // 理解不足のみ弱点マップに反映（ケアレスミス・未習は除外）
     const targetProblems = problems.filter(p =>
       !p.isCorrect &&
@@ -213,7 +243,9 @@ function TestScoreView({ user }) {
   // ============================================================
 
   const handleCreateRevengeTasks = async () => {
-    const revengeList = getRevengeList(selectedScore)
+    const revengeList = problemsCache
+      .filter(p => !p.isCorrect && parseFloat(p.correctRate) >= 50)
+      .sort((a, b) => parseFloat(b.correctRate) - parseFloat(a.correctRate))
     if (revengeList.length === 0) {
       toast.error('リベンジリストが空です（正答率50%以上の不正解問題がありません）')
       return
@@ -343,8 +375,10 @@ function TestScoreView({ user }) {
   // RENDER - 詳細ビュー
   // ============================================================
 
-  const problemLogs = getProblemLogs(selectedScore)
-  const revengeList = getRevengeList(selectedScore)
+  const problemLogs = problemsCache
+  const revengeList = problemsCache
+    .filter(p => !p.isCorrect && parseFloat(p.correctRate) >= 50)
+    .sort((a, b) => parseFloat(b.correctRate) - parseFloat(a.correctRate))
   const unitsForSubject = getUnitsForSubject(problemForm.subject)
 
   return (
