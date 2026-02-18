@@ -14,7 +14,6 @@ import './MasterUnitDashboard.css'
 
 const SUBJECTS = ['算数', '国語', '理科', '社会']
 const SUBJECT_ICONS = { 算数: '🔢', 国語: '📖', 理科: '🔬', 社会: '🌏' }
-const CATEGORY_ORDER = ['計算', '数の性質', '規則性', '特殊算', '速さ', '割合', '比', '平面図形', '立体図形', '場合の数', 'グラフ・論理']
 
 function MasterUnitDashboard() {
   const [loading, setLoading] = useState(true)
@@ -153,11 +152,14 @@ function MasterUnitDashboard() {
 
   const subjectUnits = masterUnits.filter(u => (u.subject || '算数') === selectedSubject)
 
+  // 教科ごとのカテゴリ順序を動的に取得（order_index順で単元を並べた結果から）
+  const categoryOrder = [...new Set(subjectUnits.map(u => u.category))]
+
   const filteredUnits = subjectUnits.filter(u =>
     selectedCategory === 'all' || u.category === selectedCategory
   )
 
-  const groupedUnits = CATEGORY_ORDER.reduce((acc, cat) => {
+  const groupedUnits = categoryOrder.reduce((acc, cat) => {
     const units = filteredUnits.filter(u => u.category === cat)
     if (units.length > 0) acc[cat] = units
     return acc
@@ -196,17 +198,8 @@ function MasterUnitDashboard() {
         ))}
       </div>
 
-      {/* 算数以外：準備中 */}
-      {selectedSubject !== '算数' && (
-        <div className="mud-coming-soon">
-          <div className="mud-coming-soon-icon">{SUBJECT_ICONS[selectedSubject]}</div>
-          <div className="mud-coming-soon-title">{selectedSubject}</div>
-          <div className="mud-coming-soon-msg">単元データは現在準備中です。</div>
-        </div>
-      )}
-
-      {/* 算数のみ：サマリー＋グリッド */}
-      {selectedSubject === '算数' && <>
+      {/* サマリー＋グリッド */}
+      {<>
       {/* サマリー */}
       <div className="mud-summary">
         <div className="mud-summary-card">
@@ -235,7 +228,7 @@ function MasterUnitDashboard() {
 
       {/* カテゴリフィルター */}
       <div className="mud-category-filter">
-        {['all', ...CATEGORY_ORDER].map(cat => (
+        {['all', ...categoryOrder].map(cat => (
           <button
             key={cat}
             className={`mud-cat-btn ${selectedCategory === cat ? 'active' : ''}`}
