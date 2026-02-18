@@ -28,7 +28,8 @@ function PDFProblemView({ user }) {
     subject: '算数',
     schoolName: '',
     year: new Date().getFullYear(),
-    description: ''
+    description: '',
+    type: 'textbook'
   })
 
   const fileInputRef = useRef(null)
@@ -129,7 +130,8 @@ function PDFProblemView({ user }) {
           subject: '算数',
           schoolName: '',
           year: new Date().getFullYear(),
-          description: ''
+          description: '',
+          type: 'textbook'
         })
       } else {
         toast.error('アップロードに失敗しました: ' + result.error)
@@ -349,6 +351,20 @@ function PDFProblemView({ user }) {
         <div className="upload-form-overlay" onClick={() => !uploading && setShowUploadForm(false)}>
           <div className="upload-form-container" onClick={(e) => e.stopPropagation()}>
             <h3>PDFをアップロード（Google Drive）</h3>
+
+            <div className="form-field">
+              <label>種類 *</label>
+              <select
+                value={uploadMetadata.type}
+                onChange={(e) => setUploadMetadata({ ...uploadMetadata, type: e.target.value })}
+                disabled={uploading}
+              >
+                <option value="testPaper">テスト問題用紙</option>
+                <option value="textbook">教材テキスト（SAPIX等）</option>
+                <option value="pastPaper">過去問</option>
+                <option value="workbook">市販の問題集</option>
+              </select>
+            </div>
 
             <div className="form-field">
               <label>科目 *</label>
