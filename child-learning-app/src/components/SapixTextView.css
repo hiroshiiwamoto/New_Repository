@@ -483,3 +483,31 @@
   gap: 4px;
   margin-top: 4px;
 }
+
+/* ─── 問題ログ（PastPaperView と共通スタイルを補完） ─── */
+
+.problem-log-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.create-task-btn {
+  padding: 5px 14px;
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.create-task-btn:hover:not(:disabled) {
+  background: #dbeafe;
+}
+.create-task-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

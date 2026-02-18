@@ -10,6 +10,17 @@ import DriveFilePicker from './DriveFilePicker'
 import UnitTagPicker from './UnitTagPicker'
 import { addLessonLogWithStats, EVALUATION_SCORES, EVALUATION_LABELS } from '../utils/lessonLogs'
 import { getStaticMasterUnits } from '../utils/importMasterUnits'
+import {
+  addProblem,
+  getProblemsBySource,
+  updateProblem,
+  deleteProblem,
+  deleteProblemsBySource,
+  reviewStatusInfo,
+  missTypeLabel,
+} from '../utils/problems'
+import { addTaskToFirestore } from '../utils/firestore'
+import PdfCropper from './PdfCropper'
 
 function SapixTextView({ user }) {
   const [texts, setTexts] = useState([])
@@ -29,6 +40,17 @@ function SapixTextView({ user }) {
   const [showDrivePicker, setShowDrivePicker] = useState(null) // 'add' | 'edit' | null
   const [expandedText, setExpandedText] = useState(null) // スキャンテキスト展開中のID
   const [evaluating, setEvaluating] = useState(null) // 評価処理中の firestoreId
+
+  // ── 問題ログ関連 ──────────────────────────────────────────
+  const [problems, setProblems] = useState({})            // textId -> problems[]
+  const [expandedProblems, setExpandedProblems] = useState({}) // textId -> boolean
+  const [showProblemForm, setShowProblemForm] = useState(null)  // textId or null
+  const [problemForm, setProblemForm] = useState({
+    problemNumber: '', unitIds: [], isCorrect: false, missType: 'understanding',
+    difficulty: null, imageUrl: null,
+  })
+  const [showPdfCropper, setShowPdfCropper] = useState(null)    // textId or null
+  const [creatingTask, setCreatingTask] = useState(null)         // textId or null
 
   const [addForm, setAddForm] = useState({
     textName: '',
@@ -117,6 +139,100 @@ function SapixTextView({ user }) {
       return `https://drive.google.com/file/d/${match[1]}/preview`
     }
     return fileUrl
+  }
+
+  // ── 問題ログ CRUD ────────────────────────────────────────
+  const loadProblems = async (textId) => {
+    if (!user) return
+    const result = await getProblemsBySource(user.uid, 'textbook', textId)
+    if (result.success) {
+      setProblems(prev => ({ ...prev, [textId]: result.data }))
+    }
+  }
+
+  const toggleProblemExpanded = async (textId) => {
+    const next = !expandedProblems[textId]
+    setExpandedProblems(prev => ({ ...prev, [textId]: next }))
+    if (next && !problems[textId]) await loadProblems(textId)
+  }
+
+  const handleAddProblem = async (text) => {
+    if (!problemForm.problemNumber.trim()) {
+      toast.error('問題番号を入力してください')
+      return
+    }
+    const result = await addProblem(user.uid, {
+      sourceType: 'textbook',
+      sourceId: text.firestoreId,
+      subject: text.subject,
+      problemNumber: problemForm.problemNumber.trim(),
+      unitIds: problemForm.unitIds.length ? problemForm.unitIds : (text.unitIds || []),
+      isCorrect: problemForm.isCorrect,
+      missType: problemForm.isCorrect ? null : problemForm.missType,
+      difficulty: problemForm.difficulty,
+      imageUrl: problemForm.imageUrl,
+    })
+    if (result.success) {
+      await loadProblems(text.firestoreId)
+      setProblemForm({ problemNumber: '', unitIds: [], isCorrect: false, missType: 'understanding', difficulty: null, imageUrl: null })
+      setShowProblemForm(null)
+      toast.success('問題を追加しました')
+    } else {
+      toast.error('保存に失敗しました')
+    }
+  }
+
+  const handleUpdateProblemStatus = async (textId, problemId, reviewStatus) => {
+    await updateProblem(user.uid, problemId, { reviewStatus })
+    await loadProblems(textId)
+  }
+
+  const handleDeleteProblem = async (textId, problemId) => {
+    await deleteProblem(user.uid, problemId)
+    await loadProblems(textId)
+    toast.success('削除しました')
+  }
+
+  const handlePdfCropComplete = (textId) => (imageUrl) => {
+    setShowPdfCropper(null)
+    setProblemForm(prev => ({ ...prev, imageUrl }))
+    setShowProblemForm(textId)
+    toast.success('問題画像を取り込みました。残りの情報を入力して追加してください。')
+  }
+
+  // 間違い問題から解き直しタスクを生成
+  const handleCreateReviewTask = async (text) => {
+    const wrong = (problems[text.firestoreId] || []).filter(p => !p.isCorrect)
+    if (wrong.length === 0) {
+      toast.error('不正解の問題がありません')
+      return
+    }
+    setCreatingTask(text.firestoreId)
+    try {
+      const nextWeek = new Date()
+      nextWeek.setDate(nextWeek.getDate() + 7)
+      await addTaskToFirestore(user.uid, {
+        id: Date.now() + Math.random(),
+        title: `【解き直し】${text.textName}${text.textNumber ? ' ' + text.textNumber : ''}`,
+        subject: text.subject,
+        grade: text.grade || '',
+        unitIds: text.unitIds || [],
+        taskType: 'review',
+        priority: 'A',
+        dueDate: nextWeek.toISOString().split('T')[0],
+        fileUrl: text.fileUrl || '',
+        fileName: text.fileName || '',
+        completed: false,
+        problemIds: wrong.map(p => p.firestoreId),
+        generatedFrom: { type: 'textbook', id: text.firestoreId },
+        createdAt: new Date().toISOString(),
+      })
+      toast.success(`解き直しタスクを作成しました（${wrong.length}問）`)
+    } catch {
+      toast.error('タスク作成に失敗しました')
+    } finally {
+      setCreatingTask(null)
+    }
   }
 
   // 評価ボタン（🔵/🟡/🔴）押下
@@ -222,6 +338,7 @@ function SapixTextView({ user }) {
   // テキスト削除
   const handleDelete = async (text) => {
     if (!window.confirm(`「${text.textName}」を削除しますか？`)) return
+    await deleteProblemsBySource(user.uid, 'textbook', text.firestoreId)
     const result = await deleteSapixText(user.uid, text.firestoreId)
     if (result.success) {
       toast.success('削除しました')
@@ -597,6 +714,175 @@ function SapixTextView({ user }) {
                     )}
                   </div>
 
+                  {/* ── 問題ログセクション ─────────────────────── */}
+                  <div className="problem-log-section">
+                    <button
+                      className="toggle-problems-btn"
+                      onClick={() => toggleProblemExpanded(text.firestoreId)}
+                    >
+                      {expandedProblems[text.firestoreId] ? '▼' : '▶'} 問題記録
+                      {problems[text.firestoreId]?.length > 0 && (
+                        <span className="problem-count-badge">
+                          {problems[text.firestoreId].length}問
+                        </span>
+                      )}
+                    </button>
+
+                    {expandedProblems[text.firestoreId] && (
+                      <div className="problem-log-body">
+                        {/* 問題一覧 */}
+                        {(problems[text.firestoreId] || []).length === 0 ? (
+                          <p className="no-problems-msg">まだ問題が記録されていません</p>
+                        ) : (
+                          <div className="problem-list">
+                            {(problems[text.firestoreId] || []).map(problem => {
+                              const st = reviewStatusInfo(problem.reviewStatus)
+                              return (
+                                <div
+                                  key={problem.firestoreId}
+                                  className={`problem-item ${problem.isCorrect ? 'correct' : 'incorrect'}`}
+                                >
+                                  <div className="problem-item-left">
+                                    <span className="problem-correctness">
+                                      {problem.isCorrect ? '○' : '✗'}
+                                    </span>
+                                    <span className="problem-number">第{problem.problemNumber}問</span>
+                                    {!problem.isCorrect && problem.missType && (
+                                      <span className="problem-miss-type">{missTypeLabel(problem.missType)}</span>
+                                    )}
+                                    {problem.unitIds?.length > 0 && (
+                                      <div className="problem-units">
+                                        {problem.unitIds.map(id => (
+                                          <span key={id} className="unit-tag">
+                                            {unitNameMap[id] || id}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    )}
+                                    {problem.imageUrl && (
+                                      <a href={problem.imageUrl} target="_blank" rel="noopener noreferrer" className="problem-image-link">
+                                        <img src={problem.imageUrl} alt="問題画像" className="problem-thumbnail" />
+                                      </a>
+                                    )}
+                                  </div>
+                                  <div className="problem-item-right">
+                                    {!problem.isCorrect && (
+                                      <select
+                                        className="review-status-select"
+                                        value={problem.reviewStatus}
+                                        style={{ background: st.bg, color: st.color }}
+                                        onChange={(e) =>
+                                          handleUpdateProblemStatus(text.firestoreId, problem.firestoreId, e.target.value)
+                                        }
+                                      >
+                                        <option value="pending">未完了</option>
+                                        <option value="retry">要再挑戦</option>
+                                        <option value="done">解き直し済</option>
+                                      </select>
+                                    )}
+                                    <button
+                                      className="problem-delete-btn"
+                                      onClick={() => handleDeleteProblem(text.firestoreId, problem.firestoreId)}
+                                      title="削除"
+                                    >×</button>
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )}
+
+                        {/* 問題追加フォーム */}
+                        {showProblemForm === text.firestoreId ? (
+                          <div className="problem-form">
+                            <h4>問題を追加</h4>
+                            <div className="problem-form-field">
+                              <label>問題番号:</label>
+                              <input
+                                type="text"
+                                placeholder="例: 1, 2(1), 大問3"
+                                value={problemForm.problemNumber}
+                                onChange={(e) => setProblemForm(prev => ({ ...prev, problemNumber: e.target.value }))}
+                              />
+                            </div>
+                            <div className="problem-form-field">
+                              <label>正誤:</label>
+                              <div className="correctness-toggle">
+                                <button type="button" className={`correct-btn ${problemForm.isCorrect ? 'active' : ''}`}
+                                  onClick={() => setProblemForm(prev => ({ ...prev, isCorrect: true }))}>
+                                  ○ 正解
+                                </button>
+                                <button type="button" className={`incorrect-btn ${!problemForm.isCorrect ? 'active' : ''}`}
+                                  onClick={() => setProblemForm(prev => ({ ...prev, isCorrect: false }))}>
+                                  ✗ 不正解
+                                </button>
+                              </div>
+                            </div>
+                            {!problemForm.isCorrect && (
+                              <div className="problem-form-field">
+                                <label>ミスの種類:</label>
+                                <div className="miss-type-btns">
+                                  {[
+                                    { value: 'understanding', label: '理解不足' },
+                                    { value: 'careless',      label: 'ケアレス' },
+                                    { value: 'not_studied',   label: '未習' },
+                                  ].map(opt => (
+                                    <button key={opt.value} type="button"
+                                      className={`miss-type-btn ${problemForm.missType === opt.value ? 'active' : ''}`}
+                                      onClick={() => setProblemForm(prev => ({ ...prev, missType: opt.value }))}>
+                                      {opt.label}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            <div className="problem-form-field">
+                              <label>問題画像（任意）:</label>
+                              {problemForm.imageUrl ? (
+                                <div className="image-preview-row">
+                                  <img src={problemForm.imageUrl} alt="問題プレビュー" className="problem-image-preview" />
+                                  <button type="button" className="btn-secondary"
+                                    onClick={() => setProblemForm(prev => ({ ...prev, imageUrl: null }))}>削除</button>
+                                </div>
+                              ) : (
+                                <button type="button" className="crop-open-btn"
+                                  onClick={() => { setShowProblemForm(null); setShowPdfCropper(text.firestoreId) }}>
+                                  ✂ PDFから切り抜く
+                                </button>
+                              )}
+                            </div>
+                            <div className="problem-form-actions">
+                              <button className="btn-secondary"
+                                onClick={() => { setShowProblemForm(null); setProblemForm({ problemNumber: '', unitIds: [], isCorrect: false, missType: 'understanding', difficulty: null, imageUrl: null }) }}>
+                                キャンセル
+                              </button>
+                              <button className="btn-primary" onClick={() => handleAddProblem(text)}>
+                                ✓ 追加する
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="problem-log-actions">
+                            <button className="add-problem-btn"
+                              onClick={() => { setProblemForm({ problemNumber: '', unitIds: text.unitIds || [], isCorrect: false, missType: 'understanding', difficulty: null, imageUrl: null }); setShowProblemForm(text.firestoreId) }}>
+                              + 問題を追加
+                            </button>
+                            {(problems[text.firestoreId] || []).some(p => !p.isCorrect) && (
+                              <button
+                                className="create-task-btn"
+                                disabled={creatingTask === text.firestoreId}
+                                onClick={() => handleCreateReviewTask(text)}
+                              >
+                                {creatingTask === text.firestoreId ? '作成中...' : '→ 解き直しタスクを生成'}
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {/* ─────────────────────────────────────────────── */}
+
                   {/* スキャンテキスト表示 */}
                   {expandedText === text.firestoreId && text.scannedText && (
                     <div className="sapix-scanned-text-display">
@@ -651,6 +937,26 @@ function SapixTextView({ user }) {
           onClose={() => setShowDrivePicker(null)}
         />
       )}
+
+      {/* PDF切り抜きモーダル */}
+      {showPdfCropper && (() => {
+        const cropText = texts.find(t => t.firestoreId === showPdfCropper)
+        const driveFileId = cropText?.fileUrl?.match(/\/file\/d\/([^/?]+)/)?.[1] || null
+        const attachedPdf = driveFileId
+          ? { driveFileId, fileName: cropText.fileName || cropText.textName, firestoreId: null }
+          : null
+        return (
+          <PdfCropper
+            userId={user.uid}
+            attachedPdf={attachedPdf}
+            onCropComplete={handlePdfCropComplete(showPdfCropper)}
+            onClose={() => {
+              setShowPdfCropper(null)
+              setShowProblemForm(showPdfCropper)
+            }}
+          />
+        )
+      })()}
     </div>
   )
 }
