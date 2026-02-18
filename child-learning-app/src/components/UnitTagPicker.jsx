@@ -29,9 +29,9 @@ function UnitTagPicker({ value = [], onChange, subject = null, placeholder = '�
     )
   }, [subjectUnits, searchText])
 
-  // チップ表示は全教科から検索（科目変更前に選んだ単元も表示できるように）
+  // チップ表示は value 配列の順序を維持（最初が「メイン単元」）
   const selectedUnits = useMemo(() =>
-    allUnits.filter(u => value.includes(u.id)),
+    value.map(id => allUnits.find(u => u.id === id)).filter(Boolean),
     [allUnits, value]
   )
 
@@ -70,8 +70,9 @@ function UnitTagPicker({ value = [], onChange, subject = null, placeholder = '�
           <span className="utp-placeholder">単元タグを選択（複数可）</span>
         ) : (
           <div className="utp-chips">
-            {selectedUnits.map(unit => (
-              <span key={unit.id} className="utp-chip">
+            {selectedUnits.map((unit, index) => (
+              <span key={unit.id} className={`utp-chip${index === 0 ? ' utp-chip-main' : ''}`}>
+                {index === 0 && <span className="utp-main-badge">メイン</span>}
                 {unit.name}
                 <button
                   className="utp-chip-remove"

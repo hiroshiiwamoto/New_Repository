@@ -63,7 +63,8 @@
   border: 2px solid #e0e7ff;
   max-width: 100%;
   min-width: 0;
-  overflow: hidden;
+  /* overflow: visible にしてUnitTagPickerのドロップダウンがクリップされないようにする */
+  overflow: visible;
 }
 
 .add-pastpaper-form h3 {
@@ -550,6 +551,11 @@
   max-width: 100%;
   min-width: 0;
   overflow: hidden;
+}
+
+/* 編集中はdropdownが見えるようにoverflowを解除 */
+.pastpaper-card.editing {
+  overflow: visible;
 }
 
 .pastpaper-card:hover {
