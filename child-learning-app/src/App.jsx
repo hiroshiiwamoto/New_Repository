@@ -295,13 +295,13 @@ function App() {
             className={view === 'schedule' ? 'active' : ''}
             onClick={() => setView('schedule')}
           >
-            📅 スケジュール
+            📅 今週のミッション
           </button>
           <button
             className={view === 'sapixtext' ? 'active' : ''}
             onClick={() => setView('sapixtext')}
           >
-            📘 サピックス課題
+            📘 授業・教材
           </button>
           <button
             className={view === 'pastpaper' ? 'active' : ''}
@@ -325,7 +325,7 @@ function App() {
             className={view === 'dashboard' ? 'active' : ''}
             onClick={() => setView('dashboard')}
           >
-            🏠 ダッシュボード
+            🗺️ 弱点マップ
           </button>
         </div>
 
