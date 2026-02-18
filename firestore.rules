@@ -114,6 +114,12 @@ service cloud.firestore {
       match /masterUnitStats/{unitId} {
         allow read, write: if isAuthenticated() && isOwner(userId);
       }
+
+      // 問題ライブラリ（切り抜き問題）コレクション
+      // テスト・過去問・教材から切り抜いた問題画像と記録を管理
+      match /problems/{problemId} {
+        allow read, write: if isAuthenticated() && isOwner(userId);
+      }
     }
 
     // その他のすべてのドキュメントへのアクセスを拒否
