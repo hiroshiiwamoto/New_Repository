@@ -16,9 +16,18 @@ import { addTaskToFirestore } from '../utils/firestore'
 import { getStaticMasterUnits } from '../utils/importMasterUnits'
 import { toast } from '../utils/toast'
 import PdfCropper from './PdfCropper'
+import DriveFilePicker from './DriveFilePicker'
 import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
+import { refreshGoogleAccessToken } from './Auth'
 
 const SUBJECTS = ['算数', '国語', '理科', '社会']
+
+/** Google Drive URL から driveFileId を抽出 */
+function extractDriveFileId(fileUrl) {
+  if (!fileUrl) return null
+  const match = fileUrl.match(/\/file\/d\/([^/?]+)/)
+  return match ? match[1] : null
+}
 
 function TestScoreView({ user }) {
   const [scores, setScores] = useState([])
@@ -30,6 +39,7 @@ function TestScoreView({ user }) {
   const [creatingTasks, setCreatingTasks] = useState(false)
   const [showPdfCropper, setShowPdfCropper] = useState(false)
   const [uploadingSubject, setUploadingSubject] = useState(null) // アップロード中の科目
+  const [drivePickerSubject, setDrivePickerSubject] = useState(null) // Drive選択中の科目
   const [problemsCache, setProblemsCache] = useState([])   // embedded + collection のマージ済み問題一覧
 
   const subjectFileInputRefs = useRef({}) // 科目別ファイルinput参照
@@ -112,12 +122,12 @@ function TestScoreView({ user }) {
     return masterUnits.filter(u => !u.subject || u.subject === subject)
   }
 
-  // 科目別PDF: { subject: { fileUrl, fileName, driveFileId } }
+  // 科目別PDF: { subject: { fileUrl, fileName } }
   function getSubjectPdfs(score) {
     return score?.subjectPdfs || {}
   }
 
-  // subject の PDF情報を返す（{ fileUrl, fileName, driveFileId } | null）
+  // subject の PDF情報を返す（{ fileUrl, fileName } | null）
   function getPdfForSubject(subject) {
     return getSubjectPdfs(selectedScore)[subject] || null
   }
@@ -290,35 +300,59 @@ function TestScoreView({ user }) {
 
   const handleUploadSubjectPdf = async (subject, file) => {
     if (!file) return
-    const ok = await checkDriveAccess()
-    if (!ok) {
-      toast.error('Google Drive に接続してからアップロードしてください')
+    if (file.type !== 'application/pdf') {
+      toast.error('PDFファイルのみアップロード可能です')
       return
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error('ファイルサイズは20MB以下にしてください')
+      return
+    }
+    const hasAccess = await checkDriveAccess()
+    if (!hasAccess) {
+      const token = await refreshGoogleAccessToken()
+      if (!token) {
+        toast.error('Google Drive に接続してからアップロードしてください')
+        return
+      }
     }
     setUploadingSubject(subject)
     try {
       const driveResult = await uploadPDFToDrive(file, () => {})
       const fileUrl = `https://drive.google.com/file/d/${driveResult.driveFileId}/view`
-      const updated = {
-        ...getSubjectPdfs(selectedScore),
-        [subject]: { fileUrl, fileName: file.name, driveFileId: driveResult.driveFileId }
-      }
-      const result = await updateTestScore(user.uid, selectedScore.firestoreId, { subjectPdfs: updated })
-      if (result.success) {
-        const refreshResult = await getAllTestScores(user.uid)
-        if (refreshResult.success) setScores(refreshResult.data)
-        toast.success(`${subject}：「${file.name}」をアップロードしました`)
-      } else {
-        toast.error('保存に失敗しました')
-      }
+      await saveSubjectPdf(subject, fileUrl, file.name)
+      toast.success(`${subject}：「${file.name}」をアップロードしました`)
     } catch (e) {
       toast.error('アップロードエラー: ' + e.message)
     } finally {
       setUploadingSubject(null)
-      // input をリセットして同じファイルを再選択できるようにする
       if (subjectFileInputRefs.current[subject]) {
         subjectFileInputRefs.current[subject].value = ''
       }
+    }
+  }
+
+  // DriveFilePickerからの選択（{ url, name } を受け取る）
+  const handleDrivePickerSelect = async ({ url, name }) => {
+    const subject = drivePickerSubject
+    if (!subject || !url) return
+    await saveSubjectPdf(subject, url, name)
+    setDrivePickerSubject(null)
+    toast.success(`${subject}：「${name}」を紐付けました`)
+  }
+
+  // 科目PDFの保存共通処理（fileUrl + fileName のみ保存）
+  const saveSubjectPdf = async (subject, fileUrl, fileName) => {
+    const updated = {
+      ...getSubjectPdfs(selectedScore),
+      [subject]: { fileUrl, fileName }
+    }
+    const result = await updateTestScore(user.uid, selectedScore.firestoreId, { subjectPdfs: updated })
+    if (result.success) {
+      const refreshResult = await getAllTestScores(user.uid)
+      if (refreshResult.success) setScores(refreshResult.data)
+    } else {
+      toast.error('保存に失敗しました')
     }
   }
 
@@ -465,19 +499,36 @@ function TestScoreView({ user }) {
                     <button className="pdf-attach-remove" onClick={() => handleDetachPdf(subject)}>✕</button>
                   </div>
                 ) : (
-                  <button
-                    className="pdf-attach-add"
-                    onClick={() => subjectFileInputRefs.current[subject]?.click()}
-                    disabled={isUploading}
-                  >
-                    {isUploading ? 'アップロード中...' : 'PDFをアップロード'}
-                  </button>
+                  <div className="subject-pdf-slot-buttons">
+                    <button
+                      className="pdf-attach-add"
+                      onClick={() => subjectFileInputRefs.current[subject]?.click()}
+                      disabled={isUploading}
+                    >
+                      {isUploading ? 'アップロード中...' : '新規アップロード'}
+                    </button>
+                    <button
+                      className="pdf-attach-drive"
+                      onClick={() => setDrivePickerSubject(subject)}
+                      disabled={isUploading}
+                    >
+                      Driveから選択
+                    </button>
+                  </div>
                 )}
               </div>
             )
           })}
         </div>
       </div>
+
+      {/* DriveFilePicker（科目別） */}
+      {drivePickerSubject && (
+        <DriveFilePicker
+          onSelect={handleDrivePickerSelect}
+          onClose={() => setDrivePickerSubject(null)}
+        />
+      )}
 
       {/* アクションバー */}
       <div className="action-bar">
@@ -886,7 +937,9 @@ function TestScoreView({ user }) {
           userId={user.uid}
           attachedPdf={(() => {
             const pdf = getPdfForSubject(problemForm.subject)
-            return pdf ? { driveFileId: pdf.driveFileId, fileName: pdf.fileName } : null
+            if (!pdf) return null
+            const driveFileId = extractDriveFileId(pdf.fileUrl)
+            return driveFileId ? { driveFileId, fileName: pdf.fileName, firestoreId: null } : null
           })()}
           onCropComplete={handlePdfCropComplete}
           onClose={() => setShowPdfCropper(false)}

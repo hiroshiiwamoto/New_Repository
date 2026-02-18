@@ -1605,18 +1605,37 @@
   white-space: nowrap;
 }
 
+.subject-pdf-slot-buttons {
+  display: flex;
+  gap: 4px;
+}
+
 .pdf-attach-add {
   background: none;
   border: 1px dashed #0ea5e9;
   border-radius: 6px;
   color: #0ea5e9;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  padding: 3px 12px;
+  padding: 3px 8px;
   cursor: pointer;
 }
 .pdf-attach-add:hover {
   background: #e0f2fe;
+}
+
+.pdf-attach-drive {
+  background: none;
+  border: 1px solid #93c5fd;
+  border-radius: 6px;
+  color: #2563eb;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  cursor: pointer;
+}
+.pdf-attach-drive:hover {
+  background: #eff6ff;
 }
 
 .pdf-attach-change {
