@@ -9,6 +9,7 @@ import { addLessonLogWithStats, EVALUATION_SCORES } from '../utils/lessonLogs'
 import { addTaskToFirestore } from '../utils/firestore'
 import { getStaticMasterUnits } from '../utils/importMasterUnits'
 import { toast } from '../utils/toast'
+import PdfCropper from './PdfCropper'
 
 const SUBJECTS = ['算数', '国語', '理科', '社会']
 
@@ -20,6 +21,7 @@ function TestScoreView({ user }) {
   const [sapixTexts, setSapixTexts] = useState([])
   const [syncingUnits, setSyncingUnits] = useState(false)
   const [creatingTasks, setCreatingTasks] = useState(false)
+  const [showPdfCropper, setShowPdfCropper] = useState(false)
 
   const masterUnits = getStaticMasterUnits()
 
@@ -32,6 +34,7 @@ function TestScoreView({ user }) {
       isCorrect: false,
       missType: null,  // null=正解時, 'understanding'|'careless'|'not_studied' for wrong
       points: '',
+      imageUrl: null,
     }
   }
 
@@ -110,6 +113,7 @@ function TestScoreView({ user }) {
       missType: problemForm.isCorrect ? null : (problemForm.missType || 'understanding'),
       reviewStatus: 'pending',
       points: parseInt(problemForm.points) || null,
+      imageUrl: problemForm.imageUrl || null,
     }
     const currentProblems = getProblemLogs(selectedScore)
     const result = await updateTestScore(user.uid, selectedScore.firestoreId, {
@@ -229,6 +233,17 @@ function TestScoreView({ user }) {
   }
 
   // ============================================================
+  // PDF切り出しハンドラ
+  // ============================================================
+
+  const handlePdfCropComplete = (imageUrl) => {
+    setShowPdfCropper(false)
+    setProblemForm(prev => ({ ...prev, imageUrl }))
+    setShowProblemForm(true)
+    toast.success('問題画像を取り込みました。残りの情報を入力して追加してください。')
+  }
+
+  // ============================================================
   // RENDER - テスト選択リスト
   // ============================================================
 
@@ -339,12 +354,21 @@ function TestScoreView({ user }) {
       <div className="section-card">
         <div className="section-header">
           <h3 className="section-title">問題別記録</h3>
-          <button
-            className="btn-add-problem"
-            onClick={() => { setProblemForm(getEmptyProblemForm()); setShowProblemForm(true) }}
-          >
-            ＋ 問題を追加
-          </button>
+          <div className="problem-add-btns">
+            <button
+              className="btn-add-problem"
+              onClick={() => { setProblemForm(getEmptyProblemForm()); setShowProblemForm(true) }}
+            >
+              ＋ 問題を追加
+            </button>
+            <button
+              className="btn-pdf-crop"
+              onClick={() => setShowPdfCropper(true)}
+              title="PDFから問題を切り出して追加"
+            >
+              📄 PDFから取り込む
+            </button>
+          </div>
         </div>
 
         {problemLogs.length === 0 ? (
@@ -383,6 +407,21 @@ function TestScoreView({ user }) {
                         <td className="cell-num">
                           {problem.problemNumber}
                           {isRevenge && <span className="revenge-marker" title="リベンジ対象">⚡</span>}
+                          {problem.imageUrl && (
+                            <a
+                              href={problem.imageUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="problem-img-thumb-link"
+                              title="問題画像を開く"
+                            >
+                              <img
+                                src={problem.imageUrl}
+                                alt="問題"
+                                className="problem-img-thumb"
+                              />
+                            </a>
+                          )}
                         </td>
                         <td className="cell-subject">
                           <span className={`subject-chip subject-${problem.subject}`}>
@@ -636,6 +675,22 @@ function TestScoreView({ user }) {
               </div>
             )}
 
+            {problemForm.imageUrl && (
+              <div className="form-field">
+                <label>問題画像</label>
+                <div className="problem-form-image-preview">
+                  <img src={problemForm.imageUrl} alt="問題画像" />
+                  <button
+                    type="button"
+                    className="btn-remove-image"
+                    onClick={() => setProblemForm(prev => ({ ...prev, imageUrl: null }))}
+                  >
+                    ✕ 削除
+                  </button>
+                </div>
+              </div>
+            )}
+
             {unitsForSubject.length > 0 && (
               <div className="form-field">
                 <label>単元タグ（複数選択可）</label>
@@ -669,6 +724,14 @@ function TestScoreView({ user }) {
             </div>
           </div>
         </div>
+      )}
+
+      {showPdfCropper && (
+        <PdfCropper
+          userId={user.uid}
+          onCropComplete={handlePdfCropComplete}
+          onClose={() => setShowPdfCropper(false)}
+        />
       )}
     </div>
   )
