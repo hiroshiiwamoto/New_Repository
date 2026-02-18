@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './TestScoreView.css'
 import {
   getAllTestScores,
@@ -16,16 +16,9 @@ import { addTaskToFirestore } from '../utils/firestore'
 import { getStaticMasterUnits } from '../utils/importMasterUnits'
 import { toast } from '../utils/toast'
 import PdfCropper from './PdfCropper'
-import { getAllPDFs } from '../utils/pdfStorage'
+import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
 
 const SUBJECTS = ['算数', '国語', '理科', '社会']
-
-const PDF_TYPE_LABELS = {
-  testPaper: 'テスト用紙',
-  textbook: '教材',
-  pastPaper: '過去問',
-  workbook: '問題集',
-}
 
 function TestScoreView({ user }) {
   const [scores, setScores] = useState([])
@@ -36,9 +29,10 @@ function TestScoreView({ user }) {
   const [syncingUnits, setSyncingUnits] = useState(false)
   const [creatingTasks, setCreatingTasks] = useState(false)
   const [showPdfCropper, setShowPdfCropper] = useState(false)
-  const [pdfList, setPdfList] = useState([])
-  const [pdfPickerSubject, setPdfPickerSubject] = useState(null)  // null | '算数' | '国語' | etc.
+  const [uploadingSubject, setUploadingSubject] = useState(null) // アップロード中の科目
   const [problemsCache, setProblemsCache] = useState([])   // embedded + collection のマージ済み問題一覧
+
+  const subjectFileInputRefs = useRef({}) // 科目別ファイルinput参照
 
   const masterUnits = getStaticMasterUnits()
 
@@ -66,9 +60,6 @@ function TestScoreView({ user }) {
     if (!user || !selectedScore) return
     getSapixTexts(user.uid).then(result => {
       if (result.success) setSapixTexts(result.data)
-    })
-    getAllPDFs(user.uid).then(result => {
-      if (result.success) setPdfList(result.data)
     })
     getProblemsForTestScore(user.uid, selectedScore).then(merged => {
       setProblemsCache(merged)
@@ -121,14 +112,14 @@ function TestScoreView({ user }) {
     return masterUnits.filter(u => !u.subject || u.subject === subject)
   }
 
-  // 科目別PDF（subjectPdfs優先、旧pdfDocumentIdは無視）
+  // 科目別PDF: { subject: { fileUrl, fileName, driveFileId } }
   function getSubjectPdfs(score) {
     return score?.subjectPdfs || {}
   }
 
+  // subject の PDF情報を返す（{ fileUrl, fileName, driveFileId } | null）
   function getPdfForSubject(subject) {
-    const pdfId = getSubjectPdfs(selectedScore)[subject]
-    return pdfId ? pdfList.find(p => p.firestoreId === pdfId) || null : null
+    return getSubjectPdfs(selectedScore)[subject] || null
   }
 
   // 問題追加フォームのデフォルト科目（PDFが紐付いている科目を優先）
@@ -297,27 +288,44 @@ function TestScoreView({ user }) {
   // PDF紐付けハンドラ
   // ============================================================
 
-  const handleAttachPdf = async (subject, pdf) => {
-    const updated = { ...getSubjectPdfs(selectedScore), [subject]: pdf.firestoreId }
-    const result = await updateTestScore(user.uid, selectedScore.firestoreId, {
-      subjectPdfs: updated
-    })
-    if (result.success) {
-      const refreshResult = await getAllTestScores(user.uid)
-      if (refreshResult.success) setScores(refreshResult.data)
-      setPdfPickerSubject(null)
-      toast.success(`${subject}：「${pdf.fileName}」を紐付けました`)
-    } else {
-      toast.error('保存に失敗しました')
+  const handleUploadSubjectPdf = async (subject, file) => {
+    if (!file) return
+    const ok = await checkDriveAccess()
+    if (!ok) {
+      toast.error('Google Drive に接続してからアップロードしてください')
+      return
+    }
+    setUploadingSubject(subject)
+    try {
+      const driveResult = await uploadPDFToDrive(file, () => {})
+      const fileUrl = `https://drive.google.com/file/d/${driveResult.driveFileId}/view`
+      const updated = {
+        ...getSubjectPdfs(selectedScore),
+        [subject]: { fileUrl, fileName: file.name, driveFileId: driveResult.driveFileId }
+      }
+      const result = await updateTestScore(user.uid, selectedScore.firestoreId, { subjectPdfs: updated })
+      if (result.success) {
+        const refreshResult = await getAllTestScores(user.uid)
+        if (refreshResult.success) setScores(refreshResult.data)
+        toast.success(`${subject}：「${file.name}」をアップロードしました`)
+      } else {
+        toast.error('保存に失敗しました')
+      }
+    } catch (e) {
+      toast.error('アップロードエラー: ' + e.message)
+    } finally {
+      setUploadingSubject(null)
+      // input をリセットして同じファイルを再選択できるようにする
+      if (subjectFileInputRefs.current[subject]) {
+        subjectFileInputRefs.current[subject].value = ''
+      }
     }
   }
 
   const handleDetachPdf = async (subject) => {
     const updated = { ...getSubjectPdfs(selectedScore) }
     delete updated[subject]
-    const result = await updateTestScore(user.uid, selectedScore.firestoreId, {
-      subjectPdfs: updated
-    })
+    const result = await updateTestScore(user.uid, selectedScore.firestoreId, { subjectPdfs: updated })
     if (result.success) {
       const refreshResult = await getAllTestScores(user.uid)
       if (refreshResult.success) setScores(refreshResult.data)
@@ -420,22 +428,49 @@ function TestScoreView({ user }) {
 
       {/* 科目別PDF紐付けバー */}
       <div className="subject-pdf-bar">
-        <span className="subject-pdf-bar-label">📎 科目別PDF</span>
+        <span className="subject-pdf-bar-label">📎 科目別PDF（問題用紙）</span>
         <div className="subject-pdf-slots">
           {SUBJECTS.map(subject => {
             const pdf = getPdfForSubject(subject)
+            const isUploading = uploadingSubject === subject
             return (
               <div key={subject} className="subject-pdf-slot">
+                {/* 隠しファイルinput */}
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  style={{ display: 'none' }}
+                  ref={el => { subjectFileInputRefs.current[subject] = el }}
+                  onChange={e => handleUploadSubjectPdf(subject, e.target.files[0])}
+                />
                 <span className="subject-pdf-slot-name">{subject}</span>
                 {pdf ? (
                   <div className="subject-pdf-slot-linked">
-                    <span className="subject-pdf-slot-filename" title={pdf.fileName}>{pdf.fileName}</span>
-                    <button className="pdf-attach-change" onClick={() => setPdfPickerSubject(subject)}>変更</button>
+                    <a
+                      href={pdf.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="subject-pdf-slot-filename"
+                      title={pdf.fileName}
+                    >
+                      {pdf.fileName}
+                    </a>
+                    <button
+                      className="pdf-attach-change"
+                      onClick={() => subjectFileInputRefs.current[subject]?.click()}
+                      disabled={isUploading}
+                    >
+                      {isUploading ? '...' : '変更'}
+                    </button>
                     <button className="pdf-attach-remove" onClick={() => handleDetachPdf(subject)}>✕</button>
                   </div>
                 ) : (
-                  <button className="pdf-attach-add" onClick={() => setPdfPickerSubject(subject)}>
-                    未設定 — 紐付ける
+                  <button
+                    className="pdf-attach-add"
+                    onClick={() => subjectFileInputRefs.current[subject]?.click()}
+                    disabled={isUploading}
+                  >
+                    {isUploading ? 'アップロード中...' : 'PDFをアップロード'}
                   </button>
                 )}
               </div>
@@ -443,42 +478,6 @@ function TestScoreView({ user }) {
           })}
         </div>
       </div>
-
-      {/* PDFピッカーモーダル（科目別） */}
-      {pdfPickerSubject && (
-        <div className="pdf-picker-overlay" onClick={() => setPdfPickerSubject(null)}>
-          <div className="pdf-picker-modal" onClick={e => e.stopPropagation()}>
-            <div className="pdf-picker-header">
-              <span>{pdfPickerSubject}の問題用紙PDFを選択</span>
-              <button onClick={() => setPdfPickerSubject(null)}>✕</button>
-            </div>
-            {pdfList.length === 0 ? (
-              <div className="pdf-picker-empty">
-                登録済みのPDFがありません。<br />
-                「PDF問題集」タブからアップロードしてください。
-              </div>
-            ) : (
-              <ul className="pdf-picker-list">
-                {pdfList.map(pdf => {
-                  const currentPdfId = getSubjectPdfs(selectedScore)[pdfPickerSubject]
-                  return (
-                    <li
-                      key={pdf.firestoreId}
-                      className={`pdf-picker-item ${pdf.firestoreId === currentPdfId ? 'selected' : ''}`}
-                      onClick={() => handleAttachPdf(pdfPickerSubject, pdf)}
-                    >
-                      <span className="pdf-picker-type-badge">{PDF_TYPE_LABELS[pdf.type] || pdf.type || '—'}</span>
-                      <span className="pdf-picker-filename">{pdf.fileName}</span>
-                      {pdf.subject && <span className="pdf-picker-meta">{pdf.subject}</span>}
-                      {pdf.year && <span className="pdf-picker-meta">{pdf.year}年</span>}
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* アクションバー */}
       <div className="action-bar">
@@ -887,7 +886,7 @@ function TestScoreView({ user }) {
           userId={user.uid}
           attachedPdf={(() => {
             const pdf = getPdfForSubject(problemForm.subject)
-            return pdf ? { firestoreId: pdf.firestoreId, driveFileId: pdf.driveFileId, fileName: pdf.fileName } : null
+            return pdf ? { driveFileId: pdf.driveFileId, fileName: pdf.fileName } : null
           })()}
           onCropComplete={handlePdfCropComplete}
           onClose={() => setShowPdfCropper(false)}
