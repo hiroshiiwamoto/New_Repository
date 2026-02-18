@@ -263,6 +263,7 @@ function SapixTextView({ user }) {
         <div className="sapix-form-section">
           <label className="sapix-section-label">単元タグ（複数選択可）:</label>
           <UnitTagPicker
+            subject={form.subject}
             value={form.unitIds}
             onChange={(unitIds) => setForm(prev => ({ ...prev, unitIds }))}
           />
@@ -365,7 +366,7 @@ function SapixTextView({ user }) {
                   key={subject}
                   type="button"
                   className={`subject-btn ${addForm.subject === subject ? 'active' : ''}`}
-                  onClick={() => setAddForm(prev => ({ ...prev, subject, unitId: '' }))}
+                  onClick={() => setAddForm(prev => ({ ...prev, subject, unitIds: [] }))}
                   style={{
                     borderColor: addForm.subject === subject ? subjectColors[subject] : '#e2e8f0',
                     background: addForm.subject === subject ? `${subjectColors[subject]}15` : 'white',
@@ -461,7 +462,7 @@ function SapixTextView({ user }) {
                           key={subject}
                           type="button"
                           className={`subject-btn ${editForm.subject === subject ? 'active' : ''}`}
-                          onClick={() => setEditForm(prev => ({ ...prev, subject, unitId: '' }))}
+                          onClick={() => setEditForm(prev => ({ ...prev, subject, unitIds: [] }))}
                           style={{
                             borderColor: editForm.subject === subject ? subjectColors[subject] : '#e2e8f0',
                             background: editForm.subject === subject ? `${subjectColors[subject]}15` : 'white',
