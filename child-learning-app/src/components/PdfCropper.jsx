@@ -3,26 +3,43 @@ import * as pdfjsLib from 'pdfjs-dist'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { storage } from '../firebase'
 import { getGoogleAccessToken, refreshGoogleAccessToken } from './Auth'
+import { getAllPDFs } from '../utils/pdfStorage'
 import './PdfCropper.css'
 
-// Use unpkg CDN for the worker to avoid bundler complexity
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`
 
-function extractDriveFileId(url) {
-  if (!url) return null
-  const match = url.match(/\/file\/d\/([^/?\s]+)/)
-  return match ? match[1] : null
-}
+// ─────────────────────────────────────────
+// Props:
+//   userId        : string
+//   attachedPdf   : { firestoreId, driveFileId, fileName } | null
+//   onCropComplete: (imageUrl: string) => void
+//   onClose       : () => void
+// ─────────────────────────────────────────
 
-export default function PdfCropper({ userId, onCropComplete, onClose }) {
-  const [urlInput, setUrlInput] = useState('')
+export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClose }) {
+  // アクティブタブ: 'attached' | 'list' | 'url'
+  const defaultTab = attachedPdf ? 'attached' : 'list'
+  const [activeTab, setActiveTab] = useState(defaultTab)
+
+  // PDF読み込み
   const [pdfDoc, setPdfDoc] = useState(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(0)
   const [scale, setScale] = useState(1.5)
   const [isLoading, setIsLoading] = useState(false)
+  const [loadedPdfName, setLoadedPdfName] = useState('')
   const [error, setError] = useState('')
+
+  // タブ2: 登録済みリスト
+  const [pdfList, setPdfList] = useState([])
+  const [pdfListLoading, setPdfListLoading] = useState(false)
+  const [listSearchQuery, setListSearchQuery] = useState('')
+
+  // タブ3: URL入力
+  const [urlInput, setUrlInput] = useState('')
+
+  // 選択・切り出し
   const [selection, setSelection] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState(null)
@@ -34,10 +51,75 @@ export default function PdfCropper({ userId, onCropComplete, onClose }) {
   const overlayRef = useRef(null)
   const renderTaskRef = useRef(null)
 
+  // ─── タブ2のリスト読み込み ───
+  useEffect(() => {
+    if (activeTab !== 'list' || pdfList.length > 0) return
+    setPdfListLoading(true)
+    getAllPDFs(userId).then(result => {
+      if (result.success) setPdfList(result.data)
+      setPdfListLoading(false)
+    })
+  }, [activeTab, userId])
+
+  // ─── タブ1: attachedPdf が指定されたら自動読み込み ───
+  useEffect(() => {
+    if (activeTab === 'attached' && attachedPdf?.driveFileId && !pdfDoc) {
+      loadPdfFromDriveId(attachedPdf.driveFileId, attachedPdf.fileName)
+    }
+  }, [activeTab])
+
+  // ─────────────────────────────────────────
+  // PDF読み込みコア
+  // ─────────────────────────────────────────
+
+  const loadPdfFromDriveId = async (driveFileId, fileName = '') => {
+    setIsLoading(true)
+    setError('')
+    setPdfDoc(null)
+    setSelection(null)
+    setCroppedPreview(null)
+    setCroppedBlob(null)
+
+    try {
+      let token = getGoogleAccessToken()
+      if (!token) token = await refreshGoogleAccessToken()
+      if (!token) throw new Error('Googleアカウントに再ログインしてください')
+
+      const response = await fetch(
+        `https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      if (!response.ok) throw new Error(`PDFの読み込みに失敗しました (${response.status})`)
+
+      const arrayBuffer = await response.arrayBuffer()
+      const doc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+      setPdfDoc(doc)
+      setTotalPages(doc.numPages)
+      setCurrentPage(1)
+      setLoadedPdfName(fileName)
+    } catch (e) {
+      setError(e.message || 'PDFの読み込みに失敗しました')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const loadPdfFromUrl = async () => {
+    const fileId = extractDriveFileId(urlInput)
+    if (!fileId) {
+      setError('Google DriveのURLを入力してください（例: https://drive.google.com/file/d/.../view）')
+      return
+    }
+    await loadPdfFromDriveId(fileId, urlInput)
+  }
+
+  // ─────────────────────────────────────────
+  // Canvas レンダリング
+  // ─────────────────────────────────────────
+
   const clearOverlay = useCallback(() => {
     const overlay = overlayRef.current
-    if (!overlay) return
-    overlay.getContext('2d').clearRect(0, 0, overlay.width, overlay.height)
+    if (overlay) overlay.getContext('2d').clearRect(0, 0, overlay.width, overlay.height)
   }, [])
 
   const renderPage = useCallback(async (doc, pageNum, sc) => {
@@ -52,10 +134,7 @@ export default function PdfCropper({ userId, onCropComplete, onClose }) {
     canvas.height = viewport.height
 
     const overlay = overlayRef.current
-    if (overlay) {
-      overlay.width = viewport.width
-      overlay.height = viewport.height
-    }
+    if (overlay) { overlay.width = viewport.width; overlay.height = viewport.height }
 
     const task = page.render({ canvasContext: canvas.getContext('2d'), viewport })
     renderTaskRef.current = task
@@ -64,7 +143,6 @@ export default function PdfCropper({ userId, onCropComplete, onClose }) {
     } catch (e) {
       if (e.name !== 'RenderingCancelledException') console.error(e)
     }
-
     setSelection(null)
     setCroppedPreview(null)
     setCroppedBlob(null)
@@ -75,16 +153,18 @@ export default function PdfCropper({ userId, onCropComplete, onClose }) {
     if (pdfDoc) renderPage(pdfDoc, currentPage, scale)
   }, [pdfDoc, currentPage, scale, renderPage])
 
+  // ─────────────────────────────────────────
+  // ドラッグ選択
+  // ─────────────────────────────────────────
+
   function drawSelectionRect(sel) {
     const overlay = overlayRef.current
     if (!overlay || !sel) return
     const ctx = overlay.getContext('2d')
     ctx.clearRect(0, 0, overlay.width, overlay.height)
-    // dim outside selection
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'
+    ctx.fillStyle = 'rgba(0,0,0,0.3)'
     ctx.fillRect(0, 0, overlay.width, overlay.height)
     ctx.clearRect(sel.x, sel.y, sel.w, sel.h)
-    // border
     ctx.strokeStyle = '#3b82f6'
     ctx.lineWidth = 2
     ctx.setLineDash([5, 3])
@@ -100,6 +180,13 @@ export default function PdfCropper({ userId, onCropComplete, onClose }) {
     }
   }
 
+  function normRect(a, b) {
+    return {
+      x: Math.min(a.x, b.x), y: Math.min(a.y, b.y),
+      w: Math.abs(b.x - a.x), h: Math.abs(b.y - a.y),
+    }
+  }
+
   const handleMouseDown = (e) => {
     const pos = getCanvasPos(e)
     setIsDragging(true)
@@ -112,74 +199,32 @@ export default function PdfCropper({ userId, onCropComplete, onClose }) {
 
   const handleMouseMove = (e) => {
     if (!isDragging || !dragStart) return
-    const pos = getCanvasPos(e)
-    const sel = normRect(dragStart, pos)
-    drawSelectionRect(sel)
+    drawSelectionRect(normRect(dragStart, getCanvasPos(e)))
   }
 
   const handleMouseUp = (e) => {
     if (!isDragging) return
     setIsDragging(false)
-    const pos = getCanvasPos(e)
-    const sel = normRect(dragStart, pos)
+    const sel = normRect(dragStart, getCanvasPos(e))
     if (sel.w < 10 || sel.h < 10) { clearOverlay(); return }
     setSelection(sel)
     drawSelectionRect(sel)
     cropToPreview(sel)
   }
 
-  function normRect(a, b) {
-    return {
-      x: Math.min(a.x, b.x),
-      y: Math.min(a.y, b.y),
-      w: Math.abs(b.x - a.x),
-      h: Math.abs(b.y - a.y),
-    }
-  }
-
   function cropToPreview(sel) {
     const src = canvasRef.current
     if (!src) return
     const tmp = document.createElement('canvas')
-    tmp.width = sel.w
-    tmp.height = sel.h
+    tmp.width = sel.w; tmp.height = sel.h
     tmp.getContext('2d').drawImage(src, sel.x, sel.y, sel.w, sel.h, 0, 0, sel.w, sel.h)
     setCroppedPreview(tmp.toDataURL('image/png'))
     tmp.toBlob(blob => setCroppedBlob(blob), 'image/png')
   }
 
-  const handleLoadPdf = async () => {
-    const fileId = extractDriveFileId(urlInput)
-    if (!fileId) {
-      setError('Google DriveのURLを入力してください（例: https://drive.google.com/file/d/.../view）')
-      return
-    }
-    setIsLoading(true)
-    setError('')
-    setPdfDoc(null)
-
-    try {
-      let token = getGoogleAccessToken()
-      if (!token) token = await refreshGoogleAccessToken()
-      if (!token) throw new Error('Googleアカウントに再ログインしてください')
-
-      const response = await fetch(
-        `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      if (!response.ok) throw new Error(`PDFの読み込みに失敗しました (${response.status})`)
-
-      const arrayBuffer = await response.arrayBuffer()
-      const doc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
-      setPdfDoc(doc)
-      setTotalPages(doc.numPages)
-      setCurrentPage(1)
-    } catch (e) {
-      setError(e.message || 'PDFの読み込みに失敗しました')
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  // ─────────────────────────────────────────
+  // 確定・保存
+  // ─────────────────────────────────────────
 
   const handleConfirmCrop = async () => {
     if (!croppedBlob) return
@@ -196,6 +241,21 @@ export default function PdfCropper({ userId, onCropComplete, onClose }) {
     }
   }
 
+  // ─────────────────────────────────────────
+  // フィルタ
+  // ─────────────────────────────────────────
+
+  const filteredPdfList = pdfList.filter(p =>
+    !listSearchQuery ||
+    p.fileName?.toLowerCase().includes(listSearchQuery.toLowerCase()) ||
+    p.subject?.includes(listSearchQuery) ||
+    String(p.year)?.includes(listSearchQuery)
+  )
+
+  // ─────────────────────────────────────────
+  // RENDER
+  // ─────────────────────────────────────────
+
   return (
     <div className="pdfcropper-overlay" onClick={onClose}>
       <div className="pdfcropper-modal" onClick={e => e.stopPropagation()}>
@@ -206,30 +266,119 @@ export default function PdfCropper({ userId, onCropComplete, onClose }) {
           <button className="pdfcropper-close" onClick={onClose}>✕</button>
         </div>
 
-        {/* URL入力 */}
-        <div className="pdfcropper-url-row">
-          <input
-            className="pdfcropper-url-input"
-            type="text"
-            placeholder="Google Drive URL を貼り付け（例: https://drive.google.com/file/d/.../view）"
-            value={urlInput}
-            onChange={e => setUrlInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleLoadPdf()}
-          />
+        {/* タブ */}
+        <div className="pdfcropper-tabs">
+          {attachedPdf && (
+            <button
+              className={`pdfcropper-tab ${activeTab === 'attached' ? 'active' : ''}`}
+              onClick={() => setActiveTab('attached')}
+            >
+              📎 紐付けPDF
+            </button>
+          )}
           <button
-            className="pdfcropper-load-btn"
-            onClick={handleLoadPdf}
-            disabled={isLoading}
+            className={`pdfcropper-tab ${activeTab === 'list' ? 'active' : ''}`}
+            onClick={() => setActiveTab('list')}
           >
-            {isLoading ? '読込中...' : '読込'}
+            📂 登録済みから選択
+          </button>
+          <button
+            className={`pdfcropper-tab ${activeTab === 'url' ? 'active' : ''}`}
+            onClick={() => setActiveTab('url')}
+          >
+            🔗 URLを入力
           </button>
         </div>
 
+        {/* ─── タブ1: 紐付けPDF ─── */}
+        {activeTab === 'attached' && attachedPdf && !pdfDoc && !isLoading && (
+          <div className="pdfcropper-attached-info">
+            <span className="pdfcropper-attached-name">{attachedPdf.fileName}</span>
+            <button className="pdfcropper-load-btn" onClick={() => loadPdfFromDriveId(attachedPdf.driveFileId, attachedPdf.fileName)}>
+              読込
+            </button>
+          </div>
+        )}
+
+        {/* ─── タブ2: 登録済みリスト ─── */}
+        {activeTab === 'list' && !pdfDoc && (
+          <div className="pdfcropper-list-area">
+            <input
+              className="pdfcropper-list-search"
+              type="text"
+              placeholder="ファイル名・科目・年度で絞り込み"
+              value={listSearchQuery}
+              onChange={e => setListSearchQuery(e.target.value)}
+            />
+            {pdfListLoading ? (
+              <div className="pdfcropper-loading">読み込み中...</div>
+            ) : filteredPdfList.length === 0 ? (
+              <div className="pdfcropper-empty">
+                {pdfList.length === 0
+                  ? '登録済みのPDFがありません。「PDF問題集」タブからアップロードしてください。'
+                  : '該当するPDFが見つかりません'}
+              </div>
+            ) : (
+              <ul className="pdfcropper-pdf-list">
+                {filteredPdfList.map(pdf => (
+                  <li key={pdf.firestoreId} className="pdfcropper-pdf-item">
+                    <div className="pdfcropper-pdf-info">
+                      <span className="pdfcropper-pdf-name">{pdf.fileName}</span>
+                      <div className="pdfcropper-pdf-meta">
+                        {pdf.type && <span className="pdfcropper-pdf-tag">{PDF_TYPE_LABELS[pdf.type] || pdf.type}</span>}
+                        {pdf.subject && <span className="pdfcropper-pdf-tag">{pdf.subject}</span>}
+                        {pdf.year && <span className="pdfcropper-pdf-tag">{pdf.year}年</span>}
+                      </div>
+                    </div>
+                    <button
+                      className="pdfcropper-load-btn"
+                      onClick={() => loadPdfFromDriveId(pdf.driveFileId, pdf.fileName)}
+                    >
+                      選択
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
+        {/* ─── タブ3: URL入力 ─── */}
+        {activeTab === 'url' && !pdfDoc && (
+          <div className="pdfcropper-url-row">
+            <input
+              className="pdfcropper-url-input"
+              type="text"
+              placeholder="Google Drive URL を貼り付け（例: https://drive.google.com/file/d/.../view）"
+              value={urlInput}
+              onChange={e => setUrlInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && loadPdfFromUrl()}
+            />
+            <button
+              className="pdfcropper-load-btn"
+              onClick={loadPdfFromUrl}
+              disabled={isLoading}
+            >
+              {isLoading ? '読込中...' : '読込'}
+            </button>
+          </div>
+        )}
+
         {error && <div className="pdfcropper-error">{error}</div>}
 
-        {/* PDFビュー */}
+        {/* ─── PDF読み込み済み: ページビュー ─── */}
         {pdfDoc && (
           <>
+            <div className="pdfcropper-loaded-bar">
+              <span className="pdfcropper-loaded-name">{loadedPdfName}</span>
+              <button
+                className="pdfcropper-unload-btn"
+                onClick={() => { setPdfDoc(null); setLoadedPdfName(''); setError('') }}
+              >
+                ← 選び直す
+              </button>
+            </div>
+
             <div className="pdfcropper-controls">
               <div className="pdfcropper-page-nav">
                 <button
@@ -290,9 +439,9 @@ export default function PdfCropper({ userId, onCropComplete, onClose }) {
           </>
         )}
 
-        {!pdfDoc && !isLoading && (
+        {!pdfDoc && !isLoading && !error && activeTab !== 'list' && (
           <div className="pdfcropper-empty">
-            Google Drive の PDF URL を貼り付けて「読込」を押してください
+            PDFを選択または読み込むと、ここに表示されます
           </div>
         )}
 
@@ -302,4 +451,17 @@ export default function PdfCropper({ userId, onCropComplete, onClose }) {
       </div>
     </div>
   )
+}
+
+function extractDriveFileId(url) {
+  if (!url) return null
+  const match = url.match(/\/file\/d\/([^/?\s]+)/)
+  return match ? match[1] : null
+}
+
+const PDF_TYPE_LABELS = {
+  testPaper: 'テスト用紙',
+  textbook: '教材',
+  pastPaper: '過去問',
+  workbook: '問題集',
 }

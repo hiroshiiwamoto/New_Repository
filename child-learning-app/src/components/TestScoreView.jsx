@@ -10,8 +10,16 @@ import { addTaskToFirestore } from '../utils/firestore'
 import { getStaticMasterUnits } from '../utils/importMasterUnits'
 import { toast } from '../utils/toast'
 import PdfCropper from './PdfCropper'
+import { getAllPDFs } from '../utils/pdfStorage'
 
 const SUBJECTS = ['算数', '国語', '理科', '社会']
+
+const PDF_TYPE_LABELS = {
+  testPaper: 'テスト用紙',
+  textbook: '教材',
+  pastPaper: '過去問',
+  workbook: '問題集',
+}
 
 function TestScoreView({ user }) {
   const [scores, setScores] = useState([])
@@ -22,6 +30,8 @@ function TestScoreView({ user }) {
   const [syncingUnits, setSyncingUnits] = useState(false)
   const [creatingTasks, setCreatingTasks] = useState(false)
   const [showPdfCropper, setShowPdfCropper] = useState(false)
+  const [pdfList, setPdfList] = useState([])
+  const [showPdfPicker, setShowPdfPicker] = useState(false)
 
   const masterUnits = getStaticMasterUnits()
 
@@ -49,6 +59,9 @@ function TestScoreView({ user }) {
     if (!user || !selectedScore) return
     getSapixTexts(user.uid).then(result => {
       if (result.success) setSapixTexts(result.data)
+    })
+    getAllPDFs(user.uid).then(result => {
+      if (result.success) setPdfList(result.data)
     })
   }, [user, selectedScore?.firestoreId])
 
@@ -233,6 +246,34 @@ function TestScoreView({ user }) {
   }
 
   // ============================================================
+  // PDF紐付けハンドラ
+  // ============================================================
+
+  const handleAttachPdf = async (pdf) => {
+    const result = await updateTestScore(user.uid, selectedScore.firestoreId, {
+      pdfDocumentId: pdf.firestoreId
+    })
+    if (result.success) {
+      const refreshResult = await getAllTestScores(user.uid)
+      if (refreshResult.success) setScores(refreshResult.data)
+      setShowPdfPicker(false)
+      toast.success(`「${pdf.fileName}」を紐付けました`)
+    } else {
+      toast.error('保存に失敗しました')
+    }
+  }
+
+  const handleDetachPdf = async () => {
+    const result = await updateTestScore(user.uid, selectedScore.firestoreId, {
+      pdfDocumentId: null
+    })
+    if (result.success) {
+      const refreshResult = await getAllTestScores(user.uid)
+      if (refreshResult.success) setScores(refreshResult.data)
+    }
+  }
+
+  // ============================================================
   // PDF切り出しハンドラ
   // ============================================================
 
@@ -323,6 +364,60 @@ function TestScoreView({ user }) {
           )}
         </div>
       </div>
+
+      {/* PDF紐付けバー */}
+      <div className="pdf-attach-bar">
+        {selectedScore.pdfDocumentId ? (
+          <>
+            <span className="pdf-attach-label">📎 問題用紙PDF:</span>
+            <span className="pdf-attach-name">
+              {pdfList.find(p => p.firestoreId === selectedScore.pdfDocumentId)?.fileName || '読込中...'}
+            </span>
+            <button className="pdf-attach-change" onClick={() => setShowPdfPicker(true)}>変更</button>
+            <button className="pdf-attach-remove" onClick={handleDetachPdf}>✕</button>
+          </>
+        ) : (
+          <>
+            <span className="pdf-attach-label">📎 問題用紙PDF:</span>
+            <button className="pdf-attach-add" onClick={() => setShowPdfPicker(true)}>
+              未設定 — 紐付ける
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* PDFピッカーモーダル */}
+      {showPdfPicker && (
+        <div className="pdf-picker-overlay" onClick={() => setShowPdfPicker(false)}>
+          <div className="pdf-picker-modal" onClick={e => e.stopPropagation()}>
+            <div className="pdf-picker-header">
+              <span>テスト問題用紙PDFを選択</span>
+              <button onClick={() => setShowPdfPicker(false)}>✕</button>
+            </div>
+            {pdfList.length === 0 ? (
+              <div className="pdf-picker-empty">
+                登録済みのPDFがありません。<br />
+                「PDF問題集」タブからアップロードしてください。
+              </div>
+            ) : (
+              <ul className="pdf-picker-list">
+                {pdfList.map(pdf => (
+                  <li
+                    key={pdf.firestoreId}
+                    className={`pdf-picker-item ${pdf.firestoreId === selectedScore.pdfDocumentId ? 'selected' : ''}`}
+                    onClick={() => handleAttachPdf(pdf)}
+                  >
+                    <span className="pdf-picker-type-badge">{PDF_TYPE_LABELS[pdf.type] || pdf.type || '—'}</span>
+                    <span className="pdf-picker-filename">{pdf.fileName}</span>
+                    {pdf.subject && <span className="pdf-picker-meta">{pdf.subject}</span>}
+                    {pdf.year && <span className="pdf-picker-meta">{pdf.year}年</span>}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* アクションバー */}
       <div className="action-bar">
@@ -729,6 +824,10 @@ function TestScoreView({ user }) {
       {showPdfCropper && (
         <PdfCropper
           userId={user.uid}
+          attachedPdf={(() => {
+            const pdf = pdfList.find(p => p.firestoreId === selectedScore?.pdfDocumentId)
+            return pdf ? { firestoreId: pdf.firestoreId, driveFileId: pdf.driveFileId, fileName: pdf.fileName } : null
+          })()}
           onCropComplete={handlePdfCropComplete}
           onClose={() => setShowPdfCropper(false)}
         />

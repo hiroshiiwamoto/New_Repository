@@ -76,6 +76,9 @@ export async function addTestScore(userId, scoreData) {
       // メモ
       notes: scoreData.notes || '',
 
+      // 紐付けPDF
+      pdfDocumentId: scoreData.pdfDocumentId || null,
+
       createdAt: new Date().toISOString(),
     }
 
