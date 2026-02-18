@@ -243,6 +243,7 @@ function SapixTextView({ user }) {
     }
     setEvaluating(text.firestoreId)
     try {
+      const textProblems = problems[text.firestoreId] || []
       const result = await addLessonLogWithStats(user.uid, {
         unitIds: text.unitIds,
         sourceType: 'sapixTask',
@@ -251,6 +252,7 @@ function SapixTextView({ user }) {
         date: new Date(),
         performance: EVALUATION_SCORES[evalKey],
         evaluationKey: evalKey,
+        problemIds: textProblems.map(p => p.firestoreId),
       })
       if (result.success) {
         toast.success(`評価を記録しました: ${EVALUATION_LABELS[evalKey]}`)
