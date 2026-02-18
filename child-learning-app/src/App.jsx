@@ -48,13 +48,19 @@ function App() {
     }
 
     // localStorageからFirestoreへの移行（初回のみ）
+    // CLEANUP_KEYがある場合はすでにクリーンアップ済みなので移行しない
+    const CLEANUP_KEY = 'all_tasks_cleared_20260217'
     if (!migrated) {
       const hasLocalData = localStorage.getItem('sapixTasks') || localStorage.getItem('targetSchools')
-      if (hasLocalData) {
+      if (hasLocalData && !localStorage.getItem(CLEANUP_KEY)) {
+        // まだクリーンアップ前の場合のみFirestoreへ移行し、移行後はlocalStorageを削除
         migrateLocalStorageToFirestore(user.uid).then(() => {
+          localStorage.removeItem('sapixTasks')
           setMigrated(true)
         })
       } else {
+        // クリーンアップ済み、またはローカルデータなし → localStorageのタスクを削除して終了
+        localStorage.removeItem('sapixTasks')
         setMigrated(true)
       }
     }
@@ -67,7 +73,6 @@ function App() {
     })
 
     // タスクのリアルタイム同期を開始
-    const CLEANUP_KEY = 'all_tasks_cleared_20260217'
     const unsubscribe = subscribeToTasks(user.uid, (firestoreTasks) => {
       if (!localStorage.getItem(CLEANUP_KEY)) {
         localStorage.setItem(CLEANUP_KEY, 'true')
