@@ -50,6 +50,9 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
   const canvasRef = useRef(null)
   const overlayRef = useRef(null)
   const renderTaskRef = useRef(null)
+  // タッチハンドラから最新値を参照するためのrefs
+  const isDraggingRef = useRef(false)
+  const dragStartRef = useRef(null)
 
   // ─── タブ2のリスト読み込み ───
   useEffect(() => {
@@ -174,9 +177,12 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
   function getCanvasPos(e) {
     const overlay = overlayRef.current
     const rect = overlay.getBoundingClientRect()
+    // タッチイベントとマウスイベント両対応
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY
     return {
-      x: (e.clientX - rect.left) * (overlay.width / rect.width),
-      y: (e.clientY - rect.top) * (overlay.height / rect.height),
+      x: (clientX - rect.left) * (overlay.width / rect.width),
+      y: (clientY - rect.top) * (overlay.height / rect.height),
     }
   }
 
@@ -187,8 +193,9 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
     }
   }
 
-  const handleMouseDown = (e) => {
-    const pos = getCanvasPos(e)
+  const startDrag = (pos) => {
+    isDraggingRef.current = true
+    dragStartRef.current = pos
     setIsDragging(true)
     setDragStart(pos)
     setSelection(null)
@@ -197,20 +204,71 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
     clearOverlay()
   }
 
-  const handleMouseMove = (e) => {
-    if (!isDragging || !dragStart) return
-    drawSelectionRect(normRect(dragStart, getCanvasPos(e)))
-  }
-
-  const handleMouseUp = (e) => {
-    if (!isDragging) return
+  const endDrag = (pos) => {
+    if (!isDraggingRef.current || !dragStartRef.current) return
+    isDraggingRef.current = false
     setIsDragging(false)
-    const sel = normRect(dragStart, getCanvasPos(e))
+    const sel = normRect(dragStartRef.current, pos)
+    dragStartRef.current = null
+    setDragStart(null)
     if (sel.w < 10 || sel.h < 10) { clearOverlay(); return }
     setSelection(sel)
     drawSelectionRect(sel)
     cropToPreview(sel)
   }
+
+  const handleMouseDown = (e) => {
+    startDrag(getCanvasPos(e))
+  }
+
+  const handleMouseMove = (e) => {
+    if (!isDraggingRef.current || !dragStartRef.current) return
+    drawSelectionRect(normRect(dragStartRef.current, getCanvasPos(e)))
+  }
+
+  const handleMouseUp = (e) => {
+    endDrag(getCanvasPos(e))
+  }
+
+  // ── タッチイベント用ネイティブリスナー（passive:false でスクロール防止） ──
+  // React合成イベントはpassiveがデフォルトでpreventDefaultが効かないため
+  useEffect(() => {
+    const overlay = overlayRef.current
+    if (!overlay) return
+
+    const onTouchStart = (e) => {
+      e.preventDefault()
+      startDrag(getCanvasPos(e))
+    }
+
+    const onTouchMove = (e) => {
+      e.preventDefault()
+      if (!isDraggingRef.current || !dragStartRef.current) return
+      drawSelectionRect(normRect(dragStartRef.current, getCanvasPos(e)))
+    }
+
+    const onTouchEnd = (e) => {
+      const rect = overlay.getBoundingClientRect()
+      const touch = e.changedTouches[0]
+      const pos = {
+        x: (touch.clientX - rect.left) * (overlay.width / rect.width),
+        y: (touch.clientY - rect.top) * (overlay.height / rect.height),
+      }
+      endDrag(pos)
+    }
+
+    overlay.addEventListener('touchstart', onTouchStart, { passive: false })
+    overlay.addEventListener('touchmove', onTouchMove, { passive: false })
+    overlay.addEventListener('touchend', onTouchEnd)
+
+    return () => {
+      overlay.removeEventListener('touchstart', onTouchStart)
+      overlay.removeEventListener('touchmove', onTouchMove)
+      overlay.removeEventListener('touchend', onTouchEnd)
+    }
+  // pdfDocが変わるとcanvasが再描画されるのでリスナーも再登録
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pdfDoc, currentPage, scale])
 
   function cropToPreview(sel) {
     const src = canvasRef.current
