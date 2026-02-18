@@ -7,23 +7,29 @@ import './UnitTagPicker.css'
  *
  * @param {string[]} value - 選択済みの unitId 配列
  * @param {Function} onChange - (unitIds: string[]) => void
+ * @param {string} [subject] - 絞り込む教科名。指定時はその教科の単元のみドロップダウンに表示
  * @param {string} [placeholder] - 検索ボックスのプレースホルダー
  */
-function UnitTagPicker({ value = [], onChange, placeholder = '単元を検索...' }) {
-  const allUnits = getStaticMasterUnits()
+function UnitTagPicker({ value = [], onChange, subject = null, placeholder = '単元を検索...' }) {
+  const allUnits = useMemo(() => getStaticMasterUnits(), [])
+  const subjectUnits = useMemo(
+    () => subject ? getStaticMasterUnits(subject) : allUnits,
+    [allUnits, subject]
+  )
   const [searchText, setSearchText] = useState('')
   const [isOpen, setIsOpen] = useState(false)
 
   const filteredUnits = useMemo(() => {
-    if (!searchText.trim()) return allUnits
+    if (!searchText.trim()) return subjectUnits
     const q = searchText.toLowerCase()
-    return allUnits.filter(u =>
+    return subjectUnits.filter(u =>
       u.name?.toLowerCase().includes(q) ||
       u.category?.toLowerCase().includes(q) ||
       u.id?.toLowerCase().includes(q)
     )
-  }, [allUnits, searchText])
+  }, [subjectUnits, searchText])
 
+  // チップ表示は全教科から検索（科目変更前に選んだ単元も表示できるように）
   const selectedUnits = useMemo(() =>
     allUnits.filter(u => value.includes(u.id)),
     [allUnits, value]
