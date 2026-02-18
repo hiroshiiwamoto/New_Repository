@@ -37,7 +37,7 @@ function TestScoreView({ user }) {
   const [sapixTexts, setSapixTexts] = useState([])
   const [syncingUnits, setSyncingUnits] = useState(false)
   const [creatingTasks, setCreatingTasks] = useState(false)
-  const [showPdfCropper, setShowPdfCropper] = useState(false)
+  const [showPdfCropper, setShowPdfCropper] = useState(null) // null | 科目名
   const [uploadingSubject, setUploadingSubject] = useState(null) // アップロード中の科目
   const [drivePickerSubject, setDrivePickerSubject] = useState(null) // Drive選択中の科目
   const [problemsCache, setProblemsCache] = useState([])   // embedded + collection のマージ済み問題一覧
@@ -371,8 +371,14 @@ function TestScoreView({ user }) {
   // ============================================================
 
   const handlePdfCropComplete = (imageUrl) => {
-    setShowPdfCropper(false)
-    setProblemForm(prev => ({ ...prev, imageUrl }))
+    // 切り出し元の科目を problemForm に反映
+    const cropSubject = showPdfCropper
+    setShowPdfCropper(null)
+    setProblemForm(prev => ({
+      ...prev,
+      imageUrl,
+      ...(cropSubject && cropSubject !== prev.subject ? { subject: cropSubject, unitIds: [] } : {})
+    }))
     setShowProblemForm(true)
     toast.success('問題画像を取り込みました。残りの情報を入力して追加してください。')
   }
@@ -569,7 +575,7 @@ function TestScoreView({ user }) {
             </button>
             <button
               className="btn-pdf-crop"
-              onClick={() => setShowPdfCropper(true)}
+              onClick={() => setShowPdfCropper(getDefaultSubject())}
               title="PDFから問題を切り出して追加"
             >
               📄 PDFから取り込む
@@ -933,17 +939,37 @@ function TestScoreView({ user }) {
       )}
 
       {showPdfCropper && (
-        <PdfCropper
-          userId={user.uid}
-          attachedPdf={(() => {
-            const pdf = getPdfForSubject(problemForm.subject)
-            if (!pdf) return null
-            const driveFileId = extractDriveFileId(pdf.fileUrl)
-            return driveFileId ? { driveFileId, fileName: pdf.fileName, firestoreId: null } : null
-          })()}
-          onCropComplete={handlePdfCropComplete}
-          onClose={() => setShowPdfCropper(false)}
-        />
+        <>
+          {/* 科目切り替えタブ（PdfCropperオーバーレイの上にfixed表示） */}
+          <div className="pdf-cropper-subject-tabs">
+            {SUBJECTS.map(subject => {
+              const hasPdf = !!getPdfForSubject(subject)
+              return (
+                <button
+                  key={subject}
+                  className={`pdf-cropper-subject-tab ${showPdfCropper === subject ? 'active' : ''} ${!hasPdf ? 'no-pdf' : ''}`}
+                  onClick={() => hasPdf && setShowPdfCropper(subject)}
+                  disabled={!hasPdf}
+                  title={hasPdf ? `${subject}のPDFから切り出す` : `${subject}のPDFが未添付です`}
+                >
+                  {subject}{!hasPdf && '（未添付）'}
+                </button>
+              )
+            })}
+          </div>
+          <PdfCropper
+            key={showPdfCropper}
+            userId={user.uid}
+            attachedPdf={(() => {
+              const pdf = getPdfForSubject(showPdfCropper)
+              if (!pdf) return null
+              const driveFileId = extractDriveFileId(pdf.fileUrl)
+              return driveFileId ? { driveFileId, fileName: pdf.fileName, firestoreId: null } : null
+            })()}
+            onCropComplete={handlePdfCropComplete}
+            onClose={() => setShowPdfCropper(null)}
+          />
+        </>
       )}
     </div>
   )
