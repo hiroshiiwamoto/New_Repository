@@ -8,17 +8,45 @@ import {
   getNextAttemptNumber,
   deleteSessionsByTaskId
 } from '../utils/pastPaperSessions'
+import {
+  addProblem,
+  getProblemsBySource,
+  updateProblem,
+  deleteProblem,
+  deleteProblemsBySource,
+  reviewStatusInfo,
+  missTypeLabel,
+} from '../utils/problems'
 import { subjectColors, subjectEmojis } from '../utils/constants'
 import { toast } from '../utils/toast'
 import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
 import { refreshGoogleAccessToken } from './Auth'
 import DriveFilePicker from './DriveFilePicker'
 import UnitTagPicker from './UnitTagPicker'
+import PdfCropper from './PdfCropper'
 
 const YEAR_OPTIONS = Array.from({ length: 2031 - 2000 }, (_, i) => 2000 + i)
 
 const EMPTY_ADD_FORM = { schoolName: '', year: '', subject: '算数', unitIds: [], fileUrl: '', fileName: '' }
 const EMPTY_EDIT_FORM = { schoolName: '', year: '', subject: '算数', unitIds: [], fileUrl: '', fileName: '' }
+
+const EMPTY_PROBLEM_FORM = {
+  problemNumber: '',
+  unitIds: [],
+  isCorrect: false,
+  missType: 'understanding',
+  difficulty: null,
+  imageUrl: null,
+}
+
+const DIFFICULTY_LABELS = { 1: '★', 2: '★★', 3: '★★★', 4: '★★★★', 5: '★★★★★' }
+
+/** Google Drive URL から driveFileId を抽出 */
+function extractDriveFileId(fileUrl) {
+  if (!fileUrl) return null
+  const match = fileUrl.match(/\/file\/d\/([^/?]+)/)
+  return match ? match[1] : null
+}
 
 // タスクの unitIds を正規化（旧 unitId との後方互換）
 const getTaskUnitIds = (task) =>
@@ -50,10 +78,85 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
   const addFileInputRef = useRef(null)
   const editFileInputRef = useRef(null)
 
+  // ── 問題ログ関連 ──────────────────────────────────────────
+  const [problems, setProblems] = useState({})           // taskId -> problems[]
+  const [expandedProblems, setExpandedProblems] = useState({}) // taskId -> boolean
+  const [showProblemForm, setShowProblemForm] = useState(null)  // taskId or null
+  const [problemForm, setProblemForm] = useState({ ...EMPTY_PROBLEM_FORM })
+  const [showPdfCropper, setShowPdfCropper] = useState(null)    // taskId or null
+
   // マスター単元を読み込み
   useEffect(() => {
     setMasterUnits(getStaticMasterUnits())
   }, [])
+
+  // ── 問題ログ読み込み ──────────────────────────────────────
+  const loadProblems = useCallback(async (taskId) => {
+    if (!user) return
+    const result = await getProblemsBySource(user.uid, 'pastPaper', taskId)
+    if (result.success) {
+      setProblems(prev => ({ ...prev, [taskId]: result.data }))
+    }
+  }, [user])
+
+  // 問題ログを追加
+  const handleAddProblem = async (task) => {
+    if (!problemForm.problemNumber.trim()) {
+      toast.error('問題番号を入力してください')
+      return
+    }
+    const result = await addProblem(user.uid, {
+      sourceType: 'pastPaper',
+      sourceId: task.id,
+      subject: task.subject,
+      problemNumber: problemForm.problemNumber.trim(),
+      unitIds: problemForm.unitIds,
+      isCorrect: problemForm.isCorrect,
+      missType: problemForm.isCorrect ? null : problemForm.missType,
+      difficulty: problemForm.difficulty,
+      imageUrl: problemForm.imageUrl,
+      schoolName: task.schoolName || null,
+      year: task.year || null,
+    })
+    if (result.success) {
+      await loadProblems(task.id)
+      setProblemForm({ ...EMPTY_PROBLEM_FORM })
+      setShowProblemForm(null)
+      toast.success('問題を追加しました')
+    } else {
+      toast.error('保存に失敗しました')
+    }
+  }
+
+  // 問題の reviewStatus を更新
+  const handleUpdateProblemStatus = async (taskId, problemId, reviewStatus) => {
+    await updateProblem(user.uid, problemId, { reviewStatus })
+    await loadProblems(taskId)
+  }
+
+  // 問題を削除
+  const handleDeleteProblem = async (taskId, problemId) => {
+    await deleteProblem(user.uid, problemId)
+    await loadProblems(taskId)
+    toast.success('削除しました')
+  }
+
+  // PDF切り抜き完了
+  const handlePdfCropComplete = (taskId) => (imageUrl) => {
+    setShowPdfCropper(null)
+    setProblemForm(prev => ({ ...prev, imageUrl }))
+    setShowProblemForm(taskId)
+    toast.success('問題画像を取り込みました。残りの情報を入力して追加してください。')
+  }
+
+  // 問題ログ展開時にデータ読み込み
+  const toggleProblemExpanded = async (taskId) => {
+    const next = !expandedProblems[taskId]
+    setExpandedProblems(prev => ({ ...prev, [taskId]: next }))
+    if (next && !problems[taskId]) {
+      await loadProblems(taskId)
+    }
+  }
 
   // PDF を Google Drive にアップロードする共通処理
   const handlePDFUpload = async (file, target) => {
@@ -251,6 +354,8 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
         toast.error('学習記録の削除に失敗しました: ' + sessionResult.error)
         return
       }
+      // 問題ログも削除
+      await deleteProblemsBySource(user.uid, 'pastPaper', taskId)
       await onDeleteTask(taskId)
       toast.success('過去問を削除しました')
     } catch (error) {
@@ -841,6 +946,275 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                           + 学習記録を追加
                         </button>
                       ) : null}
+
+                      {/* ── 問題ログセクション ─────────────────────── */}
+                      {editingTaskId !== task.id && (
+                        <div className="problem-log-section">
+                          <button
+                            className="toggle-problems-btn"
+                            onClick={() => toggleProblemExpanded(task.id)}
+                          >
+                            {expandedProblems[task.id] ? '▼' : '▶'} 問題記録
+                            {problems[task.id]?.length > 0 && (
+                              <span className="problem-count-badge">
+                                {problems[task.id].length}問
+                              </span>
+                            )}
+                          </button>
+
+                          {expandedProblems[task.id] && (
+                            <div className="problem-log-body">
+                              {/* 問題一覧 */}
+                              {(problems[task.id] || []).length === 0 ? (
+                                <p className="no-problems-msg">まだ問題が記録されていません</p>
+                              ) : (
+                                <div className="problem-list">
+                                  {(problems[task.id] || []).map(problem => {
+                                    const st = reviewStatusInfo(problem.reviewStatus)
+                                    return (
+                                      <div
+                                        key={problem.firestoreId}
+                                        className={`problem-item ${problem.isCorrect ? 'correct' : 'incorrect'}`}
+                                      >
+                                        <div className="problem-item-left">
+                                          <span className="problem-correctness">
+                                            {problem.isCorrect ? '○' : '✗'}
+                                          </span>
+                                          <span className="problem-number">
+                                            第{problem.problemNumber}問
+                                          </span>
+                                          {problem.difficulty && (
+                                            <span className="problem-difficulty">
+                                              {DIFFICULTY_LABELS[problem.difficulty]}
+                                            </span>
+                                          )}
+                                          {!problem.isCorrect && problem.missType && (
+                                            <span className="problem-miss-type">
+                                              {missTypeLabel(problem.missType)}
+                                            </span>
+                                          )}
+                                          {problem.unitIds?.length > 0 && (
+                                            <div className="problem-units">
+                                              {problem.unitIds.map(id => (
+                                                <span key={id} className="unit-tag">
+                                                  {getUnitName(id)}
+                                                </span>
+                                              ))}
+                                            </div>
+                                          )}
+                                          {problem.imageUrl && (
+                                            <a
+                                              href={problem.imageUrl}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="problem-image-link"
+                                            >
+                                              <img
+                                                src={problem.imageUrl}
+                                                alt="問題画像"
+                                                className="problem-thumbnail"
+                                              />
+                                            </a>
+                                          )}
+                                        </div>
+                                        <div className="problem-item-right">
+                                          {!problem.isCorrect && (
+                                            <select
+                                              className="review-status-select"
+                                              value={problem.reviewStatus}
+                                              style={{ background: st.bg, color: st.color }}
+                                              onChange={(e) =>
+                                                handleUpdateProblemStatus(task.id, problem.firestoreId, e.target.value)
+                                              }
+                                            >
+                                              <option value="pending">未完了</option>
+                                              <option value="retry">要再挑戦</option>
+                                              <option value="done">解き直し済</option>
+                                            </select>
+                                          )}
+                                          <button
+                                            className="problem-delete-btn"
+                                            onClick={() => handleDeleteProblem(task.id, problem.firestoreId)}
+                                            title="削除"
+                                          >
+                                            ×
+                                          </button>
+                                        </div>
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+                              )}
+
+                              {/* 問題追加フォーム */}
+                              {showProblemForm === task.id ? (
+                                <div className="problem-form">
+                                  <h4>問題を追加</h4>
+
+                                  {/* 問題番号 */}
+                                  <div className="problem-form-field">
+                                    <label>問題番号:</label>
+                                    <input
+                                      type="text"
+                                      placeholder="例: 1, 2(1), 大問3"
+                                      value={problemForm.problemNumber}
+                                      onChange={(e) =>
+                                        setProblemForm(prev => ({ ...prev, problemNumber: e.target.value }))
+                                      }
+                                    />
+                                  </div>
+
+                                  {/* 正誤 */}
+                                  <div className="problem-form-field">
+                                    <label>正誤:</label>
+                                    <div className="correctness-toggle">
+                                      <button
+                                        type="button"
+                                        className={`correct-btn ${problemForm.isCorrect ? 'active' : ''}`}
+                                        onClick={() => setProblemForm(prev => ({ ...prev, isCorrect: true }))}
+                                      >
+                                        ○ 正解
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className={`incorrect-btn ${!problemForm.isCorrect ? 'active' : ''}`}
+                                        onClick={() => setProblemForm(prev => ({ ...prev, isCorrect: false }))}
+                                      >
+                                        ✗ 不正解
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  {/* ミスタイプ（不正解時のみ） */}
+                                  {!problemForm.isCorrect && (
+                                    <div className="problem-form-field">
+                                      <label>ミスの種類:</label>
+                                      <div className="miss-type-btns">
+                                        {[
+                                          { value: 'understanding', label: '理解不足' },
+                                          { value: 'careless',      label: 'ケアレス' },
+                                          { value: 'not_studied',   label: '未習' },
+                                        ].map(opt => (
+                                          <button
+                                            key={opt.value}
+                                            type="button"
+                                            className={`miss-type-btn ${problemForm.missType === opt.value ? 'active' : ''}`}
+                                            onClick={() =>
+                                              setProblemForm(prev => ({ ...prev, missType: opt.value }))
+                                            }
+                                          >
+                                            {opt.label}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* 難易度 */}
+                                  <div className="problem-form-field">
+                                    <label>難易度（任意）:</label>
+                                    <div className="difficulty-btns">
+                                      {[1, 2, 3, 4, 5].map(d => (
+                                        <button
+                                          key={d}
+                                          type="button"
+                                          className={`difficulty-btn ${problemForm.difficulty === d ? 'active' : ''}`}
+                                          onClick={() =>
+                                            setProblemForm(prev => ({
+                                              ...prev,
+                                              difficulty: prev.difficulty === d ? null : d
+                                            }))
+                                          }
+                                        >
+                                          {d}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+
+                                  {/* 単元タグ */}
+                                  <div className="problem-form-field">
+                                    <label>単元タグ（任意）:</label>
+                                    <UnitTagPicker
+                                      subject={task.subject}
+                                      value={problemForm.unitIds}
+                                      onChange={(unitIds) =>
+                                        setProblemForm(prev => ({ ...prev, unitIds }))
+                                      }
+                                    />
+                                  </div>
+
+                                  {/* 問題画像 */}
+                                  <div className="problem-form-field">
+                                    <label>問題画像（任意）:</label>
+                                    {problemForm.imageUrl ? (
+                                      <div className="image-preview-row">
+                                        <img
+                                          src={problemForm.imageUrl}
+                                          alt="問題プレビュー"
+                                          className="problem-image-preview"
+                                        />
+                                        <button
+                                          type="button"
+                                          className="btn-secondary"
+                                          onClick={() =>
+                                            setProblemForm(prev => ({ ...prev, imageUrl: null }))
+                                          }
+                                        >
+                                          削除
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        className="crop-open-btn"
+                                        onClick={() => {
+                                          setShowProblemForm(null)
+                                          setShowPdfCropper(task.id)
+                                        }}
+                                      >
+                                        ✂ PDFから切り抜く
+                                      </button>
+                                    )}
+                                  </div>
+
+                                  <div className="problem-form-actions">
+                                    <button
+                                      className="btn-secondary"
+                                      onClick={() => {
+                                        setShowProblemForm(null)
+                                        setProblemForm({ ...EMPTY_PROBLEM_FORM })
+                                      }}
+                                    >
+                                      キャンセル
+                                    </button>
+                                    <button
+                                      className="btn-primary"
+                                      onClick={() => handleAddProblem(task)}
+                                    >
+                                      ✓ 追加する
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <button
+                                  className="add-problem-btn"
+                                  onClick={() => {
+                                    setProblemForm({
+                                      ...EMPTY_PROBLEM_FORM,
+                                      unitIds: getTaskUnitIds(task),
+                                    })
+                                    setShowProblemForm(task.id)
+                                  }}
+                                >
+                                  + 問題を追加
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {/* ─────────────────────────────────────────────── */}
                     </div>
                   )
                 })}
@@ -897,6 +1271,26 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           onClose={() => setShowDrivePicker(null)}
         />
       )}
+
+      {/* PDF切り抜きモーダル */}
+      {showPdfCropper && (() => {
+        const cropTask = pastPaperTasks.find(t => t.id === showPdfCropper)
+        const driveFileId = cropTask ? extractDriveFileId(cropTask.fileUrl) : null
+        const attachedPdf = driveFileId
+          ? { driveFileId, fileName: cropTask.fileName || cropTask.title, firestoreId: null }
+          : null
+        return (
+          <PdfCropper
+            userId={user.uid}
+            attachedPdf={attachedPdf}
+            onCropComplete={handlePdfCropComplete(showPdfCropper)}
+            onClose={() => {
+              setShowPdfCropper(null)
+              setShowProblemForm(showPdfCropper)
+            }}
+          />
+        )
+      })()}
     </div>
   )
 }
