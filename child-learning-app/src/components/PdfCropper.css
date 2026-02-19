@@ -201,11 +201,13 @@
   flex: 1 1 0;
   min-height: 200px;
   background: #e5e7eb;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
   padding: 10px;
   -webkit-overflow-scrolling: touch;
+}
+
+.pdfcropper-canvas-container {
+  position: relative;
+  display: inline-block;
 }
 
 .pdfcropper-canvas {
@@ -215,9 +217,8 @@
 
 .pdfcropper-overlay-canvas {
   position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 0;
+  left: 0;
   cursor: crosshair;
   touch-action: none; /* タッチジェスチャーを全てJSで処理 */
 }
