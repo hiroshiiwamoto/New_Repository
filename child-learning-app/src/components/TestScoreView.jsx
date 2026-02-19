@@ -2,8 +2,10 @@ import { useState, useEffect, useRef } from 'react'
 import './TestScoreView.css'
 import {
   getAllTestScores,
+  addTestScore,
   updateTestScore,
   getProblemsForTestScore,
+  testTypes,
 } from '../utils/testScores'
 import {
   updateProblem,
@@ -15,8 +17,11 @@ import ProblemClipList from './ProblemClipList'
 import DriveFilePicker from './DriveFilePicker'
 import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
 import { refreshGoogleAccessToken } from './Auth'
+import { grades } from '../utils/unitsDatabase'
 
 const SUBJECTS = ['算数', '国語', '理科', '社会']
+
+const EMPTY_ADD_FORM = { testName: '', testDate: '', grade: '4年生', subjectPdfs: {} }
 
 /** Google Drive URL から driveFileId を抽出 */
 function extractDriveFileId(fileUrl) {
@@ -31,8 +36,13 @@ function TestScoreView({ user }) {
   const [uploadingSubject, setUploadingSubject] = useState(null) // アップロード中の科目
   const [drivePickerSubject, setDrivePickerSubject] = useState(null) // Drive選択中の科目
   const [problemsCache, setProblemsCache] = useState([])   // embedded + collection のマージ済み問題一覧
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [addForm, setAddForm] = useState({ ...EMPTY_ADD_FORM })
+  const [addUploading, setAddUploading] = useState(null) // 追加フォームでアップロード中の科目
+  const [addDrivePickerSubject, setAddDrivePickerSubject] = useState(null) // 追加フォームでDrive選択中の科目
 
   const subjectFileInputRefs = useRef({}) // 科目別ファイルinput参照
+  const addFileInputRefs = useRef({}) // 追加フォーム用科目別ファイルinput参照
 
 
   useEffect(() => {
@@ -54,6 +64,82 @@ function TestScoreView({ user }) {
     const updated = scores.find(s => s.firestoreId === selectedScore.firestoreId)
     if (updated) setSelectedScore(updated)
   }, [scores])
+
+  // ============================================================
+  // テスト追加
+  // ============================================================
+
+  const handleAddTest = async () => {
+    if (!addForm.testName.trim()) {
+      toast.error('テスト名を入力してください')
+      return
+    }
+    const result = await addTestScore(user.uid, {
+      testName: addForm.testName.trim(),
+      testDate: addForm.testDate || new Date().toISOString().split('T')[0],
+      grade: addForm.grade,
+      subjectPdfs: addForm.subjectPdfs,
+    })
+    if (result.success) {
+      toast.success('テストを追加しました')
+      setAddForm({ ...EMPTY_ADD_FORM })
+      setShowAddForm(false)
+      const refreshResult = await getAllTestScores(user.uid)
+      if (refreshResult.success) setScores(refreshResult.data)
+    } else {
+      toast.error('追加に失敗しました: ' + result.error)
+    }
+  }
+
+  // 追加フォーム用PDFアップロード
+  const handleAddFormUploadPdf = async (subject, file) => {
+    if (!file) return
+    if (file.type !== 'application/pdf') {
+      toast.error('PDFファイルのみアップロード可能です')
+      return
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error('ファイルサイズは20MB以下にしてください')
+      return
+    }
+    const hasAccess = await checkDriveAccess()
+    if (!hasAccess) {
+      const token = await refreshGoogleAccessToken()
+      if (!token) {
+        toast.error('Google Drive に接続してからアップロードしてください')
+        return
+      }
+    }
+    setAddUploading(subject)
+    try {
+      const driveResult = await uploadPDFToDrive(file, () => {})
+      const fileUrl = `https://drive.google.com/file/d/${driveResult.driveFileId}/view`
+      setAddForm(prev => ({
+        ...prev,
+        subjectPdfs: { ...prev.subjectPdfs, [subject]: { fileUrl, fileName: file.name } }
+      }))
+      toast.success(`${subject}：「${file.name}」をアップロードしました`)
+    } catch (e) {
+      toast.error('アップロードエラー: ' + e.message)
+    } finally {
+      setAddUploading(null)
+      if (addFileInputRefs.current[subject]) {
+        addFileInputRefs.current[subject].value = ''
+      }
+    }
+  }
+
+  // 追加フォーム用DriveFilePicker選択
+  const handleAddFormDriveSelect = ({ url, name }) => {
+    const subject = addDrivePickerSubject
+    if (!subject || !url) return
+    setAddForm(prev => ({
+      ...prev,
+      subjectPdfs: { ...prev.subjectPdfs, [subject]: { fileUrl: url, fileName: name } }
+    }))
+    setAddDrivePickerSubject(null)
+    toast.success(`${subject}：「${name}」を紐付けました`)
+  }
 
   // ============================================================
   // 問題キャッシュリロード（CRUD 後に呼ぶ）
@@ -170,14 +256,152 @@ function TestScoreView({ user }) {
     return (
       <div className="testscore-view">
         <div className="test-selector-header">
-          <h3 className="test-selector-title">テストを選択して問題を分析</h3>
-          <p className="test-selector-desc">テスト名をタップすると、問題別記録が表示されます</p>
+          <div className="header-title-row">
+            <div>
+              <h3 className="test-selector-title">テストを選択して問題を分析</h3>
+              <p className="test-selector-desc">テスト名をタップすると、問題別記録が表示されます</p>
+            </div>
+            <button className="add-pastpaper-btn" onClick={() => setShowAddForm(!showAddForm)}>
+              {showAddForm ? '✕ 閉じる' : '+ テスト追加'}
+            </button>
+          </div>
         </div>
 
-        {sortedScores.length === 0 ? (
+        {/* テスト追加フォーム */}
+        {showAddForm && (
+          <div className="add-pastpaper-form">
+            <h3>📝 新しいテストを追加</h3>
+
+            <div className="add-form-field" style={{ marginBottom: '12px' }}>
+              <label>テスト名:</label>
+              <input
+                type="text"
+                list="test-type-list"
+                placeholder="例: 組分けテスト"
+                value={addForm.testName}
+                onChange={(e) => setAddForm(prev => ({ ...prev, testName: e.target.value }))}
+              />
+              <datalist id="test-type-list">
+                {testTypes.map(t => <option key={t} value={t} />)}
+              </datalist>
+            </div>
+
+            <div className="add-form-grid-two-cols">
+              <div className="add-form-field">
+                <label>テスト日:</label>
+                <input
+                  type="date"
+                  value={addForm.testDate}
+                  onChange={(e) => setAddForm(prev => ({ ...prev, testDate: e.target.value }))}
+                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}
+                />
+              </div>
+              <div className="add-form-field">
+                <label>学年:</label>
+                <select
+                  value={addForm.grade}
+                  onChange={(e) => setAddForm(prev => ({ ...prev, grade: e.target.value }))}
+                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}
+                >
+                  {grades.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+              </div>
+            </div>
+
+            {/* 科目別PDF */}
+            <div className="add-form-section" style={{ marginTop: '16px' }}>
+              <label className="section-label">📎 科目別PDF（任意）:</label>
+              <div className="subject-pdf-slots">
+                {SUBJECTS.map(subject => {
+                  const pdf = addForm.subjectPdfs[subject]
+                  const isUploading = addUploading === subject
+                  return (
+                    <div key={subject} className="subject-pdf-slot">
+                      <input
+                        type="file"
+                        accept="application/pdf"
+                        style={{ display: 'none' }}
+                        ref={el => { addFileInputRefs.current[subject] = el }}
+                        onChange={e => handleAddFormUploadPdf(subject, e.target.files[0])}
+                      />
+                      <span className="subject-pdf-slot-name">{subject}</span>
+                      {pdf ? (
+                        <div className="subject-pdf-slot-linked">
+                          <a
+                            href={pdf.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="subject-pdf-slot-filename"
+                            title={pdf.fileName}
+                          >
+                            {pdf.fileName}
+                          </a>
+                          <button
+                            className="pdf-attach-change"
+                            onClick={() => addFileInputRefs.current[subject]?.click()}
+                            disabled={isUploading}
+                          >
+                            {isUploading ? '...' : '変更'}
+                          </button>
+                          <button
+                            className="pdf-attach-remove"
+                            onClick={() => setAddForm(prev => {
+                              const updated = { ...prev.subjectPdfs }
+                              delete updated[subject]
+                              return { ...prev, subjectPdfs: updated }
+                            })}
+                          >✕</button>
+                        </div>
+                      ) : (
+                        <div className="subject-pdf-slot-buttons">
+                          <button
+                            className="pdf-attach-add"
+                            onClick={() => addFileInputRefs.current[subject]?.click()}
+                            disabled={isUploading}
+                          >
+                            {isUploading ? 'アップロード中...' : '新規アップロード'}
+                          </button>
+                          <button
+                            className="pdf-attach-drive"
+                            onClick={() => setAddDrivePickerSubject(subject)}
+                            disabled={isUploading}
+                          >
+                            Driveから選択
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="add-form-actions">
+              <button
+                className="btn-secondary"
+                onClick={() => { setShowAddForm(false); setAddForm({ ...EMPTY_ADD_FORM }) }}
+              >
+                キャンセル
+              </button>
+              <button className="btn-primary" onClick={handleAddTest}>
+                追加する
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* DriveFilePicker（追加フォーム用） */}
+        {addDrivePickerSubject && (
+          <DriveFilePicker
+            onSelect={handleAddFormDriveSelect}
+            onClose={() => setAddDrivePickerSubject(null)}
+          />
+        )}
+
+        {sortedScores.length === 0 && !showAddForm ? (
           <div className="no-data">
             📋 テストデータがありません
-            <small>「成績」タブから成績を追加してください</small>
+            <small>「+ テスト追加」または「成績」タブから追加してください</small>
           </div>
         ) : (
           <div className="test-select-list">
