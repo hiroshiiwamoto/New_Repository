@@ -25,6 +25,13 @@ const YEAR_OPTIONS = Array.from({ length: 2031 - 2000 }, (_, i) => 2000 + i)
 const EMPTY_ADD_FORM = { schoolName: '', year: '', subject: '算数', unitIds: [], fileUrl: '', fileName: '' }
 const EMPTY_EDIT_FORM = { schoolName: '', year: '', subject: '算数', unitIds: [], fileUrl: '', fileName: '' }
 
+/** Google Drive URL から driveFileId を抽出 */
+function extractDriveFileId(fileUrl) {
+  if (!fileUrl) return null
+  const match = fileUrl.match(/\/file\/d\/([^/?]+)/)
+  return match ? match[1] : null
+}
+
 // タスクの unitIds を正規化（旧 unitId との後方互換）
 const getTaskUnitIds = (task) =>
   task.unitIds?.length ? task.unitIds : (task.unitId ? [task.unitId] : [])
@@ -873,6 +880,10 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                           subject={task.subject}
                           defaultUnitIds={getTaskUnitIds(task)}
                           showDifficulty
+                          pdfInfo={(() => {
+                            const id = extractDriveFileId(task.fileUrl)
+                            return id ? { driveFileId: id, fileName: task.fileName || task.title } : null
+                          })()}
                           taskGenInfo={{
                             title: task.title,
                             grade: '全学年',

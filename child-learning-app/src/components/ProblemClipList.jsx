@@ -17,6 +17,7 @@ import { addTaskToFirestore } from '../utils/firestore'
 import { getStaticMasterUnits } from '../utils/importMasterUnits'
 import { toast } from '../utils/toast'
 import UnitTagPicker from './UnitTagPicker'
+import PdfCropper from './PdfCropper'
 import './ProblemClipList.css'
 
 const DIFFICULTY_LABELS = { 1: '★', 2: '★★', 3: '★★★', 4: '★★★★', 5: '★★★★★' }
@@ -48,12 +49,14 @@ const EMPTY_FORM = {
  * @param {string}   sourceId       - テキストID / テストスコアID / タスクID
  * @param {string}   subject        - 科目（教材・過去問は親が確定）
  * @param {string[]} defaultUnitIds - デフォルトの単元IDs
+ * @param {object}   pdfInfo        - { driveFileId, fileName } or null
  * @param {object}   taskGenInfo    - タスク生成用情報 { title, grade?, fileUrl?, fileName?, sourceRef }
  * @param {boolean}  showDifficulty - 難易度表示（過去問のみ）
  * @param {boolean}  showCorrectRate - 正答率表示（テストのみ）
  * @param {boolean}  showPoints     - 配点表示（テストのみ）
  * @param {boolean}  multiSubject   - 複数科目対応（テストのみ）
  * @param {string[]} subjects       - 科目一覧（multiSubject時）
+ * @param {Function} getSubjectPdf  - (subject) => { driveFileId, fileName } | null（テスト用）
  * @param {boolean}  defaultExpanded - 初期展開状態
  * @param {boolean}  collapsible    - 折りたたみ可能か
  * @param {Function} onAfterAdd    - 問題追加後のコールバック (problemData, result) => void
@@ -68,12 +71,14 @@ export default function ProblemClipList({
   sourceId,
   subject,
   defaultUnitIds = [],
+  pdfInfo = null,
   taskGenInfo = null,
   showDifficulty = false,
   showCorrectRate = false,
   showPoints = false,
   multiSubject = false,
   subjects = [],
+  getSubjectPdf = null,
   defaultExpanded = false,
   collapsible = true,
   onAfterAdd = null,
@@ -84,6 +89,7 @@ export default function ProblemClipList({
   const [selectedProblem, setSelectedProblem] = useState(null) // 詳細表示中の問題
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ ...EMPTY_FORM, subject: subject || '', unitIds: defaultUnitIds })
+  const [showCropper, setShowCropper] = useState(false)
   const [creatingTask, setCreatingTask] = useState(false)
 
   const unitNameMap = useMemo(() => {
@@ -163,30 +169,30 @@ export default function ProblemClipList({
     toast.success('削除しました')
   }
 
-  // ── 解き直しタスク生成 ────────────────────────────────
-  const handleCreateReviewTask = async () => {
-    if (!taskGenInfo || wrongProblems.length === 0) return
+  // ── 個別問題の解き直しタスク生成（詳細モーダル用）────
+  const handleCreateTaskForProblem = async (problem) => {
+    if (!taskGenInfo) return
     setCreatingTask(true)
     try {
       const nextWeek = new Date()
       nextWeek.setDate(nextWeek.getDate() + 7)
       await addTaskToFirestore(userId, {
         id: Date.now() + Math.random(),
-        title: `【解き直し】${taskGenInfo.title}`,
-        subject: subject || wrongProblems[0]?.subject || '',
+        title: `【解き直し】${taskGenInfo.title} 第${problem.problemNumber}問`,
+        subject: problem.subject || subject || '',
         grade: taskGenInfo.grade || '',
-        unitIds: defaultUnitIds,
+        unitIds: problem.unitIds?.length ? problem.unitIds : defaultUnitIds,
         taskType: 'review',
         priority: 'A',
         dueDate: nextWeek.toISOString().split('T')[0],
         fileUrl: taskGenInfo.fileUrl || '',
         fileName: taskGenInfo.fileName || '',
         completed: false,
-        problemIds: wrongProblems.map(p => p.firestoreId || p.id),
+        problemIds: [problem.firestoreId || problem.id],
         generatedFrom: taskGenInfo.sourceRef || { type: sourceType, id: sourceId },
         createdAt: new Date().toISOString(),
       })
-      toast.success(`解き直しタスクを作成しました（${wrongProblems.length}問）`)
+      toast.success('解き直しタスクを作成しました')
     } catch {
       toast.error('タスク作成に失敗しました')
     } finally {
@@ -194,13 +200,51 @@ export default function ProblemClipList({
     }
   }
 
+  // ── PDF切り出し完了 ───────────────────────────────────
+  const handleCropComplete = (imageUrl) => {
+    setShowCropper(false)
+    setForm(prev => ({
+      ...prev,
+      imageUrl,
+      ...(typeof showCropper === 'string' && showCropper !== prev.subject
+        ? { subject: showCropper, unitIds: [] }
+        : {})
+    }))
+    setShowForm(true)
+    toast.success('問題画像を取り込みました。残りの情報を入力して追加してください。')
+  }
+
+  // ── PDF情報解決 ───────────────────────────────────────
+  const resolvePdfInfo = () => {
+    if (typeof showCropper === 'string' && getSubjectPdf) {
+      const pdf = getSubjectPdf(showCropper)
+      if (!pdf) return null
+      const id = pdf.driveFileId || extractDriveFileId(pdf.fileUrl)
+      return id ? { driveFileId: id, fileName: pdf.fileName, firestoreId: null } : null
+    }
+    if (!pdfInfo) return null
+    return { driveFileId: pdfInfo.driveFileId, fileName: pdfInfo.fileName, firestoreId: null }
+  }
+
   const resetForm = () => {
     setForm({ ...EMPTY_FORM, subject: subject || '', unitIds: defaultUnitIds })
   }
 
-  const openForm = () => {
+  const hasPdf = pdfInfo || (getSubjectPdf && subjects.some(s => getSubjectPdf(s)))
+
+  const openAddFlow = () => {
     resetForm()
-    setShowForm(true)
+    if (hasPdf) {
+      // PDFがある場合は先に切り出し → フォームの順
+      if (multiSubject && getSubjectPdf) {
+        const defaultSubj = subjects.find(s => getSubjectPdf(s)) || subjects[0]
+        setShowCropper(defaultSubj)
+      } else {
+        setShowCropper(true)
+      }
+    } else {
+      setShowForm(true)
+    }
   }
 
   // ── 問題リストの並び替え ──────────────────────────────
@@ -383,6 +427,15 @@ export default function ProblemClipList({
           </div>
 
           <div className="clip-detail-actions">
+            {taskGenInfo && !p.isCorrect && (
+              <button
+                className="clip-task-btn"
+                disabled={creatingTask}
+                onClick={() => handleCreateTaskForProblem(p)}
+              >
+                {creatingTask ? '作成中...' : '→ 解き直しタスクを追加'}
+              </button>
+            )}
             <button
               className="clip-delete-btn"
               onClick={() => {
@@ -595,18 +648,9 @@ export default function ProblemClipList({
           {/* アクションバー */}
           {!showForm && (
             <div className="clip-actions">
-              <button className="clip-add-btn" onClick={openForm}>
+              <button className="clip-add-btn" onClick={openAddFlow}>
                 + 問題を追加
               </button>
-              {taskGenInfo && wrongProblems.length > 0 && (
-                <button
-                  className="clip-task-btn"
-                  disabled={creatingTask}
-                  onClick={handleCreateReviewTask}
-                >
-                  {creatingTask ? '作成中...' : `→ 解き直しタスクを生成（${wrongProblems.length}問）`}
-                </button>
-              )}
             </div>
           )}
 
@@ -617,6 +661,43 @@ export default function ProblemClipList({
 
       {/* 詳細モーダル */}
       {renderDetailModal()}
+
+      {/* PDF切り出し（問題追加フロー用） */}
+      {showCropper && (
+        <PdfCropper
+          key={typeof showCropper === 'string' ? showCropper : 'crop'}
+          userId={userId}
+          attachedPdf={resolvePdfInfo()}
+          onCropComplete={handleCropComplete}
+          onClose={() => setShowCropper(false)}
+          headerSlot={
+            multiSubject && getSubjectPdf ? (
+              <div className="clip-cropper-subject-tabs">
+                {subjects.map(s => {
+                  const has = !!getSubjectPdf(s)
+                  return (
+                    <button
+                      key={s}
+                      className={`clip-cropper-tab ${showCropper === s ? 'active' : ''} ${!has ? 'no-pdf' : ''}`}
+                      onClick={() => has && setShowCropper(s)}
+                      disabled={!has}
+                    >
+                      {s}{!has && '（未添付）'}
+                    </button>
+                  )
+                })}
+              </div>
+            ) : undefined
+          }
+        />
+      )}
     </div>
   )
+}
+
+// ── ヘルパー ────────────────────────────────────────────
+function extractDriveFileId(fileUrl) {
+  if (!fileUrl) return null
+  const match = fileUrl.match(/\/file\/d\/([^/?]+)/)
+  return match ? match[1] : null
 }
