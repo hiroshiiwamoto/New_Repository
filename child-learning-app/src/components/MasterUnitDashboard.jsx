@@ -230,30 +230,31 @@ function MasterUnitDashboard() {
   return (
     <div className="master-unit-dashboard">
       {/* 教科タブ */}
-      <div className="mud-subject-tabs">
-        {SUBJECTS.map(subj => (
-          <button
-            key={subj}
-            className={`mud-subject-btn ${selectedSubject === subj ? 'active' : ''}`}
-            onClick={() => { setSelectedSubject(subj); setSelectedCategory('all') }}
-          >
-            {SUBJECT_ICONS[subj]} {subj}
-          </button>
-        ))}
+      <div className="mud-header-row">
+        <div className="mud-subject-tabs">
+          {SUBJECTS.map(subj => (
+            <button
+              key={subj}
+              className={`mud-subject-btn ${selectedSubject === subj ? 'active' : ''}`}
+              onClick={() => { setSelectedSubject(subj); setSelectedCategory('all') }}
+            >
+              {SUBJECT_ICONS[subj]} {subj}
+            </button>
+          ))}
+        </div>
+        <button
+          className="mud-reset-btn"
+          onClick={handleReset}
+          disabled={resetting || allLogs.length === 0}
+        >
+          {resetting ? 'リセット中...' : 'データ初期化'}
+        </button>
       </div>
 
       {/* サマリー＋グリッド */}
       {<>
       {/* サマリー */}
       <div className="mud-summary">
-        <button
-          className="mud-reset-btn"
-          onClick={handleReset}
-          disabled={resetting || allLogs.length === 0}
-          title="学習記録をすべて削除"
-        >
-          {resetting ? 'リセット中...' : 'データ初期化'}
-        </button>
         <div className="mud-summary-card">
           <div className="mud-summary-value">{studiedUnits}<span className="mud-summary-total">/{totalUnits}</span></div>
           <div className="mud-summary-label">学習済み単元</div>
