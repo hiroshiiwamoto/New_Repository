@@ -80,6 +80,9 @@ export async function addTestScore(userId, scoreData) {
       // 紐付けPDF
       pdfDocumentId: scoreData.pdfDocumentId || null,
 
+      // 科目別PDF（問題用紙）
+      subjectPdfs: scoreData.subjectPdfs || {},
+
       createdAt: new Date().toISOString(),
     }
 
