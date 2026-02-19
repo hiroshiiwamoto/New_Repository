@@ -1,0 +1,527 @@
+/* ============================================================
+   問題クリップ共通スタイル
+   ============================================================ */
+
+.problem-clip-section {
+  margin-top: 8px;
+  border-top: 1px solid #f1f5f9;
+}
+
+/* ── トグルボタン ──────────────────────────────────────── */
+
+.clip-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #475569;
+  font-weight: 600;
+  text-align: left;
+}
+.clip-toggle-btn:hover {
+  background: #f8fafc;
+}
+
+.clip-count-badge {
+  background: #e2e8f0;
+  color: #475569;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-left: 4px;
+}
+.clip-wrong-count {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+/* ── 非折りたたみヘッダー ──────────────────────────────── */
+
+.clip-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0;
+}
+.clip-section-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0;
+  color: #1e293b;
+}
+.clip-count-inline {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+/* ── ボディ ──────────────────────────────────────────── */
+
+.clip-body {
+  padding: 0 12px 12px;
+}
+.clip-empty {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  padding: 16px 0;
+  margin: 0;
+}
+
+/* ── 問題リスト ──────────────────────────────────────── */
+
+.clip-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.clip-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+  border: 1px solid transparent;
+}
+.clip-item:hover {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+.clip-item.correct {
+  background: #f0fdf4;
+}
+.clip-item.incorrect {
+  background: #fef2f2;
+}
+
+.clip-item-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.clip-item-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.clip-correctness {
+  font-weight: 700;
+  font-size: 0.9rem;
+  width: 20px;
+  text-align: center;
+}
+.clip-item.correct .clip-correctness { color: #16a34a; }
+.clip-item.incorrect .clip-correctness { color: #dc2626; }
+
+.clip-number {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.clip-difficulty {
+  font-size: 0.7rem;
+  color: #f59e0b;
+}
+
+.clip-miss-type {
+  font-size: 0.7rem;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+.clip-miss-type.miss-understanding {
+  background: #fee2e2;
+  color: #dc2626;
+}
+.clip-miss-type.miss-careless {
+  background: #fef3c7;
+  color: #d97706;
+}
+.clip-miss-type.miss-not_studied {
+  background: #e0e7ff;
+  color: #4f46e5;
+}
+
+.clip-rate {
+  font-size: 0.7rem;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+.clip-rate.high { background: #dcfce7; color: #16a34a; }
+.clip-rate.low  { background: #fee2e2; color: #dc2626; }
+
+.clip-subject {
+  font-size: 0.7rem;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.clip-units {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.clip-has-image {
+  font-size: 0.75rem;
+}
+
+.clip-review-badge {
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ── アクションバー ──────────────────────────────────── */
+
+.clip-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.clip-add-btn,
+.clip-crop-open-btn,
+.clip-task-btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border: 1px solid;
+  font-weight: 500;
+}
+
+.clip-add-btn {
+  background: #f0f9ff;
+  color: #0369a1;
+  border-color: #bae6fd;
+}
+.clip-add-btn:hover { background: #e0f2fe; }
+
+.clip-crop-open-btn {
+  background: #f5f3ff;
+  color: #7c3aed;
+  border-color: #ddd6fe;
+}
+.clip-crop-open-btn:hover { background: #ede9fe; }
+
+.clip-task-btn {
+  background: #fff7ed;
+  color: #c2410c;
+  border-color: #fed7aa;
+}
+.clip-task-btn:hover { background: #ffedd5; }
+.clip-task-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── 追加フォーム ──────────────────────────────────────── */
+
+.clip-form {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+.clip-form h4 {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+  color: #1e293b;
+}
+
+.clip-form-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.clip-form-field {
+  margin-bottom: 10px;
+}
+.clip-form-field label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 4px;
+}
+.clip-form-field input,
+.clip-form-field select {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+.clip-form-row .clip-form-field {
+  flex: 1;
+  min-width: 100px;
+}
+
+.clip-correctness-toggle {
+  display: flex;
+  gap: 6px;
+}
+.clip-correctness-toggle button {
+  flex: 1;
+  padding: 6px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  background: white;
+}
+.clip-correctness-toggle .correct-btn.active {
+  background: #dcfce7;
+  border-color: #16a34a;
+  color: #16a34a;
+  font-weight: 600;
+}
+.clip-correctness-toggle .incorrect-btn.active {
+  background: #fee2e2;
+  border-color: #dc2626;
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.clip-miss-type-btns {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.clip-miss-btn {
+  padding: 4px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  background: white;
+  color: #475569;
+}
+.clip-miss-btn.active {
+  background: #fee2e2;
+  border-color: #dc2626;
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.clip-difficulty-btns {
+  display: flex;
+  gap: 6px;
+}
+.clip-diff-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  background: white;
+  color: #475569;
+}
+.clip-diff-btn.active {
+  background: #fef3c7;
+  border-color: #f59e0b;
+  color: #d97706;
+  font-weight: 600;
+}
+
+.clip-image-preview {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.clip-image-preview img {
+  max-width: 200px;
+  max-height: 120px;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.clip-crop-btn {
+  padding: 6px 12px;
+  border: 1px dashed #c4b5fd;
+  border-radius: 6px;
+  background: #f5f3ff;
+  color: #7c3aed;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+.clip-crop-btn:hover { background: #ede9fe; }
+
+.clip-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* ── 詳細モーダル ──────────────────────────────────────── */
+
+.clip-detail-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.clip-detail-modal {
+  background: white;
+  border-radius: 12px;
+  max-width: 480px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.clip-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.clip-detail-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.clip-detail-close {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: #94a3b8;
+  padding: 0 4px;
+}
+.clip-detail-close:hover { color: #475569; }
+
+.clip-correctness-lg {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+.clip-correctness-lg.correct { color: #16a34a; }
+.clip-correctness-lg.incorrect { color: #dc2626; }
+
+.clip-detail-body {
+  padding: 16px 20px;
+}
+
+.clip-detail-image {
+  margin-bottom: 16px;
+  text-align: center;
+}
+.clip-detail-image img {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.clip-detail-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.clip-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.clip-field-label {
+  flex-shrink: 0;
+  width: 80px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  padding-top: 4px;
+}
+.clip-field-value {
+  font-size: 0.85rem;
+  color: #1e293b;
+  flex: 1;
+}
+
+.clip-status-select {
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.clip-detail-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 20px;
+  border-top: 1px solid #f1f5f9;
+  gap: 8px;
+}
+
+.clip-delete-btn {
+  padding: 6px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  background: #fef2f2;
+  color: #dc2626;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+.clip-delete-btn:hover { background: #fee2e2; }
+
+/* ── PDF切り出し科目タブ ──────────────────────────────── */
+
+.clip-cropper-subject-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.clip-cropper-tab {
+  padding: 4px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+.clip-cropper-tab.active {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #1d4ed8;
+  font-weight: 600;
+}
+.clip-cropper-tab.no-pdf {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
