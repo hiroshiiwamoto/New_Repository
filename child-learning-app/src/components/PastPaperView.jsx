@@ -121,10 +121,10 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     }
   }
 
-  // 過去問タスクのみフィルタリング
+  // 過去問タスクのみフィルタリング（クリップ由来の個別問題タスクは除外）
   const pastPaperTasks = useMemo(() => {
     return tasks.filter(
-      t => t.taskType === 'pastpaper' && t.subject === selectedSubject
+      t => t.taskType === 'pastpaper' && t.subject === selectedSubject && !t.generatedFrom
     )
   }, [tasks, selectedSubject])
 

@@ -21,8 +21,8 @@ function TaskList({ tasks, onToggleTask, onDeleteTask, onBulkDeleteTasks, onEdit
   const filteredAndSortedTasks = useMemo(() => {
     let result = [...tasks]
 
-    // 過去問タスクを除外（過去問ビューで管理）
-    result = result.filter(task => task.taskType !== 'pastpaper')
+    // 過去問タスクを除外（過去問ビューで管理）ただしクリップ由来の個別問題タスクは表示
+    result = result.filter(task => task.taskType !== 'pastpaper' || task.generatedFrom)
 
     // 科目フィルター
     if (selectedSubject !== '全て') {
