@@ -35,7 +35,7 @@ function TestScoreView({ user }) {
   const [selectedScore, setSelectedScore] = useState(null)
   const [uploadingSubject, setUploadingSubject] = useState(null) // アップロード中の科目
   const [drivePickerSubject, setDrivePickerSubject] = useState(null) // Drive選択中の科目
-  const [problemsCache, setProblemsCache] = useState([])   // embedded + collection のマージ済み問題一覧
+  const [problemsCache, setProblemsCache] = useState([])
   const [showAddForm, setShowAddForm] = useState(false)
   const [addForm, setAddForm] = useState({ ...EMPTY_ADD_FORM })
   const [addUploading, setAddUploading] = useState(null) // 追加フォームでアップロード中の科目
@@ -154,11 +154,6 @@ function TestScoreView({ user }) {
   // ============================================================
   // ヘルパー
   // ============================================================
-
-  function getProblemLogs(score) {
-    return score?.problemLogs || []
-  }
-
 
   // 科目別PDF: { subject: { fileUrl, fileName } }
   function getSubjectPdfs(score) {
@@ -405,31 +400,25 @@ function TestScoreView({ user }) {
           </div>
         ) : (
           <div className="test-select-list">
-            {sortedScores.map(score => {
-              const problems = getProblemLogs(score)
-              return (
-                <button
-                  key={score.firestoreId}
-                  className="test-select-item"
-                  onClick={() => setSelectedScore(score)}
-                >
-                  <div className="test-select-info">
-                    <span className="test-select-name">{score.testName}</span>
-                    <span className="test-select-date">{score.testDate}</span>
-                    <span className="test-select-grade">{score.grade}</span>
-                  </div>
-                  <div className="test-select-badges">
-                    {score.fourSubjects?.deviation && (
-                      <span className="badge-deviation">偏差値 {score.fourSubjects.deviation}</span>
-                    )}
-                    {problems.length > 0 && (
-                      <span className="badge-problems">{problems.length}問記録済</span>
-                    )}
-                  </div>
-                  <span className="test-select-arrow">›</span>
-                </button>
-              )
-            })}
+            {sortedScores.map(score => (
+              <button
+                key={score.firestoreId}
+                className="test-select-item"
+                onClick={() => setSelectedScore(score)}
+              >
+                <div className="test-select-info">
+                  <span className="test-select-name">{score.testName}</span>
+                  <span className="test-select-date">{score.testDate}</span>
+                  <span className="test-select-grade">{score.grade}</span>
+                </div>
+                <div className="test-select-badges">
+                  {score.fourSubjects?.deviation && (
+                    <span className="badge-deviation">偏差値 {score.fourSubjects.deviation}</span>
+                  )}
+                </div>
+                <span className="test-select-arrow">›</span>
+              </button>
+            ))}
           </div>
         )}
       </div>
@@ -439,8 +428,6 @@ function TestScoreView({ user }) {
   // ============================================================
   // RENDER - 詳細ビュー
   // ============================================================
-
-  const problemLogs = problemsCache
 
   return (
     <div className="testscore-view">
@@ -533,7 +520,7 @@ function TestScoreView({ user }) {
       {/* 問題クリップ */}
       <ProblemClipList
         userId={user.uid}
-        problems={problemLogs}
+        problems={problemsCache}
         onReload={() => reloadProblems()}
         sourceType="test"
         sourceId={selectedScore.firestoreId}
@@ -575,27 +562,14 @@ function TestScoreView({ user }) {
         }}
         onUpdateStatus={async (problemId, reviewStatus) => {
           const problem = problemsCache.find(p => p.id === problemId)
-          if (problem?._source === 'collection') {
+          if (problem) {
             await updateProblem(user.uid, problem.firestoreId, typeof reviewStatus === 'object' ? reviewStatus : { reviewStatus })
-          } else {
-            const updates = typeof reviewStatus === 'object' ? reviewStatus : { reviewStatus }
-            const updatedProblems = (selectedScore.problemLogs || []).map(p =>
-              p.id === problemId ? { ...p, ...updates } : p
-            )
-            await updateTestScore(user.uid, selectedScore.firestoreId, { problemLogs: updatedProblems })
-            const refreshResult = await getAllTestScores(user.uid)
-            if (refreshResult.success) setScores(refreshResult.data)
           }
         }}
         onDelete={async (problemId) => {
           const problem = problemsCache.find(p => p.id === problemId)
-          if (problem?._source === 'collection') {
+          if (problem) {
             await deleteProblem(user.uid, problem.firestoreId)
-          } else {
-            const updatedProblems = (selectedScore.problemLogs || []).filter(p => p.id !== problemId)
-            await updateTestScore(user.uid, selectedScore.firestoreId, { problemLogs: updatedProblems })
-            const refreshResult = await getAllTestScores(user.uid)
-            if (refreshResult.success) setScores(refreshResult.data)
           }
         }}
       />

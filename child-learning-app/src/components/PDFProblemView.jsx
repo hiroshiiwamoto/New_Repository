@@ -190,12 +190,7 @@ function PDFProblemView({ user }) {
   }
 
   const getViewUrl = (pdf) => {
-    // Google Drive のプレビューURL
-    if (pdf.driveFileId) {
-      return `https://drive.google.com/file/d/${pdf.driveFileId}/view`
-    }
-    // 旧 Firebase Storage URL（後方互換）
-    return pdf.downloadURL || pdf.viewUrl
+    return `https://drive.google.com/file/d/${pdf.driveFileId}/view`
   }
 
   const renderProblemTracker = () => {
