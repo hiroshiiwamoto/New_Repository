@@ -171,18 +171,21 @@ export default function ProblemClipList({
     toast.success('削除しました')
   }
 
-  // ── 個別問題の解き直しタスク生成（詳細モーダル用）────
+  // ── 個別問題のタスク生成（詳細モーダル用）────
   const handleCreateTaskForProblem = async (problem, dueDate) => {
     if (!taskGenInfo) return
     setCreatingTask(true)
+    const isPastPaper = sourceType === 'pastPaper'
+    const taskType = isPastPaper ? 'pastpaper' : 'review'
+    const taskLabel = isPastPaper ? '過去問' : '解き直し'
     try {
       await addTaskToFirestore(userId, {
         id: Date.now() + Math.random(),
-        title: `【解き直し】${taskGenInfo.title} 第${problem.problemNumber}問`,
+        title: `【${taskLabel}】${taskGenInfo.title} 第${problem.problemNumber}問`,
         subject: problem.subject || subject || '',
         grade: taskGenInfo.grade || '',
         unitIds: problem.unitIds?.length ? problem.unitIds : defaultUnitIds,
-        taskType: 'review',
+        taskType,
         priority: 'A',
         dueDate: dueDate || null,
         fileUrl: taskGenInfo.fileUrl || '',
@@ -194,7 +197,7 @@ export default function ProblemClipList({
         createdAt: new Date().toISOString(),
       })
       setTaskDueDate(null)
-      toast.success('解き直しタスクを作成しました')
+      toast.success(`${taskLabel}タスクを作成しました`)
     } catch {
       toast.error('タスク作成に失敗しました')
     } finally {
@@ -460,7 +463,7 @@ export default function ProblemClipList({
                   className="clip-task-btn"
                   onClick={() => setTaskDueDate('')}
                 >
-                  → 解き直しタスクを追加
+                  → {sourceType === 'pastPaper' ? '過去問タスクを追加' : '解き直しタスクを追加'}
                 </button>
               )
             )}
