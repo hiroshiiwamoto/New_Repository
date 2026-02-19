@@ -34,6 +34,7 @@ function App() {
   const [editingTask, setEditingTask] = useState(null)
   const [customUnits, setCustomUnits] = useState([]) // カスタム単元
   const taskFormRef = useRef(null)
+  const [showTaskForm, setShowTaskForm] = useState(false)
   const [migrated, setMigrated] = useState(false)
 
   // Firestore同期: ユーザーがログインしたら、タスクをリアルタイムで取得
@@ -370,14 +371,34 @@ function App() {
         {/* 3. タスク追加フォーム（一番下） - show only on schedule view */}
         {view === 'schedule' && (
           <div ref={taskFormRef}>
-            <TaskForm
-              onAddTask={addTask}
-              onUpdateTask={updateTask}
-              editingTask={editingTask}
-              onCancelEdit={handleCancelEdit}
-              customUnits={customUnits}
-              onAddCustomUnit={addCustomUnit}
-            />
+            {!showTaskForm ? (
+              <button
+                className="add-task-toggle-btn"
+                onClick={() => setShowTaskForm(true)}
+              >
+                ＋ 学習タスクを追加
+              </button>
+            ) : (
+              <>
+                <button
+                  className="add-task-toggle-btn close"
+                  onClick={() => setShowTaskForm(false)}
+                >
+                  ✕ 閉じる
+                </button>
+                <TaskForm
+                  onAddTask={(task) => {
+                    addTask(task)
+                    setShowTaskForm(false)
+                  }}
+                  onUpdateTask={updateTask}
+                  editingTask={editingTask}
+                  onCancelEdit={handleCancelEdit}
+                  customUnits={customUnits}
+                  onAddCustomUnit={addCustomUnit}
+                />
+              </>
+            )}
           </div>
         )}
       </div>
