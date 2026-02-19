@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import * as pdfjsLib from 'pdfjs-dist'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { storage } from '../firebase'
@@ -425,7 +426,7 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
   // RENDER
   // ─────────────────────────────────────────
 
-  return (
+  return createPortal(
     <div className="pdfcropper-overlay" onClick={onClose}>
       <div className="pdfcropper-modal" onClick={e => e.stopPropagation()}>
 
@@ -664,7 +665,8 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
           <div className="pdfcropper-loading">PDFを読み込んでいます...</div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 
