@@ -6,6 +6,7 @@
 //   'pastPaper' — 過去問タブ (PastPaperView)
 
 import { useState, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import {
   addProblem,
   updateProblem,
@@ -318,7 +319,7 @@ export default function ProblemClipList({
     if (!selectedProblem) return null
     const p = selectedProblem
     const st = reviewStatusInfo(p.reviewStatus)
-    return (
+    return createPortal(
       <div className="clip-detail-overlay" onClick={() => setSelectedProblem(null)}>
         <div className="clip-detail-modal" onClick={e => e.stopPropagation()}>
           <div className="clip-detail-header">
@@ -449,7 +450,8 @@ export default function ProblemClipList({
             </button>
           </div>
         </div>
-      </div>
+      </div>,
+      document.body
     )
   }
 
