@@ -12,7 +12,6 @@ import {
 } from '../utils/problems'
 import { addLessonLogWithStats, EVALUATION_SCORES } from '../utils/lessonLogs'
 import { getSapixTexts } from '../utils/sapixTexts'
-import { addLessonLogWithStats, EVALUATION_SCORES } from '../utils/lessonLogs'
 import { addTaskToFirestore } from '../utils/firestore'
 import { getStaticMasterUnits } from '../utils/importMasterUnits'
 import { toast } from '../utils/toast'
