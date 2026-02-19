@@ -6,7 +6,6 @@ function TaskItem({ task, onToggle, onDelete, onEdit }) {
   const subjectColor = subjectColors[task.subject] || '#007AFF'
   const [showPDF, setShowPDF] = useState(false)
   const [fullscreenPDF, setFullscreenPDF] = useState(false)
-  const [showProblemImage, setShowProblemImage] = useState(false)
 
   // Google Drive URLから埋め込みプレビューURLを生成
   const getEmbedUrl = (fileUrl) => {
@@ -42,17 +41,12 @@ function TaskItem({ task, onToggle, onDelete, onEdit }) {
           }}
         >{task.subject}</span>
         <span className="task-title">{task.title}</span>
+        {task.problemImageUrl && (
+          <a href={task.problemImageUrl} target="_blank" rel="noopener noreferrer" className="task-problem-image-link">
+            <img src={task.problemImageUrl} alt="問題画像" className="task-problem-image-thumb" />
+          </a>
+        )}
         <div className="task-actions">
-          {task.problemImageUrl && (
-            <button
-              className={`task-pdf-btn ${showProblemImage ? 'active' : ''}`}
-              onClick={() => setShowProblemImage(!showProblemImage)}
-              aria-label="問題画像"
-              title="問題画像を表示"
-            >
-              🖼️
-            </button>
-          )}
           {task.fileUrl && (
             <button
               className={`task-pdf-btn ${showPDF ? 'active' : ''}`}
@@ -81,28 +75,6 @@ function TaskItem({ task, onToggle, onDelete, onEdit }) {
           </button>
         </div>
       </div>
-
-      {/* 問題画像プレビュー */}
-      {showProblemImage && task.problemImageUrl && (
-        <div className="task-problem-image-panel">
-          <div className="task-problem-image-header">
-            <span className="task-problem-image-title">🖼️ 問題画像</span>
-            <button
-              className="task-problem-image-close"
-              onClick={() => setShowProblemImage(false)}
-            >
-              &times;
-            </button>
-          </div>
-          <div className="task-problem-image-container">
-            <img
-              src={task.problemImageUrl}
-              alt="問題画像"
-              className="task-problem-image-img"
-            />
-          </div>
-        </div>
-      )}
 
       {/* インラインPDFプレビュー */}
       {showPDF && task.fileUrl && (

@@ -246,55 +246,18 @@
   border: none;
 }
 
-/* 問題画像プレビューパネル */
-.task-problem-image-panel {
-  margin-top: 6px;
+/* 問題画像サムネイル（問題クリップと同様） */
+.task-problem-image-link {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.task-problem-image-thumb {
+  max-width: 200px;
+  max-height: 120px;
+  border-radius: 4px;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #f8fafc;
-}
-
-.task-problem-image-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  background: white;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.task-problem-image-title {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #1e293b;
-}
-
-.task-problem-image-close {
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  color: #94a3b8;
-  cursor: pointer;
-  padding: 2px 5px;
-  line-height: 1;
-}
-
-.task-problem-image-close:hover {
-  color: #475569;
-}
-
-.task-problem-image-container {
-  padding: 8px;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.task-problem-image-img {
-  display: block;
-  max-width: 100%;
-  height: auto;
-  border-radius: 6px;
+  object-fit: cover;
 }
 
 /* フルスクリーンPDF */
