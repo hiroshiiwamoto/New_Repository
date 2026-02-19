@@ -35,7 +35,7 @@ function TestScoreView({ user }) {
   const [showProblemForm, setShowProblemForm] = useState(false)
   const [problemForm, setProblemForm] = useState(getEmptyProblemForm())
   const [sapixTexts, setSapixTexts] = useState([])
-  const [syncingUnits, setSyncingUnits] = useState(false)
+
   const [creatingTasks, setCreatingTasks] = useState(false)
   const [showPdfCropper, setShowPdfCropper] = useState(null) // null | 科目名
   const [uploadingSubject, setUploadingSubject] = useState(null) // アップロード中の科目
@@ -222,54 +222,6 @@ function TestScoreView({ user }) {
     }
     await reloadProblems()
     toast.success('削除しました')
-  }
-
-  // ============================================================
-  // マスター単元へ反映
-  // ============================================================
-
-  const handleSyncToMasterUnits = async () => {
-    const problems = problemsCache
-    // 理解不足のみ弱点マップに反映（ケアレスミス・未習は除外）
-    const targetProblems = problems.filter(p =>
-      !p.isCorrect &&
-      p.unitIds?.length > 0 &&
-      (p.missType == null || p.missType === 'understanding')
-    )
-    const carelessCount = problems.filter(p => !p.isCorrect && p.missType === 'careless').length
-    const notStudiedCount = problems.filter(p => !p.isCorrect && p.missType === 'not_studied').length
-
-    if (targetProblems.length === 0) {
-      toast.error('弱点マップに反映する問題がありません（ケアレスミス・未習は除外されます）')
-      return
-    }
-    setSyncingUnits(true)
-    try {
-      for (const problem of targetProblems) {
-        const isHighAccuracyMiss = parseFloat(problem.correctRate) >= 60
-        await addLessonLogWithStats(user.uid, {
-          unitIds: problem.unitIds,
-          sourceType: 'testScore',
-          sourceId: selectedScore.firestoreId,
-          sourceName: `${selectedScore.testName} 第${problem.problemNumber}問`,
-          date: selectedScore.testDate,
-          performance: EVALUATION_SCORES.red,
-          evaluationKey: 'red',
-          missType: 'understanding',
-          grade: selectedScore.grade,
-          notes: `正答率${problem.correctRate}%${isHighAccuracyMiss ? ' ⚠️高正答率' : ''}（テスト結果自動反映）`,
-        })
-      }
-      const skipped = carelessCount + notStudiedCount
-      toast.success(
-        `${targetProblems.length}問を弱点マップに反映しました（🔴）` +
-        (skipped > 0 ? `\nケアレスミス${carelessCount}問・未習${notStudiedCount}問はスキップ` : '')
-      )
-    } catch {
-      toast.error('反映に失敗しました')
-    } finally {
-      setSyncingUnits(false)
-    }
   }
 
   // ============================================================
@@ -562,13 +514,6 @@ function TestScoreView({ user }) {
           )}
         </div>
         <div className="action-bar-buttons">
-          <button
-            className="btn-sync-units"
-            onClick={handleSyncToMasterUnits}
-            disabled={syncingUnits}
-          >
-            {syncingUnits ? '反映中...' : '🔴 マスター単元へ反映'}
-          </button>
           <button
             className="btn-create-tasks"
             onClick={handleCreateRevengeTasks}
