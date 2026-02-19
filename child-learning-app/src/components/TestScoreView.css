@@ -759,27 +759,6 @@
   flex-wrap: wrap;
 }
 
-.btn-sync-units {
-  padding: 10px 16px;
-  background: #fee2e2;
-  color: #dc2626;
-  border: 1px solid #fca5a5;
-  border-radius: 10px;
-  font-size: 0.875rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-
-.btn-sync-units:hover:not(:disabled) {
-  background: #fecaca;
-}
-
-.btn-sync-units:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
 
 .btn-create-tasks {
   padding: 10px 16px;
@@ -1350,7 +1329,6 @@
     width: 100%;
   }
 
-  .btn-sync-units,
   .btn-create-tasks {
     flex: 1;
     text-align: center;
