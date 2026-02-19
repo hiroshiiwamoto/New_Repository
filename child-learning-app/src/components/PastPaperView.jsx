@@ -22,8 +22,8 @@ import ProblemClipList from './ProblemClipList'
 
 const YEAR_OPTIONS = Array.from({ length: 2031 - 2000 }, (_, i) => 2000 + i)
 
-const EMPTY_ADD_FORM = { schoolName: '', year: '', subject: '算数', unitIds: [], fileUrl: '', fileName: '' }
-const EMPTY_EDIT_FORM = { schoolName: '', year: '', subject: '算数', unitIds: [], fileUrl: '', fileName: '' }
+const EMPTY_ADD_FORM = { schoolName: '', year: '', subject: '算数', unitIds: [], fileUrl: '', fileName: '', dueDate: '' }
+const EMPTY_EDIT_FORM = { schoolName: '', year: '', subject: '算数', unitIds: [], fileUrl: '', fileName: '', dueDate: '' }
 
 /** Google Drive URL から driveFileId を抽出 */
 function extractDriveFileId(fileUrl) {
@@ -253,7 +253,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       unitIds: addForm.unitIds,
       fileUrl: addForm.fileUrl,
       fileName: addForm.fileName,
-      dueDate: '',
+      dueDate: addForm.dueDate || null,
       priority: 'medium'
     }
 
@@ -300,7 +300,8 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       subject: task.subject || '算数',
       unitIds: getTaskUnitIds(task),
       fileUrl: task.fileUrl || '',
-      fileName: task.fileName || ''
+      fileName: task.fileName || '',
+      dueDate: task.dueDate || ''
     })
   }
 
@@ -324,7 +325,8 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       subject: editForm.subject,
       unitIds: editForm.unitIds,
       fileUrl: editForm.fileUrl,
-      fileName: editForm.fileName
+      fileName: editForm.fileName,
+      dueDate: editForm.dueDate || null
     }
 
     await onUpdateTask(editingTaskId, updatedTask)
@@ -531,6 +533,17 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
             </select>
           </div>
 
+          {/* 実施日 */}
+          <div className="add-form-field" style={{ marginBottom: '12px' }}>
+            <label>📅 実施日（任意）:</label>
+            <input
+              type="date"
+              value={addForm.dueDate}
+              onChange={(e) => setAddForm({ ...addForm, dueDate: e.target.value })}
+              style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}
+            />
+          </div>
+
           {/* 問題ファイル */}
           <div className="add-form-section">
             <label className="section-label">問題PDF（任意）:</label>
@@ -638,6 +651,17 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                                 <option key={y} value={`${y}年度`}>{y}年度</option>
                               ))}
                             </select>
+                          </div>
+
+                          {/* 実施日 */}
+                          <div className="edit-form-field" style={{ marginBottom: '12px' }}>
+                            <label>📅 実施日（任意）:</label>
+                            <input
+                              type="date"
+                              value={editForm.dueDate}
+                              onChange={(e) => setEditForm({ ...editForm, dueDate: e.target.value })}
+                              style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}
+                            />
                           </div>
 
                           {/* 問題ファイル */}
