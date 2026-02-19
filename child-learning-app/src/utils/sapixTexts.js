@@ -3,6 +3,7 @@
 import { createFirestoreService } from './firestoreCrud'
 import { collection, doc, setDoc } from 'firebase/firestore'
 import { db } from '../firebase'
+import { nowISO } from './dateUtils'
 
 const service = createFirestoreService('sapixTexts', {
   orderByField: 'createdAt',
@@ -21,7 +22,7 @@ export const addSapixText = async (userId, textData) => {
     const data = {
       ...textData,
       id,
-      createdAt: new Date().toISOString(),
+      createdAt: nowISO(),
     }
     await setDoc(ref, data)
     return { success: true, data: { ...data, id } }

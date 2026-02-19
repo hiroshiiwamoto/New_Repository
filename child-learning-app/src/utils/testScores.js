@@ -1,5 +1,6 @@
 // テスト成績管理（Firestore）
 
+import { getTodayString, nowISO } from './dateUtils'
 import { getProblemsBySource } from './problems'
 import {
   collection,
@@ -25,7 +26,7 @@ export async function addTestScore(userId, scoreData) {
 
     const newScore = {
       testName: scoreData.testName || '',
-      testDate: scoreData.testDate || new Date().toISOString().split('T')[0],
+      testDate: scoreData.testDate || getTodayString(),
       grade: scoreData.grade || '',
 
       // 科目別得点
@@ -83,7 +84,7 @@ export async function addTestScore(userId, scoreData) {
       // 科目別PDF（問題用紙）
       subjectPdfs: scoreData.subjectPdfs || {},
 
-      createdAt: new Date().toISOString(),
+      createdAt: nowISO(),
     }
 
     const docRef = await addDoc(scoresRef, newScore)
@@ -146,7 +147,7 @@ export async function updateTestScore(userId, id, updates) {
     const scoreRef = doc(db, 'users', userId, 'testScores', id)
     await updateDoc(scoreRef, {
       ...updates,
-      updatedAt: new Date().toISOString()
+      updatedAt: nowISO()
     })
 
     return { success: true }

@@ -20,6 +20,8 @@ import {
   writeBatch,
 } from 'firebase/firestore'
 import { db } from '../firebase'
+import { MS_PER_DAY } from './dateUtils'
+import { HALF_LIFE_DAYS } from './constants'
 
 // ========================================
 // 評価スコア定数
@@ -236,7 +238,6 @@ export async function updateMasterUnitStats(userId, unitId) {
 // 習熟度計算ロジック（時間減衰加重平均）
 // ========================================
 
-const HALF_LIFE_DAYS = 90
 const LAMBDA = Math.LN2 / HALF_LIFE_DAYS
 
 /**
@@ -246,7 +247,7 @@ const LAMBDA = Math.LN2 / HALF_LIFE_DAYS
 function getDecayWeight(date) {
   if (!date) return 1
   const studyDate = date?.toDate ? date.toDate() : new Date(date)
-  const daysSince = (Date.now() - studyDate.getTime()) / (1000 * 60 * 60 * 24)
+  const daysSince = (Date.now() - studyDate.getTime()) / MS_PER_DAY
   return Math.exp(-LAMBDA * Math.max(0, daysSince))
 }
 

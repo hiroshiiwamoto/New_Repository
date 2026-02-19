@@ -7,6 +7,7 @@
 
 import { useState, useMemo } from 'react'
 import { createPortal } from 'react-dom'
+import { nowISO } from '../utils/dateUtils'
 import {
   addProblem,
   updateProblem,
@@ -196,7 +197,7 @@ export default function ProblemClipList({
         completed: false,
         problemIds: [problem.id || problem.id],
         generatedFrom: taskGenInfo.sourceRef || { type: sourceType, id: sourceId },
-        createdAt: new Date().toISOString(),
+        createdAt: nowISO(),
       })
       setTaskDueDate(null)
       toast.success(`${taskLabel}タスクを作成しました`)

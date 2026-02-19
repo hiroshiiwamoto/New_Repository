@@ -1,0 +1,26 @@
+.common-empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: var(--radius-lg);
+  color: var(--color-gray-400);
+  font-size: var(--text-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.common-empty-icon {
+  display: block;
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.common-empty-message {
+  margin: 0;
+}
+
+.common-empty-hint {
+  display: block;
+  margin-top: 12px;
+  font-size: var(--text-sm);
+  color: var(--color-gray-300);
+}

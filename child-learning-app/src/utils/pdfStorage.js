@@ -12,16 +12,14 @@ import {
   where
 } from 'firebase/firestore'
 import { db } from '../firebase'
+import { nowISO } from './dateUtils'
+import { MAX_FILE_SIZE, MAX_PDF_COUNT } from './constants'
 import {
   uploadPDFToDrive,
   deleteFileFromDrive,
   getDriveStorageInfo,
   checkDriveAccess
 } from './googleDriveStorage'
-
-// アップロード制限（アプリ側）
-const MAX_FILE_SIZE = 20 * 1024 * 1024       // 1ファイル: 20MB（Google Driveは大容量OK）
-const MAX_PDF_COUNT = 100                     // 最大ファイル数: 100個
 
 /**
  * ユーザーのストレージ使用状況を取得
@@ -94,7 +92,7 @@ export async function uploadPDF(userId, file, metadata, onProgress) {
       driveFileId: driveResult.driveFileId,
       viewUrl: driveResult.viewUrl,
       fileSize: driveResult.fileSize,
-      uploadedAt: new Date().toISOString(),
+      uploadedAt: nowISO(),
       storageType: 'google_drive',
       ...metadata
     })
@@ -193,7 +191,7 @@ export async function updatePDF(userId, id, updates) {
     const pdfDocRef = doc(db, 'users', userId, 'pdfDocuments', id)
     await updateDoc(pdfDocRef, {
       ...updates,
-      updatedAt: new Date().toISOString()
+      updatedAt: nowISO()
     })
     return { success: true }
   } catch (error) {
@@ -221,13 +219,13 @@ export async function saveProblemRecord(userId, problemData) {
       const docRef = snapshot.docs[0].ref
       await updateDoc(docRef, {
         ...problemData,
-        updatedAt: new Date().toISOString()
+        updatedAt: nowISO()
       })
       return { success: true, data: { id: docRef.id } }
     } else {
       const docRef = await addDoc(problemsRef, {
         ...problemData,
-        createdAt: new Date().toISOString()
+        createdAt: nowISO()
       })
       return { success: true, data: { id: docRef.id } }
     }

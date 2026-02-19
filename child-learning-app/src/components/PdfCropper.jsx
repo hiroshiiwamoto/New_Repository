@@ -5,6 +5,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { storage } from '../firebase'
 import { getGoogleAccessToken, refreshGoogleAccessToken } from './Auth'
 import { getAllPDFs } from '../utils/pdfStorage'
+import Loading from './Loading'
 import './PdfCropper.css'
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -484,7 +485,7 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
               onChange={e => setListSearchQuery(e.target.value)}
             />
             {pdfListLoading ? (
-              <div className="pdfcropper-loading">読み込み中...</div>
+              <Loading message="読み込み中..." />
             ) : filteredPdfList.length === 0 ? (
               <div className="pdfcropper-empty">
                 {pdfList.length === 0
@@ -662,7 +663,7 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
         )}
 
         {isLoading && (
-          <div className="pdfcropper-loading">PDFを読み込んでいます...</div>
+          <Loading message="PDFを読み込んでいます..." />
         )}
       </div>
     </div>,

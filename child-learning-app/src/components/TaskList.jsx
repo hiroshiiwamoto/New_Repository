@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import TaskItem from './TaskItem'
+import EmptyState from './EmptyState'
 import './TaskList.css'
 
 function TaskList({ tasks, onToggleTask, onDeleteTask, onBulkDeleteTasks, onEditTask }) {
@@ -147,10 +148,11 @@ function TaskList({ tasks, onToggleTask, onDeleteTask, onBulkDeleteTasks, onEdit
 
   if (tasks.length === 0) {
     return (
-      <div className="empty-state">
-        <p>📝 まだ学習タスクがありません</p>
-        <p>上から新しい学習を追加してね！</p>
-      </div>
+      <EmptyState
+        icon="📝"
+        message="まだ学習タスクがありません"
+        hint="上から新しい学習を追加してね！"
+      />
     )
   }
 

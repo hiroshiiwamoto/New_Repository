@@ -1,7 +1,12 @@
 // 進捗履歴の記録と分析
+// NOTE: localStorage ベース。Analytics.jsx からのみ参照されるが、
+// Analytics は現在 App.jsx から未使用。
+// 将来復活させる場合は Firestore ベースに移行すること。
+
+import { nowISO } from './dateUtils'
+import { MAX_HISTORY_DAYS } from './constants'
 
 const PROGRESS_HISTORY_KEY = 'progressHistory'
-const MAX_HISTORY_DAYS = 90 // 90日間のデータを保持
 
 // 今日の日付をYYYY-MM-DD形式で取得
 export const getTodayKey = () => {
@@ -45,7 +50,7 @@ export const recordProgressSnapshot = (tasks) => {
   // スナップショットを作成
   const snapshot = {
     date: dateKey,
-    timestamp: new Date().toISOString(),
+    timestamp: nowISO(),
     subjects: subjectProgress,
     overall: {
       completed: allCompleted,

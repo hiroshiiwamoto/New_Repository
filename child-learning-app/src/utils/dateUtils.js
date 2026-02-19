@@ -49,9 +49,21 @@ export function getTodayString() {
  * @returns {number} - 日数の差（date1 - date2）
  */
 export function daysDifference(date1, date2) {
-  const oneDay = 24 * 60 * 60 * 1000
-  return Math.round((date1 - date2) / oneDay)
+  return Math.round((date1 - date2) / MS_PER_DAY)
 }
+
+/**
+ * 現在時刻をISOString形式で取得（createdAt/updatedAt等に使用）
+ * @returns {string} - ISO 8601形式の文字列
+ */
+export function nowISO() {
+  return new Date().toISOString()
+}
+
+/**
+ * ミリ秒/日の定数
+ */
+export const MS_PER_DAY = 24 * 60 * 60 * 1000
 
 /**
  * 経過日数を人間が読みやすいテキストに変換

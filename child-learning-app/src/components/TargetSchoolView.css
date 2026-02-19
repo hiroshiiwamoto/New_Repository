@@ -338,21 +338,7 @@
   white-space: pre-wrap;
 }
 
-/* フォーム */
-.target-school-view .form-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: var(--z-modal);
-  padding: 20px;
-  overflow-y: auto;
-}
+/* フォーム — overlay は .modal-overlay-common を使用 */
 
 .target-school-view .form-container {
   background: white;

@@ -12,6 +12,7 @@ import {
 import { db } from '../firebase'
 import { ensureMasterUnitsSeeded } from '../utils/importMasterUnits'
 import { toast } from '../utils/toast'
+import Loading from './Loading'
 import './MasterUnitEditor.css'
 
 const CATEGORIES = ['計算', '数の性質', '規則性', '特殊算', '速さ', '割合', '比', '平面図形', '立体図形', '場合の数', 'グラフ・論理']
@@ -152,7 +153,7 @@ function MasterUnitEditor() {
   const categories = ['all', ...CATEGORIES]
 
   if (loading) {
-    return <div className="mue-loading">マスター単元を読み込み中...</div>
+    return <Loading message="マスター単元を読み込み中..." />
   }
 
   return (
@@ -230,7 +231,7 @@ function MasterUnitEditor() {
 
       {/* 追加/編集モーダル */}
       {modal && (
-        <div className="mue-modal-overlay" onClick={() => setModal(null)}>
+        <div className="modal-overlay-common" onClick={() => setModal(null)}>
           <div className="mue-modal" onClick={e => e.stopPropagation()}>
             <h3>{modal === 'add' ? '＋ 単元を追加' : '✏️ 単元を編集'}</h3>
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import './TestScoreView.css'
+import { getTodayString } from '../utils/dateUtils'
 import {
   getAllTestScores,
   addTestScore,
@@ -12,12 +13,14 @@ import {
   deleteProblem,
 } from '../utils/problems'
 import { addLessonLogWithStats, EVALUATION_SCORES } from '../utils/lessonLogs'
+import { MAX_FILE_SIZE } from '../utils/constants'
 import { toast } from '../utils/toast'
 import ProblemClipList from './ProblemClipList'
 import DriveFilePicker from './DriveFilePicker'
 import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
 import { refreshGoogleAccessToken } from './Auth'
 import { grades } from '../utils/unitsDatabase'
+import EmptyState from './EmptyState'
 
 const SUBJECTS = ['算数', '国語', '理科', '社会']
 
@@ -76,7 +79,7 @@ function TestScoreView({ user }) {
     }
     const result = await addTestScore(user.uid, {
       testName: addForm.testName.trim(),
-      testDate: addForm.testDate || new Date().toISOString().split('T')[0],
+      testDate: addForm.testDate || getTodayString(),
       grade: addForm.grade,
       subjectPdfs: addForm.subjectPdfs,
     })
@@ -98,7 +101,7 @@ function TestScoreView({ user }) {
       toast.error('PDFファイルのみアップロード可能です')
       return
     }
-    if (file.size > 20 * 1024 * 1024) {
+    if (file.size > MAX_FILE_SIZE) {
       toast.error('ファイルサイズは20MB以下にしてください')
       return
     }
@@ -180,7 +183,7 @@ function TestScoreView({ user }) {
       toast.error('PDFファイルのみアップロード可能です')
       return
     }
-    if (file.size > 20 * 1024 * 1024) {
+    if (file.size > MAX_FILE_SIZE) {
       toast.error('ファイルサイズは20MB以下にしてください')
       return
     }
@@ -394,10 +397,11 @@ function TestScoreView({ user }) {
         )}
 
         {sortedScores.length === 0 && !showAddForm ? (
-          <div className="no-data">
-            📋 テストデータがありません
-            <small>「+ テスト追加」または「成績」タブから追加してください</small>
-          </div>
+          <EmptyState
+            icon="📋"
+            message="テストデータがありません"
+            hint="「+ テスト追加」または「成績」タブから追加してください"
+          />
         ) : (
           <div className="test-select-list">
             {sortedScores.map(score => (

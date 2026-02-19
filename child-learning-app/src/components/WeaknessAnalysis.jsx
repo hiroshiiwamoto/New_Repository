@@ -13,6 +13,8 @@ import {
   getMasterUnitsStats
 } from '../utils/importMasterUnits'
 import { toast } from '../utils/toast'
+import Loading from './Loading'
+import EmptyState from './EmptyState'
 import './WeaknessAnalysis.css'
 
 function WeaknessAnalysis() {
@@ -177,7 +179,7 @@ function WeaknessAnalysis() {
   if (loading) {
     return (
       <div className="weakness-analysis">
-        <div className="loading">📊 弱点データを読み込み中...</div>
+        <Loading message="📊 弱点データを読み込み中..." />
       </div>
     )
   }
@@ -324,10 +326,11 @@ function WeaknessAnalysis() {
       {view === 'weaknesses' && (
         <div className="weaknesses-section">
           {weaknesses.length === 0 ? (
-            <div className="no-data">
-              <p>📝 まだ解答履歴がありません</p>
-              <p>過去問を解いて記録すると、弱点が分析されます。</p>
-            </div>
+            <EmptyState
+              icon="📝"
+              message="まだ解答履歴がありません"
+              hint="過去問を解いて記録すると、弱点が分析されます。"
+            />
           ) : (
             <div className="weakness-list">
               {weaknesses.map(({ score, unit }, index) => (
@@ -366,9 +369,10 @@ function WeaknessAnalysis() {
       {view === 'categories' && (
         <div className="categories-section">
           {categoryStats.length === 0 ? (
-            <div className="no-data">
-              <p>📝 まだカテゴリ別のデータがありません</p>
-            </div>
+            <EmptyState
+              icon="📝"
+              message="まだカテゴリ別のデータがありません"
+            />
           ) : (
             <div className="category-list">
               {categoryStats
@@ -459,7 +463,7 @@ function WeaknessAnalysis() {
 
       {/* 練習記録モーダル */}
       {practiceModal && (
-        <div className="modal-overlay" onClick={handleClosePracticeModal}>
+        <div className="modal-overlay-common" onClick={handleClosePracticeModal}>
           <div className="modal-content practice-modal" onClick={e => e.stopPropagation()}>
             <h3>✏️ 練習を記録</h3>
             <p className="modal-unit-name">{practiceModal.unit.name}</p>
