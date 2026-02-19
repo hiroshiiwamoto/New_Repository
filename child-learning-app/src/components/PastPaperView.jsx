@@ -79,12 +79,6 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     }
   }, [user])
 
-  // 過去問タスクの問題ログを一括読み込み
-  useEffect(() => {
-    if (!user) return
-    pastPaperTasks.forEach(task => loadProblems(task.id))
-  }, [user, pastPaperTasks, loadProblems])
-
 
   // PDF を Google Drive にアップロードする共通処理
   const handlePDFUpload = async (file, target) => {
@@ -151,6 +145,12 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
   useEffect(() => {
     loadSessions()
   }, [loadSessions])
+
+  // 過去問タスクの問題ログを一括読み込み
+  useEffect(() => {
+    if (!user) return
+    pastPaperTasks.forEach(task => loadProblems(task.id))
+  }, [user, pastPaperTasks, loadProblems])
 
   // 学校別にグループ化
   const groupBySchool = () => {
