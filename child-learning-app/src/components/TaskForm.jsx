@@ -247,8 +247,8 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
         </div>
       )}
 
-      {/* 問題ファイル */}
-      <div className="form-group">
+      {/* 問題ファイル（解き直しタスクでは非表示） */}
+      {taskType !== 'review' && <div className="form-group">
         <label>問題ファイル（任意）</label>
         {fileUrl ? (
           <div className="task-file-url-preview">
@@ -294,7 +294,7 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
             </button>
           </div>
         )}
-      </div>
+      </div>}
 
       <div className="form-row">
         <div className="form-group half">
