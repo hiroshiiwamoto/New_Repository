@@ -17,7 +17,6 @@ import { addTaskToFirestore } from '../utils/firestore'
 import { getStaticMasterUnits } from '../utils/importMasterUnits'
 import { toast } from '../utils/toast'
 import UnitTagPicker from './UnitTagPicker'
-import PdfCropper from './PdfCropper'
 import './ProblemClipList.css'
 
 const DIFFICULTY_LABELS = { 1: '★', 2: '★★', 3: '★★★', 4: '★★★★', 5: '★★★★★' }
@@ -49,14 +48,12 @@ const EMPTY_FORM = {
  * @param {string}   sourceId       - テキストID / テストスコアID / タスクID
  * @param {string}   subject        - 科目（教材・過去問は親が確定）
  * @param {string[]} defaultUnitIds - デフォルトの単元IDs
- * @param {object}   pdfInfo        - { driveFileId, fileName } or null
  * @param {object}   taskGenInfo    - タスク生成用情報 { title, grade?, fileUrl?, fileName?, sourceRef }
  * @param {boolean}  showDifficulty - 難易度表示（過去問のみ）
  * @param {boolean}  showCorrectRate - 正答率表示（テストのみ）
  * @param {boolean}  showPoints     - 配点表示（テストのみ）
  * @param {boolean}  multiSubject   - 複数科目対応（テストのみ）
  * @param {string[]} subjects       - 科目一覧（multiSubject時）
- * @param {Function} getSubjectPdf  - (subject) => { driveFileId, fileName } | null（テスト用）
  * @param {boolean}  defaultExpanded - 初期展開状態
  * @param {boolean}  collapsible    - 折りたたみ可能か
  * @param {Function} onAfterAdd    - 問題追加後のコールバック (problemData, result) => void
@@ -71,14 +68,12 @@ export default function ProblemClipList({
   sourceId,
   subject,
   defaultUnitIds = [],
-  pdfInfo = null,
   taskGenInfo = null,
   showDifficulty = false,
   showCorrectRate = false,
   showPoints = false,
   multiSubject = false,
   subjects = [],
-  getSubjectPdf = null,
   defaultExpanded = false,
   collapsible = true,
   onAfterAdd = null,
@@ -89,7 +84,6 @@ export default function ProblemClipList({
   const [selectedProblem, setSelectedProblem] = useState(null) // 詳細表示中の問題
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ ...EMPTY_FORM, subject: subject || '', unitIds: defaultUnitIds })
-  const [showCropper, setShowCropper] = useState(false) // or subject string for test
   const [creatingTask, setCreatingTask] = useState(false)
 
   const unitNameMap = useMemo(() => {
@@ -200,33 +194,6 @@ export default function ProblemClipList({
     }
   }
 
-  // ── PDF切り出し完了 ───────────────────────────────────
-  const handleCropComplete = (imageUrl) => {
-    setShowCropper(false)
-    setForm(prev => ({
-      ...prev,
-      imageUrl,
-      ...(typeof showCropper === 'string' && showCropper !== prev.subject
-        ? { subject: showCropper, unitIds: [] }
-        : {})
-    }))
-    setShowForm(true)
-    toast.success('問題画像を取り込みました。残りの情報を入力して追加してください。')
-  }
-
-  // ── PDF情報解決 ───────────────────────────────────────
-  const resolvePdfInfo = () => {
-    if (typeof showCropper === 'string' && getSubjectPdf) {
-      // テスト: 科目名でPDF解決
-      const pdf = getSubjectPdf(showCropper)
-      if (!pdf) return null
-      const id = pdf.driveFileId || extractDriveFileId(pdf.fileUrl)
-      return id ? { driveFileId: id, fileName: pdf.fileName, firestoreId: null } : null
-    }
-    if (!pdfInfo) return null
-    return { driveFileId: pdfInfo.driveFileId, fileName: pdfInfo.fileName, firestoreId: null }
-  }
-
   const resetForm = () => {
     setForm({ ...EMPTY_FORM, subject: subject || '', unitIds: defaultUnitIds })
   }
@@ -235,18 +202,6 @@ export default function ProblemClipList({
     resetForm()
     setShowForm(true)
   }
-
-  const openCropper = () => {
-    if (multiSubject && getSubjectPdf) {
-      // テスト: デフォルト科目のPDFを開く
-      const defaultSubj = subjects.find(s => getSubjectPdf(s)) || subjects[0]
-      setShowCropper(defaultSubj)
-    } else {
-      setShowCropper(true)
-    }
-  }
-
-  const hasPdf = pdfInfo || (getSubjectPdf && subjects.some(s => getSubjectPdf(s)))
 
   // ── 問題リストの並び替え ──────────────────────────────
   const sortedProblems = [...problems].sort((a, b) => {
@@ -571,24 +526,17 @@ export default function ProblemClipList({
           />
         </div>
 
-        {/* 画像 */}
-        <div className="clip-form-field">
-          <label>問題画像（任意）</label>
-          {form.imageUrl ? (
+        {/* 画像プレビュー */}
+        {form.imageUrl && (
+          <div className="clip-form-field">
+            <label>問題画像</label>
             <div className="clip-image-preview">
               <img src={form.imageUrl} alt="問題プレビュー" />
               <button type="button" className="btn-secondary"
                 onClick={() => setForm(prev => ({ ...prev, imageUrl: null }))}>削除</button>
             </div>
-          ) : hasPdf ? (
-            <button type="button" className="clip-crop-btn" onClick={() => {
-              setShowForm(false)
-              openCropper()
-            }}>
-              ✂ PDFから切り抜く
-            </button>
-          ) : null}
-        </div>
+          </div>
+        )}
 
         <div className="clip-form-actions">
           <button className="btn-secondary" onClick={() => { setShowForm(false); resetForm() }}>
@@ -650,14 +598,6 @@ export default function ProblemClipList({
               <button className="clip-add-btn" onClick={openForm}>
                 + 問題を追加
               </button>
-              {hasPdf && (
-                <button className="clip-crop-open-btn" onClick={() => {
-                  resetForm()
-                  openCropper()
-                }}>
-                  ✂ PDFから切り出し
-                </button>
-              )}
               {taskGenInfo && wrongProblems.length > 0 && (
                 <button
                   className="clip-task-btn"
@@ -677,46 +617,6 @@ export default function ProblemClipList({
 
       {/* 詳細モーダル */}
       {renderDetailModal()}
-
-      {/* PDF切り抜き */}
-      {showCropper && (
-        <PdfCropper
-          key={typeof showCropper === 'string' ? showCropper : 'crop'}
-          userId={userId}
-          attachedPdf={resolvePdfInfo()}
-          onCropComplete={handleCropComplete}
-          onClose={() => {
-            setShowCropper(false)
-            setShowForm(true)
-          }}
-          headerSlot={
-            multiSubject && getSubjectPdf ? (
-              <div className="clip-cropper-subject-tabs">
-                {subjects.map(s => {
-                  const has = !!getSubjectPdf(s)
-                  return (
-                    <button
-                      key={s}
-                      className={`clip-cropper-tab ${showCropper === s ? 'active' : ''} ${!has ? 'no-pdf' : ''}`}
-                      onClick={() => has && setShowCropper(s)}
-                      disabled={!has}
-                    >
-                      {s}{!has && '（未添付）'}
-                    </button>
-                  )
-                })}
-              </div>
-            ) : undefined
-          }
-        />
-      )}
     </div>
   )
-}
-
-// ── ヘルパー ────────────────────────────────────────────
-function extractDriveFileId(fileUrl) {
-  if (!fileUrl) return null
-  const match = fileUrl.match(/\/file\/d\/([^/?]+)/)
-  return match ? match[1] : null
 }

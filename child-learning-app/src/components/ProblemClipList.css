@@ -201,7 +201,6 @@
 }
 
 .clip-add-btn,
-.clip-crop-open-btn,
 .clip-task-btn {
   padding: 6px 12px;
   border-radius: 6px;
@@ -217,13 +216,6 @@
   border-color: #bae6fd;
 }
 .clip-add-btn:hover { background: #e0f2fe; }
-
-.clip-crop-open-btn {
-  background: #f5f3ff;
-  color: #7c3aed;
-  border-color: #ddd6fe;
-}
-.clip-crop-open-btn:hover { background: #ede9fe; }
 
 .clip-task-btn {
   background: #fff7ed;
@@ -360,17 +352,6 @@
   border: 1px solid #e2e8f0;
 }
 
-.clip-crop-btn {
-  padding: 6px 12px;
-  border: 1px dashed #c4b5fd;
-  border-radius: 6px;
-  background: #f5f3ff;
-  color: #7c3aed;
-  cursor: pointer;
-  font-size: 0.8rem;
-}
-.clip-crop-btn:hover { background: #ede9fe; }
-
 .clip-form-actions {
   display: flex;
   justify-content: flex-end;
@@ -500,28 +481,3 @@
 }
 .clip-delete-btn:hover { background: #fee2e2; }
 
-/* ── PDF切り出し科目タブ ──────────────────────────────── */
-
-.clip-cropper-subject-tabs {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 8px;
-}
-.clip-cropper-tab {
-  padding: 4px 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  background: white;
-  cursor: pointer;
-  font-size: 0.8rem;
-}
-.clip-cropper-tab.active {
-  background: #eff6ff;
-  border-color: #3b82f6;
-  color: #1d4ed8;
-  font-weight: 600;
-}
-.clip-cropper-tab.no-pdf {
-  opacity: 0.4;
-  cursor: not-allowed;
-}

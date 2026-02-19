@@ -18,13 +18,6 @@ import { refreshGoogleAccessToken } from './Auth'
 
 const SUBJECTS = ['算数', '国語', '理科', '社会']
 
-/** Google Drive URL から driveFileId を抽出 */
-function extractDriveFileId(fileUrl) {
-  if (!fileUrl) return null
-  const match = fileUrl.match(/\/file\/d\/([^/?]+)/)
-  return match ? match[1] : null
-}
-
 function TestScoreView({ user }) {
   const [scores, setScores] = useState([])
   const [selectedScore, setSelectedScore] = useState(null)
@@ -320,12 +313,6 @@ function TestScoreView({ user }) {
         showPoints
         collapsible={false}
         defaultExpanded
-        getSubjectPdf={(subj) => {
-          const pdf = getPdfForSubject(subj)
-          if (!pdf) return null
-          const driveFileId = extractDriveFileId(pdf.fileUrl)
-          return driveFileId ? { driveFileId, fileName: pdf.fileName, fileUrl: pdf.fileUrl } : null
-        }}
         taskGenInfo={{
           title: selectedScore.testName,
           grade: selectedScore.grade,
