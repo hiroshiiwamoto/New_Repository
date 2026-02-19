@@ -160,15 +160,32 @@
 .pdfcropper-zoom {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
+}
+
+.pdfcropper-zoom-fit,
+.pdfcropper-zoom-reset {
+  padding: 4px 10px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
-  overflow: hidden;
+  background: white;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  color: #374151;
+  white-space: nowrap;
 }
-.pdfcropper-zoom button {
+.pdfcropper-zoom-fit:hover,
+.pdfcropper-zoom-reset:hover {
+  background: #eff6ff;
+  border-color: #3b82f6;
+}
+
+.pdfcropper-zoom-btn {
   width: 28px;
   height: 28px;
-  border: none;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
   background: white;
   cursor: pointer;
   font-size: 16px;
@@ -176,14 +193,16 @@
   align-items: center;
   justify-content: center;
 }
-.pdfcropper-zoom button:hover {
+.pdfcropper-zoom-btn:hover {
   background: #eff6ff;
+  border-color: #3b82f6;
 }
-.pdfcropper-zoom span {
+
+.pdfcropper-zoom-display {
   font-size: 12px;
   font-weight: 600;
   color: #374151;
-  min-width: 38px;
+  min-width: 42px;
   text-align: center;
 }
 
