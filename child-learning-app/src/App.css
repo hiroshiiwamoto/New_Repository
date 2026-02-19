@@ -15,7 +15,7 @@ body {
 
 .app.sapix-theme {
   min-height: 100vh;
-  background: #f5f5f7;
+  background: var(--color-gray-100);
   padding: 24px;
   width: 100%;
   overflow-x: hidden;
@@ -25,9 +25,9 @@ body {
   color: #1d1d1f;
   margin-bottom: 32px;
   padding: 28px 32px;
-  background: linear-gradient(135deg, #e5e5ea 0%, #d1d1d6 100%);
+  background: linear-gradient(135deg, var(--color-gray-200) 0%, var(--color-gray-300) 100%);
   border-radius: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-md);
   border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
@@ -62,7 +62,7 @@ body {
   font-size: 0.875rem;
   font-weight: 500;
   border: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-sm);
 }
 
 .container {
@@ -78,7 +78,7 @@ body {
   padding: 32px;
   text-align: center;
   margin: 24px 0;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-sm);
   border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
@@ -91,7 +91,7 @@ body {
 }
 
 .load-sample-btn {
-  background: #007AFF;
+  background: var(--color-primary);
   color: white;
   border: none;
   border-radius: 12px;
@@ -123,7 +123,7 @@ body {
   background: rgba(255, 255, 255, 0.6);
   border-radius: 14px;
   backdrop-filter: blur(20px);
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-sm);
   width: fit-content;
   margin-left: auto;
   margin-right: auto;
@@ -147,8 +147,8 @@ body {
 
 .view-switcher button.active {
   background: white;
-  color: #007AFF;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  color: var(--color-primary);
+  box-shadow: var(--shadow-md);
 }
 
 .filter-buttons {
@@ -178,7 +178,7 @@ body {
 
 .filter-buttons button.active {
   background: white;
-  color: #007AFF;
+  color: var(--color-primary);
   border-color: white;
 }
 
@@ -187,7 +187,7 @@ body {
   background: white;
   border-radius: 20px;
   padding: 32px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-sm);
   margin-bottom: 24px;
   border: 1px solid rgba(0, 0, 0, 0.04);
 }
@@ -210,7 +210,7 @@ body {
 }
 
 .back-btn {
-  background: #f5f5f7;
+  background: var(--color-gray-100);
   color: #1d1d1f;
   border: none;
   border-radius: 10px;
@@ -237,7 +237,7 @@ body {
   border: none;
   border-radius: 14px;
   cursor: pointer;
-  background: #007AFF;
+  background: var(--color-primary);
   color: white;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
@@ -254,7 +254,7 @@ body {
 }
 
 .add-task-toggle-btn.close {
-  background: #f5f5f7;
+  background: var(--color-gray-100);
   color: #86868b;
   box-shadow: none;
   margin-bottom: 12px;
