@@ -85,6 +85,13 @@ function SapixTextView({ user }) {
     const result = await getSapixTexts(user.uid)
     if (result.success) {
       setTexts(result.data)
+      // 全テキストの問題数を事前ロード（バッジ表示用）
+      for (const text of result.data) {
+        const pResult = await getProblemsBySource(user.uid, 'textbook', text.firestoreId)
+        if (pResult.success) {
+          setProblems(prev => ({ ...prev, [text.firestoreId]: pResult.data }))
+        }
+      }
     }
   }, [user])
 
