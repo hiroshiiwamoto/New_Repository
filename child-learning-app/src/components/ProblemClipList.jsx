@@ -92,6 +92,7 @@ export default function ProblemClipList({
   const [form, setForm] = useState({ ...EMPTY_FORM, subject: subject || '', unitIds: defaultUnitIds })
   const [showCropper, setShowCropper] = useState(false)
   const [creatingTask, setCreatingTask] = useState(false)
+  const [taskDueDate, setTaskDueDate] = useState(null) // null=非表示, string=日付選択中
 
   const unitNameMap = useMemo(() => {
     const map = {}
@@ -171,12 +172,10 @@ export default function ProblemClipList({
   }
 
   // ── 個別問題の解き直しタスク生成（詳細モーダル用）────
-  const handleCreateTaskForProblem = async (problem) => {
+  const handleCreateTaskForProblem = async (problem, dueDate) => {
     if (!taskGenInfo) return
     setCreatingTask(true)
     try {
-      const nextWeek = new Date()
-      nextWeek.setDate(nextWeek.getDate() + 7)
       await addTaskToFirestore(userId, {
         id: Date.now() + Math.random(),
         title: `【解き直し】${taskGenInfo.title} 第${problem.problemNumber}問`,
@@ -185,7 +184,7 @@ export default function ProblemClipList({
         unitIds: problem.unitIds?.length ? problem.unitIds : defaultUnitIds,
         taskType: sourceType === 'pastPaper' ? 'pastpaper' : sourceType === 'test' ? 'test' : 'review',
         priority: 'A',
-        dueDate: nextWeek.toISOString().split('T')[0],
+        dueDate: dueDate || null,
         fileUrl: taskGenInfo.fileUrl || '',
         fileName: taskGenInfo.fileName || '',
         problemImageUrl: problem.imageUrl || '',
@@ -194,6 +193,7 @@ export default function ProblemClipList({
         generatedFrom: taskGenInfo.sourceRef || { type: sourceType, id: sourceId },
         createdAt: new Date().toISOString(),
       })
+      setTaskDueDate(null)
       toast.success('解き直しタスクを作成しました')
     } catch {
       toast.error('タスク作成に失敗しました')
@@ -320,7 +320,7 @@ export default function ProblemClipList({
     const p = selectedProblem
     const st = reviewStatusInfo(p.reviewStatus)
     return createPortal(
-      <div className="clip-detail-overlay" onClick={() => setSelectedProblem(null)}>
+      <div className="clip-detail-overlay" onClick={() => { setSelectedProblem(null); setTaskDueDate(null) }}>
         <div className="clip-detail-modal" onClick={e => e.stopPropagation()}>
           <div className="clip-detail-header">
             <h3>
@@ -329,7 +329,7 @@ export default function ProblemClipList({
               </span>
               第{p.problemNumber}問
             </h3>
-            <button className="clip-detail-close" onClick={() => setSelectedProblem(null)}>&times;</button>
+            <button className="clip-detail-close" onClick={() => { setSelectedProblem(null); setTaskDueDate(null) }}>&times;</button>
           </div>
 
           <div className="clip-detail-body">
@@ -430,13 +430,39 @@ export default function ProblemClipList({
 
           <div className="clip-detail-actions">
             {taskGenInfo && !p.isCorrect && (
-              <button
-                className="clip-task-btn"
-                disabled={creatingTask}
-                onClick={() => handleCreateTaskForProblem(p)}
-              >
-                {creatingTask ? '作成中...' : '→ 解き直しタスクを追加'}
-              </button>
+              taskDueDate !== null ? (
+                <div className="clip-task-date-picker">
+                  <label>📅 実施日（任意）</label>
+                  <input
+                    type="date"
+                    value={taskDueDate}
+                    onChange={(e) => setTaskDueDate(e.target.value)}
+                    className="clip-task-date-input"
+                  />
+                  <div className="clip-task-date-actions">
+                    <button
+                      className="clip-task-btn"
+                      disabled={creatingTask}
+                      onClick={() => handleCreateTaskForProblem(p, taskDueDate)}
+                    >
+                      {creatingTask ? '作成中...' : '✓ タスクを作成'}
+                    </button>
+                    <button
+                      className="btn-secondary"
+                      onClick={() => setTaskDueDate(null)}
+                    >
+                      キャンセル
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  className="clip-task-btn"
+                  onClick={() => setTaskDueDate('')}
+                >
+                  → 解き直しタスクを追加
+                </button>
+              )
             )}
             <button
               className="clip-delete-btn"

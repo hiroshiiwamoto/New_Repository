@@ -362,9 +362,6 @@ function App() {
         ) : view === 'sapixtext' ? (
           <SapixTextView
             user={user}
-            customUnits={customUnits}
-            onAddTask={addTask}
-            onAddCustomUnit={addCustomUnit}
           />
         ) : null}
           </>

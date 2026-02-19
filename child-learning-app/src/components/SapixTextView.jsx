@@ -15,12 +15,10 @@ import {
   deleteProblemsBySource,
 } from '../utils/problems'
 import ProblemClipList from './ProblemClipList'
-import TaskForm from './TaskForm'
 
-function SapixTextView({ user, customUnits = [], onAddTask, onAddCustomUnit }) {
+function SapixTextView({ user }) {
   const [texts, setTexts] = useState([])
   const [selectedSubject, setSelectedSubject] = useState('算数')
-  const [showTaskForm, setShowTaskForm] = useState(false)
 
   // 単元IDから単元名へのマップ
   const unitNameMap = useMemo(() => {
@@ -665,37 +663,6 @@ function SapixTextView({ user, customUnits = [], onAddTask, onAddCustomUnit }) {
           ))
         )}
       </div>
-
-      {/* 学習タスク追加 */}
-      {onAddTask && (
-        <div>
-          {!showTaskForm ? (
-            <button
-              className="add-task-toggle-btn"
-              onClick={() => setShowTaskForm(true)}
-            >
-              ＋ 学習タスクを追加
-            </button>
-          ) : (
-            <>
-              <button
-                className="add-task-toggle-btn close"
-                onClick={() => setShowTaskForm(false)}
-              >
-                ✕ 閉じる
-              </button>
-              <TaskForm
-                onAddTask={(task) => {
-                  onAddTask(task)
-                  setShowTaskForm(false)
-                }}
-                customUnits={customUnits}
-                onAddCustomUnit={onAddCustomUnit}
-              />
-            </>
-          )}
-        </div>
-      )}
 
       {/* フルスクリーンPDF */}
       {fullscreenPDF && (
