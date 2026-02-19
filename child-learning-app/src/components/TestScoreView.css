@@ -1452,6 +1452,92 @@
 }
 .pdf-attach-remove:hover { color: #dc2626; }
 
+/* テスト追加 */
+.test-selector-header .header-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.testscore-view .add-pastpaper-btn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(30, 64, 175, 0.3);
+  white-space: nowrap;
+  font-size: 0.9rem;
+}
+.testscore-view .add-pastpaper-btn:hover {
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.4);
+}
+
+.testscore-view .add-pastpaper-form {
+  background: white;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 2px solid #e0e7ff;
+}
+.testscore-view .add-pastpaper-form h3 {
+  color: #1e40af;
+  margin-bottom: 20px;
+  font-size: 1.2rem;
+}
+
+.testscore-view .add-form-grid-two-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 16px;
+}
+.testscore-view .add-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.testscore-view .add-form-field label {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 0.95rem;
+}
+.testscore-view .add-form-field input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+.testscore-view .add-form-field input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+.testscore-view .add-form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+.testscore-view .add-form-section .section-label {
+  display: block;
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 0.95rem;
+  margin-bottom: 12px;
+}
+
 /* PdfCropper 科目切り替えタブ（モーダル内に配置） */
 .pdf-cropper-subject-tabs {
   display: flex;
