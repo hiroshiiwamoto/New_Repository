@@ -242,7 +242,9 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
         <div className="form-group">
           <label>問題画像</label>
           <div className="task-problem-image-preview">
-            <img src={problemImageUrl} alt="問題画像" className="task-problem-image" />
+            <a href={problemImageUrl} target="_blank" rel="noopener noreferrer">
+              <img src={problemImageUrl} alt="問題画像" className="task-problem-image" />
+            </a>
           </div>
         </div>
       )}
