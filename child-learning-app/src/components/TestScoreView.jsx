@@ -249,6 +249,7 @@ function TestScoreView({ user }) {
         const isHighAccuracyMiss = parseFloat(problem.correctRate) >= 60
         await addLessonLogWithStats(user.uid, {
           unitIds: problem.unitIds,
+          subject: problem.subject,  // 科目を追加（handleSaveProblemと同様）
           sourceType: 'testScore',
           sourceId: selectedScore.firestoreId,
           sourceName: `${selectedScore.testName} 第${problem.problemNumber}問`,
