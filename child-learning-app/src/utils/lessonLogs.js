@@ -61,6 +61,7 @@ export async function addLessonLogWithStats(userId, data) {
     const docData = {
       unitIds,
       mainUnitId,                               // NEW: メイン単元ID（習熟度スコアの対象）
+      subject: data.subject || null,            // 科目（算数・国語・理科・社会）
       sourceType: data.sourceType || 'practice',
       sourceId: data.sourceId || null,
       sourceName: data.sourceName || '',

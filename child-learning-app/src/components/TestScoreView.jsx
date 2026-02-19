@@ -109,6 +109,7 @@ function TestScoreView({ user }) {
   function getLinkedTexts(problem) {
     if (!problem.unitIds?.length) return []
     return sapixTexts.filter(t =>
+      t.subject === problem.subject &&  // 科目が一致
       (t.unitIds || []).some(uid => problem.unitIds.includes(uid))
     )
   }
@@ -172,6 +173,7 @@ function TestScoreView({ user }) {
         const evaluationKey = problemForm.isCorrect ? 'blue' : 'red'
         await addLessonLogWithStats(user.uid, {
           unitIds: problemForm.unitIds,
+          subject: problemForm.subject,  // 科目を追加
           sourceType: 'test',
           sourceId: selectedScore.firestoreId,
           sourceName: `${selectedScore.testName} 問${problemForm.problemNumber}`,
