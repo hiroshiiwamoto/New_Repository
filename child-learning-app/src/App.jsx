@@ -363,6 +363,8 @@ function App() {
           <SapixTextView
             user={user}
             customUnits={customUnits}
+            onAddTask={addTask}
+            onAddCustomUnit={addCustomUnit}
           />
         ) : null}
           </>
