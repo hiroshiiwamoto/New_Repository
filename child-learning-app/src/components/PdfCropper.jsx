@@ -250,6 +250,7 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
     } else if (isPanningRef.current && panStartRef.current && canvasWrapperRef.current) {
       const dx = e.clientX - panStartRef.current.x
       const dy = e.clientY - panStartRef.current.y
+      // マウスを右に動かすとdxが正 → scrollLeftを減らして左へスクロール
       canvasWrapperRef.current.scrollLeft = panStartRef.current.scrollLeft - dx
       canvasWrapperRef.current.scrollTop = panStartRef.current.scrollTop - dy
     }
@@ -579,16 +580,18 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
               className="pdfcropper-canvas-wrapper"
               onWheel={handleWheel}
             >
-              <canvas ref={canvasRef} className="pdfcropper-canvas" />
-              <canvas
-                ref={overlayRef}
-                className="pdfcropper-overlay-canvas"
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
-                onContextMenu={(e) => e.preventDefault()}
-              />
+              <div className="pdfcropper-canvas-container">
+                <canvas ref={canvasRef} className="pdfcropper-canvas" />
+                <canvas
+                  ref={overlayRef}
+                  className="pdfcropper-overlay-canvas"
+                  onMouseDown={handleMouseDown}
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUp}
+                  onMouseLeave={handleMouseUp}
+                  onContextMenu={(e) => e.preventDefault()}
+                />
+              </div>
             </div>
 
             {croppedPreview && (
