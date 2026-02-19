@@ -10,6 +10,7 @@ import {
   updateProblem,
   deleteProblem,
 } from '../utils/problems'
+import { addLessonLogWithStats, EVALUATION_SCORES } from '../utils/lessonLogs'
 import { getSapixTexts } from '../utils/sapixTexts'
 import { addLessonLogWithStats, EVALUATION_SCORES } from '../utils/lessonLogs'
 import { addTaskToFirestore } from '../utils/firestore'
@@ -167,6 +168,21 @@ function TestScoreView({ user }) {
       imageUrl: problemForm.imageUrl || null,
     })
     if (result.success) {
+      // 弱点分析用に lessonLog も作成（単元が選択されている場合のみ）
+      if (problemForm.unitIds && problemForm.unitIds.length > 0) {
+        const evaluationKey = problemForm.isCorrect ? 'blue' : 'red'
+        await addLessonLogWithStats(user.uid, {
+          unitIds: problemForm.unitIds,
+          sourceType: 'test',
+          sourceId: selectedScore.firestoreId,
+          sourceName: `${selectedScore.testName} 問${problemForm.problemNumber}`,
+          date: selectedScore.testDate ? new Date(selectedScore.testDate) : new Date(),
+          performance: EVALUATION_SCORES[evaluationKey],
+          evaluationKey,
+          missType: problemForm.isCorrect ? null : (problemForm.missType || 'understanding'),
+          notes: `正答率: ${problemForm.correctRate || 0}%`,
+        })
+      }
       await reloadProblems()
       setProblemForm(getEmptyProblemForm())
       setShowProblemForm(false)
