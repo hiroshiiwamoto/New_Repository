@@ -17,6 +17,7 @@ import {
   where,
   orderBy,
   serverTimestamp,
+  writeBatch,
 } from 'firebase/firestore'
 import { db } from '../firebase'
 
@@ -157,6 +158,29 @@ export async function deleteLessonLog(userId, logId, unitIds = []) {
     return { success: true }
   } catch (error) {
     console.error('lessonLog 削除エラー:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * lessonLogs と masterUnitStats を全削除（弱点マップのリセット）
+ */
+export async function resetAllLessonData(userId) {
+  try {
+    const logsSnap = await getDocs(collection(db, 'users', userId, 'lessonLogs'))
+    const statsSnap = await getDocs(collection(db, 'users', userId, 'masterUnitStats'))
+
+    // Firestore batch は最大500件なので分割
+    const allDocs = [...logsSnap.docs, ...statsSnap.docs]
+    for (let i = 0; i < allDocs.length; i += 500) {
+      const batch = writeBatch(db)
+      allDocs.slice(i, i + 500).forEach(d => batch.delete(d.ref))
+      await batch.commit()
+    }
+
+    return { success: true, deletedCount: allDocs.length }
+  } catch (error) {
+    console.error('弱点マップリセットエラー:', error)
     return { success: false, error: error.message }
   }
 }
