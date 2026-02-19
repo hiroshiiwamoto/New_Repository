@@ -649,3 +649,19 @@
     line-height: 1.2;
   }
 }
+
+/* 問題画像プレビュー（解き直しタスク等） */
+.task-problem-image-preview {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  overflow: hidden;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.task-problem-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}

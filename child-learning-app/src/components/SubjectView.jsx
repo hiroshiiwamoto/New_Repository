@@ -9,7 +9,8 @@ function SubjectView({ tasks, onToggleTask, onDeleteTask }) {
     'basic': '✏️ 基礎トレ',
     'test': '📝 テスト対策',
     'pastpaper': '📄 過去問',
-    'weakness': '💪 弱点補強'
+    'weakness': '💪 弱点補強',
+    'review': '🔄 解き直し'
   }
 
   const priorityColors = {
