@@ -34,7 +34,7 @@ const EMPTY_FORM = {
   isCorrect: false,
   missType: 'understanding',
   difficulty: null,
-  imageUrl: null,
+  imageUrls: [],
   correctRate: '',
   points: '',
   subject: '',
@@ -117,7 +117,7 @@ export default function ProblemClipList({
       isCorrect: form.isCorrect,
       missType: form.isCorrect ? null : form.missType,
       difficulty: showDifficulty ? form.difficulty : null,
-      imageUrl: form.imageUrl,
+      imageUrls: form.imageUrls,
     }
     if (showCorrectRate) problemData.correctRate = parseFloat(form.correctRate) || 0
     if (showPoints) problemData.points = parseInt(form.points) || null
@@ -192,7 +192,7 @@ export default function ProblemClipList({
         fileName: taskGenInfo.fileName || '',
         ...(taskGenInfo.schoolName && { schoolName: taskGenInfo.schoolName }),
         ...(taskGenInfo.year && { year: taskGenInfo.year }),
-        problemImageUrl: problem.imageUrl || '',
+        problemImageUrl: problem.imageUrls?.[0] || '',
         completed: false,
         problemIds: [problem.firestoreId || problem.id],
         generatedFrom: taskGenInfo.sourceRef || { type: sourceType, id: sourceId },
@@ -212,7 +212,7 @@ export default function ProblemClipList({
     setShowCropper(false)
     setForm(prev => ({
       ...prev,
-      imageUrl,
+      imageUrls: [...prev.imageUrls, imageUrl],
       ...(typeof showCropper === 'string' && showCropper !== prev.subject
         ? { subject: showCropper, unitIds: [] }
         : {})
@@ -306,7 +306,7 @@ export default function ProblemClipList({
               {problem.unitIds.length > 2 && <span className="unit-tag">+{problem.unitIds.length - 2}</span>}
             </div>
           )}
-          {problem.imageUrl && <span className="clip-has-image" title="画像あり">📷</span>}
+          {problem.imageUrls?.length > 0 && <span className="clip-has-image" title="画像あり">📷{problem.imageUrls.length > 1 ? problem.imageUrls.length : ''}</span>}
           {!problem.isCorrect && (
             <span
               className="clip-review-badge"
@@ -339,11 +339,15 @@ export default function ProblemClipList({
 
           <div className="clip-detail-body">
             {/* 画像 */}
-            {p.imageUrl && (
-              <div className="clip-detail-image">
-                <a href={p.imageUrl} target="_blank" rel="noopener noreferrer">
-                  <img src={p.imageUrl} alt="問題画像" />
-                </a>
+            {p.imageUrls?.length > 0 && (
+              <div className="clip-detail-images">
+                {p.imageUrls.map((url, i) => (
+                  <div key={i} className="clip-detail-image">
+                    <a href={url} target="_blank" rel="noopener noreferrer">
+                      <img src={url} alt={`問題画像${p.imageUrls.length > 1 ? ` ${i + 1}` : ''}`} />
+                    </a>
+                  </div>
+                ))}
               </div>
             )}
 
@@ -614,14 +618,36 @@ export default function ProblemClipList({
         </div>
 
         {/* 画像プレビュー */}
-        {form.imageUrl && (
+        {form.imageUrls.length > 0 && (
           <div className="clip-form-field">
-            <label>問題画像</label>
-            <div className="clip-image-preview">
-              <img src={form.imageUrl} alt="問題プレビュー" />
-              <button type="button" className="btn-secondary"
-                onClick={() => setForm(prev => ({ ...prev, imageUrl: null }))}>削除</button>
+            <label>問題画像（{form.imageUrls.length}枚）</label>
+            <div className="clip-image-previews">
+              {form.imageUrls.map((url, i) => (
+                <div key={i} className="clip-image-preview">
+                  <img src={url} alt={`問題プレビュー ${i + 1}`} />
+                  <button type="button" className="btn-secondary"
+                    onClick={() => setForm(prev => ({
+                      ...prev,
+                      imageUrls: prev.imageUrls.filter((_, idx) => idx !== i),
+                    }))}>削除</button>
+                </div>
+              ))}
             </div>
+          </div>
+        )}
+        {/* 画像追加ボタン（PDFがある場合） */}
+        {hasPdf && (
+          <div className="clip-form-field">
+            <button type="button" className="btn-secondary clip-add-image-btn" onClick={() => {
+              if (multiSubject && getSubjectPdf) {
+                const subj = subjects.find(s => getSubjectPdf(s)) || subjects[0]
+                setShowCropper(subj)
+              } else {
+                setShowCropper(true)
+              }
+            }}>
+              + 画像を追加
+            </button>
           </div>
         )}
 
