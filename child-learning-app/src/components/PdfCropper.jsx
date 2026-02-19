@@ -40,7 +40,6 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
   const [urlInput, setUrlInput] = useState('')
 
   // 選択・切り出し
-  const [selectMode, setSelectMode] = useState(false) // false=パン/スクロール, true=切り出し選択
   const [selection, setSelection] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState(null)
@@ -48,12 +47,21 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
   const [croppedBlob, setCroppedBlob] = useState(null)
   const [isUploading, setIsUploading] = useState(false)
 
+  // タッチ/マウス操作状態
+  const [isPanning, setIsPanning] = useState(false) // パンモード（ダブルタップ後 or 中ボタン）
+  const [panStart, setPanStart] = useState(null) // パン開始座標
+  const [lastTapTime, setLastTapTime] = useState(0) // ダブルタップ判定用
+
   const canvasRef = useRef(null)
   const overlayRef = useRef(null)
   const renderTaskRef = useRef(null)
+  const canvasWrapperRef = useRef(null)
   // タッチハンドラから最新値を参照するためのrefs
   const isDraggingRef = useRef(false)
   const dragStartRef = useRef(null)
+  const isPanningRef = useRef(false)
+  const panStartRef = useRef(null)
+  const initialPinchDistance = useRef(null)
 
   // ─── タブ2のリスト読み込み ───
   useEffect(() => {
@@ -219,54 +227,150 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
   }
 
   const handleMouseDown = (e) => {
-    startDrag(getCanvasPos(e))
+    const pos = getCanvasPos(e)
+    // 左クリック(0) → 切り出し、中ボタン(1) → パン
+    if (e.button === 0) {
+      startDrag(pos)
+    } else if (e.button === 1) {
+      e.preventDefault() // 中ボタンのデフォルト動作を抑制
+      isPanningRef.current = true
+      panStartRef.current = {
+        x: e.clientX,
+        y: e.clientY,
+        scrollLeft: canvasWrapperRef.current?.scrollLeft || 0,
+        scrollTop: canvasWrapperRef.current?.scrollTop || 0,
+      }
+      setIsPanning(true)
+    }
   }
 
   const handleMouseMove = (e) => {
-    if (!isDraggingRef.current || !dragStartRef.current) return
-    drawSelectionRect(normRect(dragStartRef.current, getCanvasPos(e)))
+    if (isDraggingRef.current && dragStartRef.current) {
+      drawSelectionRect(normRect(dragStartRef.current, getCanvasPos(e)))
+    } else if (isPanningRef.current && panStartRef.current && canvasWrapperRef.current) {
+      const dx = e.clientX - panStartRef.current.x
+      const dy = e.clientY - panStartRef.current.y
+      canvasWrapperRef.current.scrollLeft = panStartRef.current.scrollLeft - dx
+      canvasWrapperRef.current.scrollTop = panStartRef.current.scrollTop - dy
+    }
   }
 
   const handleMouseUp = (e) => {
-    endDrag(getCanvasPos(e))
+    if (e.button === 0 && isDraggingRef.current) {
+      endDrag(getCanvasPos(e))
+    } else if (e.button === 1 && isPanningRef.current) {
+      isPanningRef.current = false
+      panStartRef.current = null
+      setIsPanning(false)
+    }
   }
 
-  // ── タッチイベント用ネイティブリスナー（passive:false でスクロール防止） ──
-  // React合成イベントはpassiveがデフォルトでpreventDefaultが効かないため
-  // selectModeのときのみリスナーを登録し、パンモード時はpointer-events:noneで透過させる
+  const handleWheel = (e) => {
+    // ホイール → ズーム
+    e.preventDefault()
+    const delta = e.deltaY > 0 ? -0.1 : 0.1
+    setScale(s => Math.max(0.5, Math.min(3, Math.round((s + delta) * 100) / 100)))
+  }
+
+  // ── タッチイベント用ネイティブリスナー ──
+  // 1本指=切り出し、2本指ドラッグ=パン、2本指ピンチ=ズーム
   useEffect(() => {
     const overlay = overlayRef.current
-    if (!overlay || !selectMode) return
+    const wrapper = canvasWrapperRef.current
+    if (!overlay || !wrapper) return
 
     const onTouchStart = (e) => {
-      // 選択モード中は即座にドラッグ開始、スクロール防止
-      e.preventDefault()
-      startDrag(getCanvasPos(e))
+      const touches = e.touches
+
+      // 2本指 → パン or ピンチズーム開始
+      if (touches.length === 2) {
+        e.preventDefault()
+        const dx = touches[0].clientX - touches[1].clientX
+        const dy = touches[0].clientY - touches[1].clientY
+        initialPinchDistance.current = Math.sqrt(dx * dx + dy * dy)
+
+        // パン用の初期位置も記録
+        const centerX = (touches[0].clientX + touches[1].clientX) / 2
+        const centerY = (touches[0].clientY + touches[1].clientY) / 2
+        panStartRef.current = {
+          x: centerX,
+          y: centerY,
+          scrollLeft: wrapper.scrollLeft,
+          scrollTop: wrapper.scrollTop,
+        }
+        isPanningRef.current = true
+        return
+      }
+
+      // 1本指 → 切り出し開始
+      if (touches.length === 1) {
+        e.preventDefault()
+        startDrag(getCanvasPos(e))
+      }
     }
 
     const onTouchMove = (e) => {
-      // ドラッグ中のみスクロール防止（選択範囲を描画）
-      if (isDraggingRef.current) {
+      const touches = e.touches
+
+      // 2本指移動中
+      if (touches.length === 2) {
         e.preventDefault()
-        if (dragStartRef.current) {
-          drawSelectionRect(normRect(dragStartRef.current, getCanvasPos(e)))
+        const dx = touches[0].clientX - touches[1].clientX
+        const dy = touches[0].clientY - touches[1].clientY
+        const distance = Math.sqrt(dx * dx + dy * dy)
+
+        // ピンチ判定: 距離が変化している → ズーム
+        if (initialPinchDistance.current && Math.abs(distance - initialPinchDistance.current) > 5) {
+          const scaleChange = distance / initialPinchDistance.current
+          setScale(s => Math.max(0.5, Math.min(3, Math.round(s * scaleChange * 100) / 100)))
+          initialPinchDistance.current = distance
         }
+
+        // パン: 2本指の中心が移動している → スクロール
+        if (panStartRef.current) {
+          const centerX = (touches[0].clientX + touches[1].clientX) / 2
+          const centerY = (touches[0].clientY + touches[1].clientY) / 2
+          const deltaX = centerX - panStartRef.current.x
+          const deltaY = centerY - panStartRef.current.y
+          wrapper.scrollLeft = panStartRef.current.scrollLeft - deltaX
+          wrapper.scrollTop = panStartRef.current.scrollTop - deltaY
+        }
+        return
+      }
+
+      // 1本指ドラッグ → 切り出し範囲選択
+      if (isDraggingRef.current && dragStartRef.current && touches.length === 1) {
+        e.preventDefault()
+        drawSelectionRect(normRect(dragStartRef.current, getCanvasPos(e)))
       }
     }
 
     const onTouchEnd = (e) => {
-      const rect = overlay.getBoundingClientRect()
-      const touch = e.changedTouches[0]
-      const pos = {
-        x: (touch.clientX - rect.left) * (overlay.width / rect.width),
-        y: (touch.clientY - rect.top) * (overlay.height / rect.height),
+      // 2本指が離れたらピンチ・パンモード終了
+      if (e.touches.length < 2) {
+        initialPinchDistance.current = null
+        isPanningRef.current = false
+        panStartRef.current = null
       }
-      endDrag(pos)
+
+      // 全ての指が離れた
+      if (e.touches.length === 0) {
+        // 切り出しドラッグ終了
+        if (isDraggingRef.current) {
+          const rect = overlay.getBoundingClientRect()
+          const touch = e.changedTouches[0]
+          const pos = {
+            x: (touch.clientX - rect.left) * (overlay.width / rect.width),
+            y: (touch.clientY - rect.top) * (overlay.height / rect.height),
+          }
+          endDrag(pos)
+        }
+      }
     }
 
     overlay.addEventListener('touchstart', onTouchStart, { passive: false })
     overlay.addEventListener('touchmove', onTouchMove, { passive: false })
-    overlay.addEventListener('touchend', onTouchEnd)
+    overlay.addEventListener('touchend', onTouchEnd, { passive: false })
 
     return () => {
       overlay.removeEventListener('touchstart', onTouchStart)
@@ -274,7 +378,7 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
       overlay.removeEventListener('touchend', onTouchEnd)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pdfDoc, currentPage, scale, selectMode])
+  }, [pdfDoc, currentPage, scale])
 
   function cropToPreview(sel) {
     const src = canvasRef.current
@@ -465,38 +569,25 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
                 <span>{Math.round(scale * 100)}%</span>
                 <button onClick={() => setScale(s => Math.min(3, Math.round((s + 0.25) * 100) / 100))}>＋</button>
               </div>
-              {/* モード切り替えトグル */}
-              <button
-                className={`pdfcropper-mode-btn ${selectMode ? 'select' : 'pan'}`}
-                onClick={() => {
-                  setSelectMode(m => !m)
-                  if (selectMode) { clearOverlay(); setSelection(null); setCroppedPreview(null); setCroppedBlob(null) }
-                }}
-                title={selectMode ? 'スクロール/パンモードに切り替え' : '切り出し範囲を選択するモードに切り替え'}
-              >
-                {selectMode ? '✋ スクロール' : '✂️ 切り出し'}
-              </button>
               <span className="pdfcropper-hint">
-                {selectMode ? 'ドラッグで範囲を選択' : 'スクロール・ズームが可能'}
+                📱 1本指=切出 / 2本指=パン・ピンチ　🖱️ 左=切出 / 中=パン / ホイール=ズーム
               </span>
             </div>
 
-            {/* 切り出しモード時のガイドバナー */}
-            {selectMode && (
-              <div className="pdfcropper-select-banner">
-                ✂️ 切り出しモード — 問題の範囲をドラッグして選択してください
-              </div>
-            )}
-
-            <div className="pdfcropper-canvas-wrapper">
+            <div
+              ref={canvasWrapperRef}
+              className="pdfcropper-canvas-wrapper"
+              onWheel={handleWheel}
+            >
               <canvas ref={canvasRef} className="pdfcropper-canvas" />
               <canvas
                 ref={overlayRef}
-                className={`pdfcropper-overlay-canvas ${selectMode ? 'select-active' : 'pan-mode'}`}
-                onMouseDown={selectMode ? handleMouseDown : undefined}
-                onMouseMove={selectMode ? handleMouseMove : undefined}
-                onMouseUp={selectMode ? handleMouseUp : undefined}
-                onMouseLeave={selectMode ? handleMouseUp : undefined}
+                className="pdfcropper-overlay-canvas"
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+                onContextMenu={(e) => e.preventDefault()}
               />
             </div>
 
