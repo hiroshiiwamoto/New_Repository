@@ -28,6 +28,7 @@ export const taskTypes = [
   { value: 'test', label: 'テスト対策', emoji: '📝' },
   { value: 'pastpaper', label: '過去問', emoji: '📄' },
   { value: 'weakness', label: '弱点補強', emoji: '💪' },
+  { value: 'review', label: '解き直し', emoji: '🔄' },
 ]
 
 // 曜日の名前
