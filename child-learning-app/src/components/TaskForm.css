@@ -2,7 +2,7 @@
   background: white;
   border-radius: 12px;
   padding: 12px;
-  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.15);
+  box-shadow: var(--shadow-lg);
   margin-bottom: 12px;
   border: 1px solid rgba(30, 64, 175, 0.1);
   min-width: 0;
@@ -10,7 +10,7 @@
 }
 
 .task-form h2 {
-  color: #1e40af;
+  color: var(--color-primary-darker);
   margin-bottom: 12px;
   font-size: 1.1rem;
   font-weight: 700;
@@ -40,7 +40,7 @@
 .form-group label {
   display: block;
   margin-bottom: 4px;
-  color: #1e293b;
+  color: var(--color-gray-800);
   font-weight: 600;
   font-size: 0.85rem;
 }
@@ -49,18 +49,18 @@
 .form-group select {
   width: 100%;
   padding: 8px 10px;
-  border: 2px solid #e2e8f0;
+  border: 2px solid var(--color-gray-200);
   border-radius: 6px;
   font-size: 0.9rem;
   box-sizing: border-box;
-  transition: all 0.3s ease;
+  transition: all var(--transition-slow);
   background: white;
 }
 
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
@@ -72,26 +72,26 @@
 
 .type-btn {
   padding: 8px;
-  border: 2px solid #e2e8f0;
+  border: 2px solid var(--color-gray-200);
   background: white;
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.8rem;
   font-weight: 500;
-  transition: all 0.3s ease;
-  color: #475569;
+  transition: all var(--transition-slow);
+  color: var(--color-gray-600);
 }
 
 .type-btn:hover {
-  border-color: #3b82f6;
-  background: #eff6ff;
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg-light);
   transform: translateY(-2px);
 }
 
 .type-btn.active {
-  background: #3b82f6;
+  background: var(--color-primary);
   color: white;
-  border-color: #3b82f6;
+  border-color: var(--color-primary);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
@@ -103,31 +103,31 @@
 .priority-btn {
   flex: 1;
   padding: 6px;
-  border: 2px solid #e2e8f0;
+  border: 2px solid var(--color-gray-200);
   background: white;
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.8rem;
   font-weight: 600;
-  transition: all 0.3s ease;
+  transition: all var(--transition-slow);
 }
 
 .priority-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
 }
 
 .submit-btn.sapix-btn {
   width: 100%;
   padding: 10px;
-  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, var(--color-primary-darker) 0%, var(--color-primary) 100%);
   color: white;
   border: none;
   border-radius: 8px;
   font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--transition-slow);
   box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
 }
 
@@ -154,11 +154,11 @@
   font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--transition-slow);
 }
 
 .cancel-btn:hover {
-  background: #64748b;
+  background: var(--color-gray-500);
   transform: translateY(-2px);
 }
 
@@ -177,14 +177,14 @@
 
 .add-custom-unit-btn {
   padding: 8px 10px;
-  background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+  background: linear-gradient(135deg, var(--color-success) 0%, #34d399 100%);
   color: white;
   border: none;
   border-radius: 6px;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--transition-slow);
   box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
   flex-shrink: 0;
   min-width: 36px;
@@ -195,7 +195,7 @@
 }
 
 .add-custom-unit-btn:hover {
-  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  background: linear-gradient(135deg, var(--color-success-dark) 0%, var(--color-success) 100%);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
@@ -238,19 +238,19 @@
 .btn-primary {
   flex: 1;
   padding: 8px 12px;
-  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, var(--color-primary-darker) 0%, var(--color-primary) 100%);
   color: white;
   border: none;
   border-radius: 6px;
   font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--transition-slow);
   box-shadow: 0 2px 8px rgba(30, 64, 175, 0.3);
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+  background: linear-gradient(135deg, #1e3a8a 0%, var(--color-primary-dark) 100%);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(30, 64, 175, 0.4);
 }
@@ -259,24 +259,24 @@
   flex: 1;
   padding: 8px 12px;
   background: white;
-  color: #64748b;
-  border: 2px solid #e2e8f0;
+  color: var(--color-gray-500);
+  border: 2px solid var(--color-gray-200);
   border-radius: 6px;
   font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--transition-slow);
 }
 
 .btn-secondary:hover {
-  background: #f8fafc;
+  background: var(--color-gray-50);
   border-color: #cbd5e1;
   transform: translateY(-2px);
 }
 
 /* Pastpaper fields styles */
 .pastpaper-fields {
-  background: #fef3c7;
+  background: var(--color-warning-bg);
   border: 2px solid #fbbf24;
   border-radius: 8px;
   padding: 10px;
@@ -295,7 +295,7 @@
   padding: 8px;
   background: white;
   border-radius: 6px;
-  border: 2px solid #e2e8f0;
+  border: 2px solid var(--color-gray-200);
 }
 
 .unit-checkbox-label {
@@ -305,11 +305,11 @@
   cursor: pointer;
   padding: 6px 8px;
   border-radius: 4px;
-  transition: all 0.2s ease;
+  transition: all var(--transition-normal);
 }
 
 .unit-checkbox-label:hover {
-  background: #f8fafc;
+  background: var(--color-gray-50);
 }
 
 .unit-checkbox-label input[type="checkbox"] {
@@ -320,7 +320,7 @@
 
 .unit-checkbox-label span {
   font-size: 0.9rem;
-  color: #1e293b;
+  color: var(--color-gray-800);
 }
 
 /* タスクフォーム PDF ファイル関連 */
@@ -366,7 +366,7 @@
 }
 
 .task-file-clear-btn:hover {
-  color: #ef4444;
+  color: var(--color-danger);
 }
 
 .task-file-upload-area {
@@ -388,13 +388,13 @@
 }
 
 .task-pdf-upload-btn {
-  background: #eff6ff;
+  background: var(--color-primary-bg-light);
   border: 1px solid #bfdbfe;
-  color: #1e40af;
+  color: var(--color-primary-darker);
 }
 
 .task-pdf-upload-btn:hover {
-  background: #dbeafe;
+  background: var(--color-primary-bg);
 }
 
 .task-pdf-upload-btn:disabled {
@@ -404,12 +404,12 @@
 
 .task-drive-select-btn {
   background: white;
-  border: 1px solid #e2e8f0;
-  color: #475569;
+  border: 1px solid var(--color-gray-200);
+  color: var(--color-gray-600);
 }
 
 .task-drive-select-btn:hover {
-  background: #f8fafc;
+  background: var(--color-gray-50);
   border-color: #cbd5e1;
 }
 
@@ -661,5 +661,5 @@
   max-width: 200px;
   max-height: 120px;
   border-radius: 4px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-gray-200);
 }

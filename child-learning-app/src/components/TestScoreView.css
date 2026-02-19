@@ -8,7 +8,7 @@
   border-radius: 20px !important;
   padding: 12px !important;
   margin-bottom: 24px !important;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.06) !important;
+  box-shadow: var(--shadow-sm) !important;
   border: 1px solid rgba(0, 0, 0, 0.04) !important;
 }
 
@@ -56,20 +56,20 @@
   font-size: 0.9375rem !important;
   font-weight: 600 !important;
   cursor: pointer !important;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: all var(--transition-normal) !important;
   color: #86868b !important;
   letter-spacing: -0.01em !important;
 }
 
 .testscore-view .grade-btn:hover {
-  border-color: #007AFF !important;
+  border-color: var(--color-primary) !important;
   background: rgba(0, 122, 255, 0.08) !important;
   transform: scale(1.02) !important;
 }
 
 .testscore-view .grade-btn.active {
-  border-color: #007AFF !important;
-  background: #007AFF !important;
+  border-color: var(--color-primary) !important;
+  background: var(--color-primary) !important;
   color: white !important;
   box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25) !important;
 }
@@ -77,13 +77,13 @@
 .add-score-btn {
   width: 100% !important;
   padding: 12px !important;
-  background: #007AFF !important;
+  background: var(--color-primary) !important;
   color: white !important;
   border: none !important;
   border-radius: 12px !important;
   font-weight: 600 !important;
   cursor: pointer !important;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: all var(--transition-normal) !important;
   font-size: 0.9375rem !important;
   letter-spacing: -0.01em !important;
   box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25) !important;
@@ -114,7 +114,7 @@
   border-radius: 16px;
   color: #94a3b8;
   font-size: 0.95rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-sm);
   border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
@@ -137,12 +137,12 @@
   border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 16px;
   padding: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-slow);
 }
 
 .score-card:hover {
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-lg);
   transform: translateY(-2px);
   border-color: rgba(0, 0, 0, 0.1);
 }
@@ -153,7 +153,7 @@
   align-items: flex-start;
   margin-bottom: 15px;
   padding-bottom: 15px;
-  border-bottom: 2px solid #f1f5f9;
+  border-bottom: 2px solid var(--color-gray-100);
 }
 
 .test-info {
@@ -169,7 +169,7 @@
 }
 
 .test-date {
-  color: #64748b;
+  color: var(--color-gray-500);
   font-size: 0.9rem;
 }
 
@@ -186,7 +186,7 @@
   border-radius: 10px;
   cursor: pointer;
   font-size: 1rem;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--transition-normal);
   border: 1px solid rgba(0, 0, 0, 0.1);
   min-width: 44px;
   min-height: 44px;
@@ -197,13 +197,13 @@
 
 .edit-btn:hover {
   background: rgba(0, 122, 255, 0.08);
-  border-color: #007AFF;
+  border-color: var(--color-primary);
   transform: scale(1.05);
 }
 
 .delete-btn:hover {
   background: rgba(255, 59, 48, 0.08);
-  border-color: #FF3B30;
+  border-color: var(--color-danger);
   transform: scale(1.05);
 }
 
@@ -221,7 +221,7 @@
 
 .summary-item {
   flex: 1;
-  background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
   color: white;
   padding: 15px;
   border-radius: 10px;
@@ -229,7 +229,7 @@
 }
 
 .summary-item.two-subjects {
-  background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+  background: linear-gradient(135deg, var(--color-success) 0%, #34d399 100%);
 }
 
 .summary-label {
@@ -262,7 +262,7 @@
 }
 
 .subject-item {
-  background: #f8fafc;
+  background: var(--color-gray-50);
   padding: 12px;
   border-radius: 8px;
   display: flex;
@@ -272,30 +272,30 @@
 
 .subject-label {
   font-weight: 600;
-  color: #1e293b;
+  color: var(--color-gray-800);
   font-size: 0.9rem;
 }
 
 .subject-score {
-  color: #475569;
+  color: var(--color-gray-600);
   font-size: 0.95rem;
 }
 
 .percentage {
   margin-left: 8px;
-  color: #64748b;
+  color: var(--color-gray-500);
   font-size: 0.85rem;
 }
 
 .subject-deviation {
-  color: #3b82f6;
+  color: var(--color-primary);
   font-weight: 600;
   font-size: 0.9rem;
 }
 
 /* 追加情報 */
 .additional-info {
-  background: #fef3c7;
+  background: var(--color-warning-bg);
   padding: 12px;
   border-radius: 8px;
   margin-top: 12px;
@@ -328,7 +328,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: var(--z-modal);
   padding: 20px;
   overflow-y: auto;
 }
@@ -341,11 +341,11 @@
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-xl);
 }
 
 .form-container h3 {
-  color: #1e40af;
+  color: var(--color-primary-darker);
   font-size: 1.5rem;
   margin-bottom: 25px;
 }
@@ -353,7 +353,7 @@
 .form-section {
   margin-bottom: 25px;
   padding-bottom: 25px;
-  border-bottom: 2px solid #f1f5f9;
+  border-bottom: 2px solid var(--color-gray-100);
 }
 
 .form-section:last-of-type {
@@ -361,7 +361,7 @@
 }
 
 .form-section h4 {
-  color: #1e293b;
+  color: var(--color-gray-800);
   font-size: 1.1rem;
   margin-bottom: 15px;
 }
@@ -425,7 +425,7 @@
 
 .form-field label {
   font-weight: 600;
-  color: #1e293b;
+  color: var(--color-gray-800);
   font-size: 0.9rem;
 }
 
@@ -436,8 +436,8 @@
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 10px;
   font-size: 0.9375rem;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  background: #f5f5f7;
+  transition: all var(--transition-normal);
+  background: var(--color-gray-100);
   color: #1d1d1f;
 }
 
@@ -445,7 +445,7 @@
 .form-field select:focus,
 .form-field textarea:focus {
   outline: none;
-  border-color: #007AFF;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
   background: white;
 }
@@ -464,7 +464,7 @@
 }
 
 .score-input-group span {
-  color: #64748b;
+  color: var(--color-gray-500);
   font-weight: 600;
   flex-shrink: 0;
 }
@@ -488,13 +488,13 @@
 }
 
 .btn-primary {
-  background: #007AFF;
+  background: var(--color-primary);
   color: white;
   box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
 }
 
 .btn-primary:hover {
-  background: #0071e3;
+  background: var(--color-primary-dark);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 122, 255, 0.35);
 }
@@ -505,12 +505,12 @@
 
 .btn-secondary {
   background: white;
-  color: #64748b;
+  color: var(--color-gray-500);
   border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .btn-secondary:hover {
-  background: #f5f5f7;
+  background: var(--color-gray-100);
   border-color: rgba(0, 0, 0, 0.2);
 }
 
@@ -614,8 +614,8 @@
   width: 100%;
   padding: 10px 16px;
   background: #f0f7ff;
-  color: #007AFF;
-  border: 1px solid #bfdbfe;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary-bg);
   border-top: none;
   border-radius: 0 0 16px 16px;
   font-weight: 600;
@@ -626,7 +626,7 @@
 }
 
 .btn-open-detail:hover {
-  background: #dbeafe;
+  background: var(--color-primary-bg);
   color: #0057cc;
 }
 
@@ -639,7 +639,7 @@
   border-radius: 16px;
   padding: 16px 20px;
   margin-bottom: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: var(--shadow-md);
   border: 1px solid rgba(0,0,0,0.06);
   flex-wrap: wrap;
 }
@@ -652,14 +652,14 @@
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  color: #64748b;
+  color: var(--color-gray-500);
   white-space: nowrap;
   transition: all 0.2s;
   flex-shrink: 0;
 }
 
 .back-btn:hover {
-  background: #f5f5f7;
+  background: var(--color-gray-100);
   border-color: rgba(0,0,0,0.2);
 }
 
@@ -681,11 +681,11 @@
 
 .detail-test-date {
   font-size: 0.875rem;
-  color: #64748b;
+  color: var(--color-gray-500);
 }
 
 .detail-deviation-badge {
-  background: linear-gradient(135deg, #3b82f6, #60a5fa);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
   color: white;
   padding: 4px 12px;
   border-radius: 20px;
@@ -705,12 +705,12 @@
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  color: #475569;
+  color: var(--color-gray-600);
   transition: all 0.2s;
 }
 
 .btn-edit-score:hover {
-  background: #f5f5f7;
+  background: var(--color-gray-100);
 }
 
 
@@ -720,7 +720,7 @@
   border-radius: 16px;
   padding: 20px;
   margin-bottom: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: var(--shadow-md);
   border: 1px solid rgba(0,0,0,0.06);
 }
 
@@ -735,7 +735,7 @@
 .section-title {
   font-size: 1rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--color-gray-800);
   margin: 0;
   display: flex;
   align-items: center;
@@ -745,7 +745,7 @@
 
 .btn-add-problem {
   padding: 8px 16px;
-  background: #007AFF;
+  background: var(--color-primary);
   color: white;
   border: none;
   border-radius: 10px;
@@ -766,7 +766,7 @@
   padding: 32px 20px;
   color: #94a3b8;
   font-size: 0.9rem;
-  background: #f8fafc;
+  background: var(--color-gray-50);
   border-radius: 12px;
 }
 
@@ -788,22 +788,22 @@
   font-size: 0.75rem;
   font-weight: 700;
   color: #94a3b8;
-  border-bottom: 2px solid #f1f5f9;
+  border-bottom: 2px solid var(--color-gray-100);
   white-space: nowrap;
 }
 
 .problem-table td {
   padding: 10px 12px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--color-gray-100);
   vertical-align: middle;
 }
 
 .problem-row {
-  transition: background 0.15s;
+  transition: background var(--transition-fast);
 }
 
 .problem-row:hover {
-  background: #f8fafc;
+  background: var(--color-gray-50);
 }
 
 .wrong-row {
@@ -816,7 +816,7 @@
 
 .cell-num {
   font-weight: 700;
-  color: #1e293b;
+  color: var(--color-gray-800);
   white-space: nowrap;
 }
 
@@ -829,10 +829,10 @@
   font-weight: 700;
 }
 
-.subject-算数 { background: #dbeafe; color: #1d4ed8; }
+.subject-算数 { background: var(--color-primary-bg); color: #1d4ed8; }
 .subject-国語 { background: #fce7f3; color: #9d174d; }
-.subject-理科 { background: #d1fae5; color: #065f46; }
-.subject-社会 { background: #fef3c7; color: #92400e; }
+.subject-理科 { background: var(--color-success-bg); color: #065f46; }
+.subject-社会 { background: var(--color-warning-bg); color: #92400e; }
 
 .cell-units {
   max-width: 200px;
@@ -840,8 +840,8 @@
 
 .unit-tag {
   display: inline-block;
-  background: #f1f5f9;
-  color: #475569;
+  background: var(--color-gray-100);
+  color: var(--color-gray-600);
   padding: 2px 8px;
   border-radius: 10px;
   font-size: 0.75rem;
@@ -872,7 +872,7 @@
 .wrong-mark {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #dc2626;
+  color: var(--color-danger-dark);
 }
 
 .status-select {
@@ -887,20 +887,20 @@
 
 .sapix-text-link {
   display: inline-block;
-  color: #007AFF;
+  color: var(--color-primary);
   text-decoration: none;
   font-size: 0.78rem;
   padding: 2px 6px;
   border-radius: 6px;
   background: #f0f7ff;
-  border: 1px solid #bfdbfe;
-  transition: all 0.15s;
+  border: 1px solid var(--color-primary-bg);
+  transition: all var(--transition-fast);
   white-space: nowrap;
   margin: 2px;
 }
 
 .sapix-text-link:hover {
-  background: #dbeafe;
+  background: var(--color-primary-bg);
   border-color: #93c5fd;
 }
 
@@ -913,13 +913,13 @@
   color: #94a3b8;
   font-size: 1rem;
   line-height: 1;
-  transition: all 0.15s;
+  transition: all var(--transition-fast);
 }
 
 .btn-delete-problem:hover {
-  background: #fee2e2;
+  background: var(--color-danger-bg);
   border-color: #fca5a5;
-  color: #dc2626;
+  color: var(--color-danger-dark);
 }
 
 
@@ -944,7 +944,7 @@
   cursor: pointer;
   font-weight: 600;
   font-size: 0.9rem;
-  transition: all 0.15s;
+  transition: all var(--transition-fast);
   background: white;
 }
 
@@ -953,15 +953,15 @@
 }
 
 .radio-correct.active {
-  background: #dcfce7;
+  background: var(--color-success-bg);
   border-color: #16a34a;
   color: #16a34a;
 }
 
 .radio-wrong.active {
-  background: #fee2e2;
-  border-color: #dc2626;
-  color: #dc2626;
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger-dark);
+  color: var(--color-danger-dark);
 }
 
 .unit-checkbox-grid {
@@ -971,7 +971,7 @@
   max-height: 240px;
   overflow-y: auto;
   padding: 12px;
-  background: #f8fafc;
+  background: var(--color-gray-50);
   border-radius: 10px;
   border: 1px solid rgba(0,0,0,0.08);
 }
@@ -984,9 +984,9 @@
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.8rem;
-  color: #475569;
+  color: var(--color-gray-600);
   border: 1px solid transparent;
-  transition: all 0.15s;
+  transition: all var(--transition-fast);
 }
 
 .unit-checkbox-label:hover {
@@ -995,8 +995,8 @@
 }
 
 .unit-checkbox-label.checked {
-  background: #eff6ff;
-  border-color: #bfdbfe;
+  background: var(--color-primary-bg-light);
+  border-color: var(--color-primary-bg);
   color: #1d4ed8;
   font-weight: 600;
 }
@@ -1016,14 +1016,14 @@
   border-radius: 16px;
   padding: 20px 24px;
   margin-bottom: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: var(--shadow-md);
   border: 1px solid rgba(0,0,0,0.06);
 }
 
 .test-selector-title {
   font-size: 1.05rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--color-gray-800);
   margin: 0 0 6px 0;
 }
 
@@ -1055,7 +1055,7 @@
 }
 
 .test-select-item:hover {
-  border-color: #007AFF;
+  border-color: var(--color-primary);
   box-shadow: 0 4px 14px rgba(0,122,255,0.12);
   transform: translateY(-1px);
 }
@@ -1072,13 +1072,13 @@
 .test-select-name {
   font-size: 0.9375rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--color-gray-800);
   white-space: nowrap;
 }
 
 .test-select-date {
   font-size: 0.8rem;
-  color: #64748b;
+  color: var(--color-gray-500);
   white-space: nowrap;
 }
 
@@ -1097,7 +1097,7 @@
 }
 
 .badge-deviation {
-  background: linear-gradient(135deg, #3b82f6, #60a5fa);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
   color: white;
   padding: 3px 10px;
   border-radius: 20px;
@@ -1107,8 +1107,8 @@
 }
 
 .badge-problems {
-  background: #f1f5f9;
-  color: #475569;
+  background: var(--color-gray-100);
+  color: var(--color-gray-600);
   padding: 3px 10px;
   border-radius: 20px;
   font-size: 0.75rem;
@@ -1165,22 +1165,22 @@
   align-items: center;
   gap: 2px;
   padding: 8px 14px;
-  border: 2px solid #e5e7eb;
+  border: 2px solid var(--color-gray-200);
   border-radius: 10px;
   background: white;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--transition-fast);
   min-width: 90px;
 }
 
 .miss-type-btn:hover {
-  border-color: #9ca3af;
-  background: #f9fafb;
+  border-color: var(--color-gray-400);
+  background: var(--color-gray-50);
 }
 
 .miss-type-btn.selected.miss-understanding {
-  border-color: #dc2626;
-  background: #fee2e2;
+  border-color: var(--color-danger-dark);
+  background: var(--color-danger-bg);
 }
 
 .miss-type-btn.selected.miss-careless {
@@ -1189,13 +1189,13 @@
 }
 
 .miss-type-btn.selected.miss-not-studied {
-  border-color: #6b7280;
-  background: #f3f4f6;
+  border-color: var(--color-gray-500);
+  background: var(--color-gray-100);
 }
 
 .miss-type-btn.selected {
-  border-color: #3b82f6;
-  background: #eff6ff;
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg-light);
 }
 
 .miss-type-icon {
@@ -1205,12 +1205,12 @@
 .miss-type-label {
   font-size: 12px;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--color-gray-800);
 }
 
 .miss-type-desc {
   font-size: 10px;
-  color: #6b7280;
+  color: var(--color-gray-500);
 }
 
 /* 不正解セル */
@@ -1230,8 +1230,8 @@
 }
 
 .miss-understanding {
-  background: #fee2e2;
-  color: #dc2626;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-dark);
 }
 
 .miss-careless {
@@ -1240,8 +1240,8 @@
 }
 
 .miss-not-studied {
-  background: #f3f4f6;
-  color: #4b5563;
+  background: var(--color-gray-100);
+  color: var(--color-gray-600);
 }
 
 .miss-high-accuracy {
@@ -1259,18 +1259,18 @@
 .btn-pdf-crop {
   padding: 6px 14px;
   background: white;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-gray-300);
   border-radius: 8px;
   font-size: 12px;
   font-weight: 600;
-  color: #374151;
+  color: var(--color-gray-700);
   cursor: pointer;
   white-space: nowrap;
 }
 .btn-pdf-crop:hover {
-  background: #eff6ff;
-  border-color: #3b82f6;
-  color: #2563eb;
+  background: var(--color-primary-bg-light);
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
 }
 
 /* 問題番号セルの画像サムネイル */
@@ -1290,11 +1290,11 @@
   height: 28px;
   object-fit: cover;
   border-radius: 3px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-gray-200);
   cursor: zoom-in;
 }
 .problem-img-thumb:hover {
-  border-color: #3b82f6;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
@@ -1304,8 +1304,8 @@
   align-items: flex-start;
   gap: 10px;
   padding: 10px;
-  background: #f8fafc;
-  border: 1px solid #e5e7eb;
+  background: var(--color-gray-50);
+  border: 1px solid var(--color-gray-200);
   border-radius: 8px;
 }
 
@@ -1324,12 +1324,12 @@
   background: white;
   border: 1px solid #fca5a5;
   border-radius: 6px;
-  color: #dc2626;
+  color: var(--color-danger-dark);
   cursor: pointer;
   white-space: nowrap;
 }
 .btn-remove-image:hover {
-  background: #fee2e2;
+  background: var(--color-danger-bg);
 }
 
 /* ─────────────────────────────────────────
@@ -1462,7 +1462,7 @@
 
 .testscore-view .add-pastpaper-btn {
   padding: 10px 20px;
-  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, var(--color-primary-darker) 0%, var(--color-primary) 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -1474,7 +1474,7 @@
   font-size: 0.9rem;
 }
 .testscore-view .add-pastpaper-btn:hover {
-  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+  background: linear-gradient(135deg, #1e3a8a 0%, var(--color-primary-dark) 100%);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(30, 64, 175, 0.4);
 }
@@ -1484,11 +1484,11 @@
   border-radius: 12px;
   padding: 12px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
   border: 2px solid #e0e7ff;
 }
 .testscore-view .add-pastpaper-form h3 {
-  color: #1e40af;
+  color: var(--color-primary-darker);
   margin-bottom: 20px;
   font-size: 1.2rem;
 }
@@ -1507,21 +1507,21 @@
 }
 .testscore-view .add-form-field label {
   font-weight: 600;
-  color: #1e293b;
+  color: var(--color-gray-800);
   font-size: 0.95rem;
 }
 .testscore-view .add-form-field input {
   width: 100%;
   padding: 10px 12px;
-  border: 2px solid #e2e8f0;
+  border: 2px solid var(--color-gray-200);
   border-radius: 8px;
   font-size: 0.95rem;
   box-sizing: border-box;
-  transition: all 0.3s ease;
+  transition: all var(--transition-slow);
 }
 .testscore-view .add-form-field input:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 .testscore-view .add-form-actions {
@@ -1533,7 +1533,7 @@
 .testscore-view .add-form-section .section-label {
   display: block;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--color-gray-800);
   font-size: 0.95rem;
   margin-bottom: 12px;
 }
@@ -1542,7 +1542,7 @@
 .pdf-cropper-subject-tabs {
   display: flex;
   gap: 0;
-  background: #1e293b;
+  background: var(--color-gray-800);
   padding: 6px 12px 0;
   flex-shrink: 0;
 }
@@ -1554,13 +1554,13 @@
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  background: #334155;
+  background: var(--color-gray-700);
   color: #94a3b8;
   transition: all 0.15s;
 }
 .pdf-cropper-subject-tab:hover:not(:disabled) {
-  background: #475569;
-  color: #e2e8f0;
+  background: var(--color-gray-600);
+  color: var(--color-gray-200);
 }
 .pdf-cropper-subject-tab.active {
   background: #0ea5e9;
@@ -1576,7 +1576,7 @@
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.5);
-  z-index: 1500;
+  z-index: var(--z-toast);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1600,16 +1600,16 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 18px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--color-gray-200);
   font-size: 14px;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--color-gray-800);
 }
 .pdf-picker-header button {
   background: none;
   border: none;
   font-size: 16px;
-  color: #6b7280;
+  color: var(--color-gray-500);
   cursor: pointer;
   width: 28px;
   height: 28px;

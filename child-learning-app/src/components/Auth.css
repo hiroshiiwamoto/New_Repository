@@ -53,7 +53,7 @@
   background: var(--color-gray-50);
   border-color: #cbd5e1;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-lg);
 }
 
 .google-signin-btn:active {
@@ -73,7 +73,7 @@
   background: white;
   border-radius: 12px;
   padding: 12px 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-md);
   margin-bottom: 20px;
   gap: 15px;
   flex-wrap: wrap;
@@ -89,30 +89,30 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 2px solid #3b82f6;
+  border: 2px solid var(--color-primary);
 }
 
 .user-name {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--color-gray-800);
 }
 
 .signout-btn {
   padding: 8px 16px;
-  background: #ef4444;
+  background: var(--color-danger);
   color: white;
   border: none;
   border-radius: 8px;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-normal);
   white-space: nowrap;
 }
 
 .signout-btn:hover {
-  background: #dc2626;
+  background: var(--color-danger-dark);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
 }
