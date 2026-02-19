@@ -41,11 +41,6 @@ function TaskItem({ task, onToggle, onDelete, onEdit }) {
           }}
         >{task.subject}</span>
         <span className="task-title">{task.title}</span>
-        {task.problemImageUrl && (
-          <a href={task.problemImageUrl} target="_blank" rel="noopener noreferrer" className="task-problem-image-link">
-            <img src={task.problemImageUrl} alt="問題画像" className="task-problem-image-thumb" />
-          </a>
-        )}
         <div className="task-actions">
           {task.fileUrl && (
             <button

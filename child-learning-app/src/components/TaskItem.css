@@ -246,20 +246,6 @@
   border: none;
 }
 
-/* 問題画像サムネイル（問題クリップと同様） */
-.task-problem-image-link {
-  display: inline-flex;
-  flex-shrink: 0;
-}
-
-.task-problem-image-thumb {
-  max-width: 200px;
-  max-height: 120px;
-  border-radius: 4px;
-  border: 1px solid #e2e8f0;
-  object-fit: cover;
-}
-
 /* フルスクリーンPDF */
 .task-pdf-fullscreen-overlay {
   position: fixed;

@@ -102,19 +102,6 @@
   color: #86868b;
 }
 
-.task-problem-thumb-link {
-  display: inline-flex;
-  flex-shrink: 0;
-}
-
-.task-problem-thumb {
-  max-width: 200px;
-  max-height: 120px;
-  object-fit: cover;
-  border-radius: 4px;
-  border: 1px solid #e2e8f0;
-}
-
 .task-priority-badge {
   background: rgba(0, 0, 0, 0.05);
   color: #64748b;
