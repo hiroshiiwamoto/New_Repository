@@ -190,6 +190,8 @@ export default function ProblemClipList({
         dueDate: dueDate || null,
         fileUrl: taskGenInfo.fileUrl || '',
         fileName: taskGenInfo.fileName || '',
+        ...(taskGenInfo.schoolName && { schoolName: taskGenInfo.schoolName }),
+        ...(taskGenInfo.year && { year: taskGenInfo.year }),
         problemImageUrl: problem.imageUrl || '',
         completed: false,
         problemIds: [problem.firestoreId || problem.id],

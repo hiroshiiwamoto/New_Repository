@@ -919,6 +919,8 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                             grade: '全学年',
                             fileUrl: task.fileUrl,
                             fileName: task.fileName,
+                            schoolName: task.schoolName,
+                            year: task.year,
                             sourceRef: { type: 'pastPaper', id: task.id },
                           }}
                         />
