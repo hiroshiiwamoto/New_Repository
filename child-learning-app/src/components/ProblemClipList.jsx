@@ -187,6 +187,7 @@ export default function ProblemClipList({
         dueDate: nextWeek.toISOString().split('T')[0],
         fileUrl: taskGenInfo.fileUrl || '',
         fileName: taskGenInfo.fileName || '',
+        problemImageUrl: problem.imageUrl || '',
         completed: false,
         problemIds: [problem.firestoreId || problem.id],
         generatedFrom: taskGenInfo.sourceRef || { type: sourceType, id: sourceId },

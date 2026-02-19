@@ -22,6 +22,9 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
   const [showDrivePicker, setShowDrivePicker] = useState(false)
   const fileInputRef = useRef(null)
 
+  // 解き直しタスク: 紐付き問題画像
+  const [problemImageUrl, setProblemImageUrl] = useState('')
+
   // 過去問用のフィールド
   const [schoolName, setSchoolName] = useState('')
   const [year, setYear] = useState('')
@@ -44,6 +47,7 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
       setDueDate(editingTask.dueDate || '')
       setFileUrl(editingTask.fileUrl || '')
       setFileName(editingTask.fileName || '')
+      setProblemImageUrl(editingTask.problemImageUrl || '')
       // 過去問フィールド
       setSchoolName(editingTask.schoolName || '')
       setYear(editingTask.year || '')
@@ -66,6 +70,7 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
         dueDate: dueDate || null,
         fileUrl: fileUrl || '',
         fileName: fileName || '',
+        problemImageUrl: problemImageUrl || '',
       }
 
       // 過去問の場合、追加情報を含める
@@ -145,6 +150,7 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
     { value: 'test', label: 'テスト対策', emoji: '📝' },
     { value: 'pastpaper', label: '過去問', emoji: '📄' },
     { value: 'weakness', label: '弱点補強', emoji: '💪' },
+    { value: 'review', label: '解き直し', emoji: '🔄' },
   ]
 
   const priorities = [
@@ -231,8 +237,18 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
         />
       )}
 
-      {/* 問題ファイル */}
-      <div className="form-group">
+      {/* 紐付き問題画像（解き直しタスク等） */}
+      {problemImageUrl && (
+        <div className="form-group">
+          <label>問題画像</label>
+          <div className="task-problem-image-preview">
+            <img src={problemImageUrl} alt="問題画像" className="task-problem-image" />
+          </div>
+        </div>
+      )}
+
+      {/* 問題ファイル（解き直しタスクでは非表示） */}
+      {taskType !== 'review' && <div className="form-group">
         <label>問題ファイル（任意）</label>
         {fileUrl ? (
           <div className="task-file-url-preview">
@@ -278,7 +294,7 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
             </button>
           </div>
         )}
-      </div>
+      </div>}
 
       <div className="form-row">
         <div className="form-group half">
