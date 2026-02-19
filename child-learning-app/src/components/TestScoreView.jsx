@@ -119,7 +119,7 @@ function TestScoreView({ user }) {
   }
 
   function getUnitsForSubject(subject) {
-    return masterUnits.filter(u => !u.subject || u.subject === subject)
+    return masterUnits.filter(u => u.subject === subject)
   }
 
   // 科目別PDF: { subject: { fileUrl, fileName } }

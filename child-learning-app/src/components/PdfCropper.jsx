@@ -566,9 +566,43 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
                 >→</button>
               </div>
               <div className="pdfcropper-zoom">
-                <button onClick={() => setScale(s => Math.max(0.5, Math.round((s - 0.25) * 100) / 100))}>−</button>
-                <span>{Math.round(scale * 100)}%</span>
-                <button onClick={() => setScale(s => Math.min(3, Math.round((s + 0.25) * 100) / 100))}>＋</button>
+                <button
+                  className="pdfcropper-zoom-fit"
+                  onClick={() => {
+                    // キャンバスをwrapper幅に合わせる
+                    if (canvasRef.current && canvasWrapperRef.current) {
+                      const wrapperWidth = canvasWrapperRef.current.clientWidth - 20 // padding分を引く
+                      const canvasWidth = canvasRef.current.width
+                      const fitScale = wrapperWidth / canvasWidth
+                      setScale(Math.max(0.5, Math.min(3, Math.round(fitScale * 100) / 100)))
+                    }
+                  }}
+                  title="ページ幅に合わせる"
+                >
+                  幅に合わせる
+                </button>
+                <button
+                  className="pdfcropper-zoom-reset"
+                  onClick={() => setScale(1.0)}
+                  title="100%に戻す"
+                >
+                  100%
+                </button>
+                <button
+                  className="pdfcropper-zoom-btn"
+                  onClick={() => setScale(s => Math.max(0.5, Math.round((s - 0.1) * 10) / 10))}
+                  title="縮小"
+                >
+                  −
+                </button>
+                <span className="pdfcropper-zoom-display">{Math.round(scale * 100)}%</span>
+                <button
+                  className="pdfcropper-zoom-btn"
+                  onClick={() => setScale(s => Math.min(3, Math.round((s + 0.1) * 10) / 10))}
+                  title="拡大"
+                >
+                  ＋
+                </button>
               </div>
               <span className="pdfcropper-hint">
                 📱 1本指=切出 / 2本指=パン・ピンチ　🖱️ 左=切出 / 中=パン / ホイール=ズーム
