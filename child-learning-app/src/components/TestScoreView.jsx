@@ -12,7 +12,7 @@ import {
 } from '../utils/problems'
 import { addLessonLogWithStats, EVALUATION_SCORES } from '../utils/lessonLogs'
 import { getSapixTexts } from '../utils/sapixTexts'
-import { addTaskToFirestore } from '../utils/firestore'
+
 import { getStaticMasterUnits } from '../utils/importMasterUnits'
 import { toast } from '../utils/toast'
 import PdfCropper from './PdfCropper'
@@ -36,7 +36,8 @@ function TestScoreView({ user }) {
   const [problemForm, setProblemForm] = useState(getEmptyProblemForm())
   const [sapixTexts, setSapixTexts] = useState([])
 
-  const [creatingTasks, setCreatingTasks] = useState(false)
+
+
   const [showPdfCropper, setShowPdfCropper] = useState(null) // null | 科目名
   const [uploadingSubject, setUploadingSubject] = useState(null) // アップロード中の科目
   const [drivePickerSubject, setDrivePickerSubject] = useState(null) // Drive選択中の科目
@@ -100,11 +101,6 @@ function TestScoreView({ user }) {
     return score?.problemLogs || []
   }
 
-  function getRevengeList(score) {
-    return getProblemLogs(score)
-      .filter(p => !p.isCorrect && parseFloat(p.correctRate) >= 50)
-      .sort((a, b) => parseFloat(b.correctRate) - parseFloat(a.correctRate))
-  }
 
   function getLinkedTexts(problem) {
     if (!problem.unitIds?.length) return []
@@ -224,44 +220,7 @@ function TestScoreView({ user }) {
     toast.success('削除しました')
   }
 
-  // ============================================================
-  // リベンジタスク作成
-  // ============================================================
 
-  const handleCreateRevengeTasks = async () => {
-    const revengeList = problemsCache
-      .filter(p => !p.isCorrect && parseFloat(p.correctRate) >= 50)
-      .sort((a, b) => parseFloat(b.correctRate) - parseFloat(a.correctRate))
-    if (revengeList.length === 0) {
-      toast.error('リベンジリストが空です（正答率50%以上の不正解問題がありません）')
-      return
-    }
-    setCreatingTasks(true)
-    try {
-      const nextWeek = new Date()
-      nextWeek.setDate(nextWeek.getDate() + 7)
-      const dueDate = nextWeek.toISOString().split('T')[0]
-      for (const problem of revengeList) {
-        const unitNames = problem.unitIds.map(id => getUnitName(id)).join('・')
-        await addTaskToFirestore(user.uid, {
-          id: Date.now() + Math.random(),
-          title: `【解き直し】${selectedScore.testName} 第${problem.problemNumber}問 (${problem.subject})`,
-          subject: problem.subject,
-          priority: 'A',
-          dueDate,
-          notes: `正答率 ${problem.correctRate}%${unitNames ? ` / ${unitNames}` : ''}`,
-          taskType: 'review',
-          completed: false,
-          createdAt: new Date().toISOString(),
-        })
-      }
-      toast.success(`${revengeList.length}件の解き直しタスクをスケジュールに追加しました`)
-    } catch {
-      toast.error('タスク作成に失敗しました')
-    } finally {
-      setCreatingTasks(false)
-    }
-  }
 
   // ============================================================
   // PDF紐付けハンドラ
@@ -362,7 +321,7 @@ function TestScoreView({ user }) {
       <div className="testscore-view">
         <div className="test-selector-header">
           <h3 className="test-selector-title">テストを選択して問題を分析</h3>
-          <p className="test-selector-desc">テスト名をタップすると、問題別記録とリベンジリストが表示されます</p>
+          <p className="test-selector-desc">テスト名をタップすると、問題別記録が表示されます</p>
         </div>
 
         {sortedScores.length === 0 ? (
@@ -374,7 +333,6 @@ function TestScoreView({ user }) {
           <div className="test-select-list">
             {sortedScores.map(score => {
               const problems = getProblemLogs(score)
-              const revengeCount = getRevengeList(score).length
               return (
                 <button
                   key={score.firestoreId}
@@ -393,9 +351,6 @@ function TestScoreView({ user }) {
                     {problems.length > 0 && (
                       <span className="badge-problems">{problems.length}問記録済</span>
                     )}
-                    {revengeCount > 0 && (
-                      <span className="badge-revenge">⚡ {revengeCount}問</span>
-                    )}
                   </div>
                   <span className="test-select-arrow">›</span>
                 </button>
@@ -412,9 +367,6 @@ function TestScoreView({ user }) {
   // ============================================================
 
   const problemLogs = problemsCache
-  const revengeList = problemsCache
-    .filter(p => !p.isCorrect && parseFloat(p.correctRate) >= 50)
-    .sort((a, b) => parseFloat(b.correctRate) - parseFloat(a.correctRate))
   const unitsForSubject = getUnitsForSubject(problemForm.subject)
 
   return (
@@ -505,25 +457,6 @@ function TestScoreView({ user }) {
         />
       )}
 
-      {/* アクションバー */}
-      <div className="action-bar">
-        <div className="action-bar-info">
-          <span className="problem-count-badge">記録済み: {problemLogs.length}問</span>
-          {revengeList.length > 0 && (
-            <span className="revenge-count-badge">リベンジ対象: {revengeList.length}問</span>
-          )}
-        </div>
-        <div className="action-bar-buttons">
-          <button
-            className="btn-create-tasks"
-            onClick={handleCreateRevengeTasks}
-            disabled={creatingTasks || revengeList.length === 0}
-          >
-            {creatingTasks ? '作成中...' : `📅 解き直しタスクを作成 (${revengeList.length}問)`}
-          </button>
-        </div>
-      </div>
-
       {/* 問題別記録 */}
       <div className="section-card">
         <div className="section-header">
@@ -572,15 +505,13 @@ function TestScoreView({ user }) {
                     const linked = getLinkedTexts(problem)
                     const { color, bg } = reviewStatusLabel(problem.reviewStatus)
                     const correctRateNum = parseFloat(problem.correctRate)
-                    const isRevenge = !problem.isCorrect && correctRateNum >= 50
                     return (
                       <tr
                         key={problem.id}
-                        className={`problem-row ${!problem.isCorrect ? 'wrong-row' : ''} ${isRevenge ? 'revenge-row' : ''}`}
+                        className={`problem-row ${!problem.isCorrect ? 'wrong-row' : ''}`}
                       >
                         <td className="cell-num">
                           {problem.problemNumber}
-                          {isRevenge && <span className="revenge-marker" title="リベンジ対象">⚡</span>}
                           {problem.imageUrl && (
                             <a
                               href={problem.imageUrl}
@@ -684,70 +615,6 @@ function TestScoreView({ user }) {
                 }
               </tbody>
             </table>
-          </div>
-        )}
-      </div>
-
-      {/* リベンジリスト */}
-      <div className="section-card revenge-section">
-        <div className="section-header">
-          <h3 className="section-title">
-            ⚡ リベンジリスト
-            <span className="revenge-subtitle">正答率 50%以上なのに失点した問題</span>
-          </h3>
-        </div>
-
-        {revengeList.length === 0 ? (
-          <div className="empty-problems">
-            リベンジ対象の問題はありません（問題を追加してください）
-          </div>
-        ) : (
-          <div className="revenge-list">
-            {revengeList.map((problem, idx) => {
-              const linked = getLinkedTexts(problem)
-              const unitNames = problem.unitIds?.map(id => getUnitName(id)).join('・') || '単元なし'
-              return (
-                <div key={problem.id} className="revenge-item">
-                  <div className="revenge-rank">#{idx + 1}</div>
-                  <div className="revenge-info">
-                    <div className="revenge-title">
-                      第{problem.problemNumber}問
-                      <span className={`subject-chip subject-${problem.subject}`}>{problem.subject}</span>
-                    </div>
-                    <div className="revenge-meta">
-                      <span className="revenge-rate">正答率 <strong>{problem.correctRate}%</strong></span>
-                      <span className="revenge-units">{unitNames}</span>
-                    </div>
-                    {linked.length > 0 && (
-                      <div className="revenge-links">
-                        {linked.map(text => (
-                          <a
-                            key={text.firestoreId || text.id}
-                            href={text.fileUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="sapix-text-link"
-                          >
-                            📄 {text.textNumber || text.textName}
-                          </a>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <div className="revenge-status">
-                    <select
-                      className="status-select"
-                      value={problem.reviewStatus || 'pending'}
-                      onChange={(e) => handleUpdateProblemStatus(problem.id, e.target.value)}
-                    >
-                      <option value="pending">未完了</option>
-                      <option value="done">解き直し済</option>
-                      <option value="retry">要再挑戦</option>
-                    </select>
-                  </div>
-                </div>
-              )
-            })}
           </div>
         )}
       </div>
