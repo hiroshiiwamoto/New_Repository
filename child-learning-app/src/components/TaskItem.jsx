@@ -40,7 +40,11 @@ function TaskItem({ task, onToggle, onDelete, onEdit }) {
             color: subjectColor
           }}
         >{task.subject}</span>
-        <span className="task-title">{task.title}</span>
+        <span
+          className={`task-title ${onEdit ? 'clickable' : ''}`}
+          onClick={() => onEdit && onEdit(task)}
+          title={onEdit ? 'クリックして編集' : undefined}
+        >{task.title}</span>
         <div className="task-actions">
           {task.fileUrl && (
             <button

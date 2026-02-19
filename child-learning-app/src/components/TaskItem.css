@@ -56,6 +56,15 @@
   font-weight: 500;
   color: #1d1d1f;
   flex: 1;
+}
+
+.task-title.clickable {
+  cursor: pointer;
+}
+
+.task-title.clickable:hover {
+  text-decoration: underline;
+  color: #007AFF;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
