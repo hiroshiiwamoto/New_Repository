@@ -147,7 +147,7 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
   const taskTypes = [
     { value: 'daily', label: 'デイリー復習', emoji: '📖' },
     { value: 'basic', label: '基礎トレ', emoji: '✏️' },
-    { value: 'test', label: 'テスト対策', emoji: '📝' },
+    { value: 'test', label: 'テスト復習', emoji: '📝' },
     { value: 'pastpaper', label: '過去問', emoji: '📄' },
     { value: 'weakness', label: '弱点補強', emoji: '💪' },
     { value: 'review', label: '解き直し', emoji: '🔄' },

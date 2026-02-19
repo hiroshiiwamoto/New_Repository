@@ -7,7 +7,7 @@ function SubjectView({ tasks, onToggleTask, onDeleteTask }) {
   const taskTypeLabels = {
     'daily': '📖 デイリー',
     'basic': '✏️ 基礎トレ',
-    'test': '📝 テスト対策',
+    'test': '📝 テスト復習',
     'pastpaper': '📄 過去問',
     'weakness': '💪 弱点補強',
     'review': '🔄 解き直し'
