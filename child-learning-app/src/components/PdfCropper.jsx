@@ -17,7 +17,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 //   onClose       : () => void
 // ─────────────────────────────────────────
 
-export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClose }) {
+export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClose, headerSlot }) {
   // アクティブタブ: 'attached' | 'list' | 'url'
   const defaultTab = attachedPdf ? 'attached' : 'list'
   const [activeTab, setActiveTab] = useState(defaultTab)
@@ -323,6 +323,9 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
   return (
     <div className="pdfcropper-overlay" onClick={onClose}>
       <div className="pdfcropper-modal" onClick={e => e.stopPropagation()}>
+
+        {/* 呼び出し元から注入されるヘッダースロット（科目タブなど） */}
+        {headerSlot}
 
         {/* ヘッダー */}
         <div className="pdfcropper-header">

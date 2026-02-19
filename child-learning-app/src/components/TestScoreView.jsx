@@ -939,37 +939,36 @@ function TestScoreView({ user }) {
       )}
 
       {showPdfCropper && (
-        <>
-          {/* 科目切り替えタブ（PdfCropperオーバーレイの上にfixed表示） */}
-          <div className="pdf-cropper-subject-tabs">
-            {SUBJECTS.map(subject => {
-              const hasPdf = !!getPdfForSubject(subject)
-              return (
-                <button
-                  key={subject}
-                  className={`pdf-cropper-subject-tab ${showPdfCropper === subject ? 'active' : ''} ${!hasPdf ? 'no-pdf' : ''}`}
-                  onClick={() => hasPdf && setShowPdfCropper(subject)}
-                  disabled={!hasPdf}
-                  title={hasPdf ? `${subject}のPDFから切り出す` : `${subject}のPDFが未添付です`}
-                >
-                  {subject}{!hasPdf && '（未添付）'}
-                </button>
-              )
-            })}
-          </div>
-          <PdfCropper
-            key={showPdfCropper}
-            userId={user.uid}
-            attachedPdf={(() => {
-              const pdf = getPdfForSubject(showPdfCropper)
-              if (!pdf) return null
-              const driveFileId = extractDriveFileId(pdf.fileUrl)
-              return driveFileId ? { driveFileId, fileName: pdf.fileName, firestoreId: null } : null
-            })()}
-            onCropComplete={handlePdfCropComplete}
-            onClose={() => setShowPdfCropper(null)}
-          />
-        </>
+        <PdfCropper
+          key={showPdfCropper}
+          userId={user.uid}
+          attachedPdf={(() => {
+            const pdf = getPdfForSubject(showPdfCropper)
+            if (!pdf) return null
+            const driveFileId = extractDriveFileId(pdf.fileUrl)
+            return driveFileId ? { driveFileId, fileName: pdf.fileName, firestoreId: null } : null
+          })()}
+          onCropComplete={handlePdfCropComplete}
+          onClose={() => setShowPdfCropper(null)}
+          headerSlot={
+            <div className="pdf-cropper-subject-tabs">
+              {SUBJECTS.map(subject => {
+                const hasPdf = !!getPdfForSubject(subject)
+                return (
+                  <button
+                    key={subject}
+                    className={`pdf-cropper-subject-tab ${showPdfCropper === subject ? 'active' : ''} ${!hasPdf ? 'no-pdf' : ''}`}
+                    onClick={() => hasPdf && setShowPdfCropper(subject)}
+                    disabled={!hasPdf}
+                    title={hasPdf ? `${subject}のPDFから切り出す` : `${subject}のPDFが未添付です`}
+                  >
+                    {subject}{!hasPdf && '（未添付）'}
+                  </button>
+                )
+              })}
+            </div>
+          }
+        />
       )}
     </div>
   )

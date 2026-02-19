@@ -1661,17 +1661,13 @@
 }
 .pdf-attach-remove:hover { color: #dc2626; }
 
-/* PdfCropper 科目切り替えタブ */
+/* PdfCropper 科目切り替えタブ（モーダル内に配置） */
 .pdf-cropper-subject-tabs {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
   display: flex;
   gap: 0;
   background: #1e293b;
   padding: 6px 12px 0;
-  z-index: 2100;
+  flex-shrink: 0;
 }
 
 .pdf-cropper-subject-tab {
@@ -1696,11 +1692,6 @@
 .pdf-cropper-subject-tab.no-pdf {
   opacity: 0.4;
   cursor: not-allowed;
-}
-
-/* PdfCropper のオーバーレイにタブ分の余白を追加 */
-.pdf-cropper-subject-tabs ~ .pdfcropper-overlay {
-  padding-top: 50px;
 }
 
 /* PDFピッカーモーダル */
