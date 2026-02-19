@@ -183,7 +183,7 @@ export default function ProblemClipList({
         subject: problem.subject || subject || '',
         grade: taskGenInfo.grade || '',
         unitIds: problem.unitIds?.length ? problem.unitIds : defaultUnitIds,
-        taskType: 'review',
+        taskType: sourceType === 'pastPaper' ? 'pastpaper' : sourceType === 'test' ? 'test' : 'review',
         priority: 'A',
         dueDate: nextWeek.toISOString().split('T')[0],
         fileUrl: taskGenInfo.fileUrl || '',
