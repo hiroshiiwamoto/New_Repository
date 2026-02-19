@@ -474,7 +474,7 @@
 
 .tag-description {
   font-size: 13px;
-  color: #9ca3af;
+  color: var(--color-gray-400);
   line-height: 1.5;
 }
 
@@ -482,7 +482,7 @@
   display: flex;
   gap: 8px;
   font-size: 12px;
-  color: #3b82f6;
+  color: var(--color-primary);
   margin-top: 6px;
 }
 
@@ -514,7 +514,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: var(--z-modal);
   padding: 20px;
 }
 
@@ -524,13 +524,13 @@
   padding: 24px;
   width: 100%;
   max-width: 420px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-xl);
 }
 
 .practice-modal h3 {
   margin: 0 0 8px;
   font-size: 20px;
-  color: #1f2937;
+  color: var(--color-gray-800);
 }
 
 .modal-unit-name {
@@ -542,7 +542,7 @@
 
 .modal-unit-category {
   font-size: 13px;
-  color: #6b7280;
+  color: var(--color-gray-500);
   margin: 0 0 20px;
 }
 
@@ -556,7 +556,7 @@
   display: block;
   font-size: 14px;
   font-weight: 600;
-  color: #374151;
+  color: var(--color-gray-700);
   margin-bottom: 8px;
 }
 
@@ -568,7 +568,7 @@
 .result-btn {
   flex: 1;
   padding: 12px;
-  border: 2px solid #e5e7eb;
+  border: 2px solid var(--color-gray-200);
   border-radius: 8px;
   background: white;
   font-size: 16px;
@@ -583,20 +583,20 @@
 }
 
 .result-btn.incorrect.selected {
-  background: #fee2e2;
-  border-color: #dc2626;
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger-dark);
   color: #b91c1c;
 }
 
 .result-btn:hover:not(.selected) {
-  border-color: #9ca3af;
-  background: #f9fafb;
+  border-color: var(--color-gray-400);
+  background: var(--color-gray-50);
 }
 
 .time-input {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-gray-300);
   border-radius: 6px;
   font-size: 15px;
   box-sizing: border-box;
@@ -604,14 +604,14 @@
 
 .time-input:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .notes-input {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-gray-300);
   border-radius: 6px;
   font-size: 14px;
   resize: vertical;
@@ -621,7 +621,7 @@
 
 .notes-input:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
@@ -635,8 +635,8 @@
   flex: 1;
   padding: 12px;
   background: white;
-  color: #6b7280;
-  border: 1px solid #d1d5db;
+  color: var(--color-gray-500);
+  border: 1px solid var(--color-gray-300);
   border-radius: 8px;
   font-size: 15px;
   cursor: pointer;
@@ -644,13 +644,13 @@
 }
 
 .btn-cancel:hover:not(:disabled) {
-  background: #f3f4f6;
+  background: var(--color-gray-100);
 }
 
 .btn-record {
   flex: 2;
   padding: 12px;
-  background: #3b82f6;
+  background: var(--color-primary);
   color: white;
   border: none;
   border-radius: 8px;
@@ -661,7 +661,7 @@
 }
 
 .btn-record:hover:not(:disabled) {
-  background: #2563eb;
+  background: var(--color-primary-dark);
 }
 
 .btn-record:disabled,
