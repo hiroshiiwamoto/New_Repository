@@ -102,6 +102,15 @@
   color: #86868b;
 }
 
+.task-problem-thumb {
+  max-height: 48px;
+  max-width: 80px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
 .task-priority-badge {
   background: rgba(0, 0, 0, 0.05);
   color: #64748b;
