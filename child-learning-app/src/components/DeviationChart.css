@@ -1,9 +1,9 @@
 .deviation-chart {
-  background: white;
+  background: var(--color-white);
   border-radius: 20px;
   padding: 24px;
   margin: 20px 0;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-sm);
   border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
@@ -33,7 +33,7 @@
   flex-wrap: wrap;
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--color-gray-100);
 }
 
 .legend-item {
@@ -41,7 +41,7 @@
   align-items: center;
   gap: 6px;
   font-size: 0.8125rem;
-  color: #64748b;
+  color: var(--color-gray-500);
   font-weight: 500;
 }
 

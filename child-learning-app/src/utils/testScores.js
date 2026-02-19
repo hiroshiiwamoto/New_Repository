@@ -90,7 +90,7 @@ export async function addTestScore(userId, scoreData) {
 
     return {
       success: true,
-      data: { firestoreId: docRef.id, ...newScore }
+      data: { id: docRef.id, ...newScore }
     }
   } catch (error) {
     console.error('Error adding test score:', error)
@@ -115,7 +115,7 @@ export async function getAllTestScores(userId) {
     const scores = []
     querySnapshot.forEach((doc) => {
       scores.push({
-        firestoreId: doc.id,
+        id: doc.id,
         ...doc.data()
       })
     })
@@ -137,13 +137,13 @@ export async function getAllTestScores(userId) {
 /**
  * テスト成績を更新
  * @param {string} userId - ユーザーID
- * @param {string} firestoreId - FirestoreドキュメントID
+ * @param {string} id - FirestoreドキュメントID
  * @param {object} updates - 更新内容
  * @returns {Promise<object>} 結果
  */
-export async function updateTestScore(userId, firestoreId, updates) {
+export async function updateTestScore(userId, id, updates) {
   try {
-    const scoreRef = doc(db, 'users', userId, 'testScores', firestoreId)
+    const scoreRef = doc(db, 'users', userId, 'testScores', id)
     await updateDoc(scoreRef, {
       ...updates,
       updatedAt: new Date().toISOString()
@@ -162,12 +162,12 @@ export async function updateTestScore(userId, firestoreId, updates) {
 /**
  * テスト成績を削除
  * @param {string} userId - ユーザーID
- * @param {string} firestoreId - FirestoreドキュメントID
+ * @param {string} id - FirestoreドキュメントID
  * @returns {Promise<object>} 結果
  */
-export async function deleteTestScore(userId, firestoreId) {
+export async function deleteTestScore(userId, id) {
   try {
-    const scoreRef = doc(db, 'users', userId, 'testScores', firestoreId)
+    const scoreRef = doc(db, 'users', userId, 'testScores', id)
     await deleteDoc(scoreRef)
 
     return { success: true }
@@ -188,7 +188,7 @@ export async function deleteTestScore(userId, firestoreId) {
  * @returns {Promise<Array>}
  */
 export async function getProblemsForTestScore(userId, score) {
-  const result = await getProblemsBySource(userId, 'test', score.firestoreId)
+  const result = await getProblemsBySource(userId, 'test', score.id)
   return result.success ? result.data : []
 }
 

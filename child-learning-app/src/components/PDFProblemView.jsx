@@ -150,13 +150,13 @@ function PDFProblemView({ user }) {
       return
     }
 
-    const result = await deletePDF(user.uid, pdf.firestoreId, pdf.driveFileId)
+    const result = await deletePDF(user.uid, pdf.id, pdf.driveFileId)
     if (result.success) {
       toast.success('削除しました')
       await loadPDFs()
       await loadStatistics()
       await loadStorageUsage()
-      if (selectedPDF?.firestoreId === pdf.firestoreId) {
+      if (selectedPDF?.id === pdf.id) {
         setSelectedPDF(null)
         setProblems([])
       }
@@ -167,12 +167,12 @@ function PDFProblemView({ user }) {
 
   const handleSelectPDF = async (pdf) => {
     setSelectedPDF(pdf)
-    await loadProblems(pdf.firestoreId)
+    await loadProblems(pdf.id)
   }
 
   const handleProblemStatusChange = async (pageNumber, problemNumber, status) => {
     const problemData = {
-      pdfDocumentId: selectedPDF.firestoreId,
+      pdfDocumentId: selectedPDF.id,
       pageNumber,
       problemNumber,
       status,
@@ -182,7 +182,7 @@ function PDFProblemView({ user }) {
 
     const result = await saveProblemRecord(user.uid, problemData)
     if (result.success) {
-      await loadProblems(selectedPDF.firestoreId)
+      await loadProblems(selectedPDF.id)
       await loadStatistics()
     } else {
       toast.error('記録に失敗しました')
@@ -473,7 +473,7 @@ function PDFProblemView({ user }) {
           </div>
         ) : (
           pdfs.map(pdf => (
-            <div key={pdf.firestoreId} className="pdf-card">
+            <div key={pdf.id} className="pdf-card">
               <div className="pdf-card-header">
                 <div className="pdf-icon">
                   {pdf.storageType === 'google_drive' ? (

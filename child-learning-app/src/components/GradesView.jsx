@@ -81,7 +81,7 @@ function GradesView({ user }) {
       return
     }
     const result = editingScore
-      ? await updateTestScore(user.uid, editingScore.firestoreId, scoreForm)
+      ? await updateTestScore(user.uid, editingScore.id, scoreForm)
       : await addTestScore(user.uid, scoreForm)
     if (result.success) {
       const refreshResult = await getAllTestScores(user.uid)
@@ -95,9 +95,9 @@ function GradesView({ user }) {
 
   const handleDelete = async (score) => {
     if (!window.confirm(`「${score.testName} (${score.testDate})」を削除しますか？`)) return
-    const result = await deleteTestScore(user.uid, score.firestoreId)
+    const result = await deleteTestScore(user.uid, score.id)
     if (result.success) {
-      setScores(scores.filter(s => s.firestoreId !== score.firestoreId))
+      setScores(scores.filter(s => s.id !== score.id))
       toast.success('削除しました')
     } else {
       toast.error('削除に失敗しました')
@@ -356,7 +356,7 @@ function GradesView({ user }) {
           <div className="scores-list">
             {filteredScores.map(score => (
               <ScoreCard
-                key={score.firestoreId}
+                key={score.id}
                 score={score}
                 onEdit={handleEditScore}
                 onDelete={handleDelete}

@@ -201,18 +201,18 @@ function App() {
     }
   }
 
-  const updateCustomUnit = async (firestoreId, updates) => {
+  const updateCustomUnit = async (id, updates) => {
     if (!user) {
       toast.error('カスタム単元を更新するにはログインが必要です')
       return { success: false }
     }
 
-    const result = await updateCustomUnitInFirestore(user.uid, firestoreId, updates)
+    const result = await updateCustomUnitInFirestore(user.uid, id, updates)
 
     if (result.success) {
       // カスタム単元リストを更新
       const updatedCustomUnits = customUnits.map(unit =>
-        unit.firestoreId === firestoreId
+        unit.id === id
           ? { ...unit, ...updates }
           : unit
       )
@@ -224,17 +224,17 @@ function App() {
     }
   }
 
-  const deleteCustomUnit = async (firestoreId) => {
+  const deleteCustomUnit = async (id) => {
     if (!user) {
       toast.error('カスタム単元を削除するにはログインが必要です')
       return { success: false }
     }
 
-    const result = await deleteCustomUnitFromFirestore(user.uid, firestoreId)
+    const result = await deleteCustomUnitFromFirestore(user.uid, id)
 
     if (result.success) {
       // カスタム単元リストから削除
-      const filteredCustomUnits = customUnits.filter(unit => unit.firestoreId !== firestoreId)
+      const filteredCustomUnits = customUnits.filter(unit => unit.id !== id)
       setCustomUnits(filteredCustomUnits)
       return { success: true }
     } else {

@@ -60,7 +60,7 @@ export async function addProblem(userId, problemData) {
       createdAt: serverTimestamp(),
     }
     const docRef = await addDoc(ref, doc_)
-    return { success: true, data: { firestoreId: docRef.id, ...doc_ } }
+    return { success: true, data: { id: docRef.id, ...doc_ } }
   } catch (error) {
     console.error('Error adding problem:', error)
     return { success: false, error: error.message }
@@ -85,7 +85,7 @@ export async function getProblemsBySource(userId, sourceType, sourceId) {
     const snapshot = await getDocs(q)
     const problems = []
     snapshot.forEach(d => {
-      problems.push({ firestoreId: d.id, ...d.data() })
+      problems.push({ id: d.id, ...d.data() })
     })
     return { success: true, data: problems }
   } catch (error) {
@@ -139,7 +139,7 @@ export async function deleteProblemsBySource(userId, sourceType, sourceId) {
     const result = await getProblemsBySource(userId, sourceType, sourceId)
     if (!result.success) return result
     await Promise.all(
-      result.data.map(p => deleteProblem(userId, p.firestoreId))
+      result.data.map(p => deleteProblem(userId, p.id))
     )
     return { success: true, deletedCount: result.data.length }
   } catch (error) {

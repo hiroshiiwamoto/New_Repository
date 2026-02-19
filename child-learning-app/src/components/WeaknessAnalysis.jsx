@@ -12,6 +12,7 @@ import {
   importMasterUnitsToFirestore,
   getMasterUnitsStats
 } from '../utils/importMasterUnits'
+import { toast } from '../utils/toast'
 import './WeaknessAnalysis.css'
 
 function WeaknessAnalysis() {
@@ -140,14 +141,14 @@ function WeaknessAnalysis() {
 
   const handleRecordPractice = async () => {
     if (practiceForm.isCorrect === null) {
-      alert('正解・不正解を選択してください')
+      toast.warning('正解・不正解を選択してください')
       return
     }
 
     const auth = getAuth()
     const userId = auth.currentUser?.uid
     if (!userId) {
-      alert('ログインしてください')
+      toast.warning('ログインしてください')
       return
     }
 
@@ -163,7 +164,7 @@ function WeaknessAnalysis() {
       await loadWeaknessData()
     } catch (err) {
       console.error('練習記録エラー:', err)
-      alert('記録に失敗しました: ' + err.message)
+      toast.error('記録に失敗しました: ' + err.message)
     } finally {
       setRecordingPractice(false)
     }

@@ -45,13 +45,13 @@
 }
 
 .preset-btn:hover:not(:disabled) {
-  border-color: #007AFF;
+  border-color: var(--color-primary);
   background: rgba(0, 122, 255, 0.04);
 }
 
 .preset-btn.active {
-  border-color: #007AFF;
-  background: #007AFF;
+  border-color: var(--color-primary);
+  background: var(--color-primary);
   color: white;
 }
 
@@ -66,7 +66,7 @@
   gap: 8px;
   justify-content: center;
   margin-bottom: 32px;
-  background: #f5f5f7;
+  background: var(--color-gray-100);
   border-radius: 12px;
   padding: 4px;
 }
@@ -90,14 +90,14 @@
 
 .mode-btn.active.study-mode {
   background: white;
-  color: #007AFF;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  color: var(--color-primary);
+  box-shadow: var(--shadow-md);
 }
 
 .mode-btn.active.break-mode {
   background: white;
-  color: #10b981;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  color: var(--color-success);
+  box-shadow: var(--shadow-md);
 }
 
 /* タイマー表示 */
@@ -124,12 +124,12 @@
 }
 
 .timer-progress-circle {
-  stroke: #007AFF;
+  stroke: var(--color-primary);
   transition: stroke-dashoffset 0.5s ease;
 }
 
 .timer-display.break .timer-progress-circle {
-  stroke: #10b981;
+  stroke: var(--color-success);
 }
 
 .timer-text {
@@ -174,7 +174,7 @@
 }
 
 .timer-control-btn.start {
-  background: #007AFF;
+  background: var(--color-primary);
   color: white;
   box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
 }
@@ -186,18 +186,18 @@
 }
 
 .timer-control-btn.pause {
-  background: #f59e0b;
+  background: var(--color-warning);
   color: white;
   box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
 }
 
 .timer-control-btn.pause:hover {
-  background: #d97706;
+  background: var(--color-warning-dark);
   transform: translateY(-1px);
 }
 
 .timer-control-btn.reset {
-  background: #f5f5f7;
+  background: var(--color-gray-100);
   color: #86868b;
   border: 1px solid rgba(0, 0, 0, 0.06);
 }
@@ -214,7 +214,7 @@
   background: white;
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-sm);
   border: 1px solid rgba(0, 0, 0, 0.04);
 }
 

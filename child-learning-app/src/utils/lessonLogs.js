@@ -94,11 +94,6 @@ export async function addLessonLogWithStats(userId, data) {
   }
 }
 
-/** @deprecated addLessonLogWithStats を使用してください */
-export async function addLessonLog(userId, data) {
-  return addLessonLogWithStats(userId, data)
-}
-
 /**
  * ユーザーの全 lessonLog を取得
  */

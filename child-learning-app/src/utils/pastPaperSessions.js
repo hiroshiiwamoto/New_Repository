@@ -39,7 +39,7 @@ export async function addPastPaperSession(userId, taskId, sessionData) {
 
     return {
       success: true,
-      data: { firestoreId: docRef.id, ...newSession }
+      data: { id: docRef.id, ...newSession }
     }
   } catch (error) {
     console.error('Error adding past paper session:', error)
@@ -69,7 +69,7 @@ export async function getSessionsByTaskId(userId, taskId) {
     const sessions = []
     querySnapshot.forEach((doc) => {
       sessions.push({
-        firestoreId: doc.id,
+        id: doc.id,
         ...doc.data()
       })
     })
@@ -102,7 +102,7 @@ export async function getAllSessions(userId) {
     const sessions = []
     querySnapshot.forEach((doc) => {
       sessions.push({
-        firestoreId: doc.id,
+        id: doc.id,
         ...doc.data()
       })
     })
@@ -124,13 +124,13 @@ export async function getAllSessions(userId) {
 /**
  * 学習セッションを更新
  * @param {string} userId - ユーザーID
- * @param {string} firestoreId - FirestoreドキュメントID
+ * @param {string} id - FirestoreドキュメントID
  * @param {object} updates - 更新内容
  * @returns {Promise<object>} 結果
  */
-export async function updateSession(userId, firestoreId, updates) {
+export async function updateSession(userId, id, updates) {
   try {
-    const sessionRef = doc(db, 'users', userId, 'pastPaperSessions', firestoreId)
+    const sessionRef = doc(db, 'users', userId, 'pastPaperSessions', id)
     await updateDoc(sessionRef, {
       ...updates,
       updatedAt: new Date().toISOString()
@@ -149,12 +149,12 @@ export async function updateSession(userId, firestoreId, updates) {
 /**
  * 学習セッションを削除
  * @param {string} userId - ユーザーID
- * @param {string} firestoreId - FirestoreドキュメントID
+ * @param {string} id - FirestoreドキュメントID
  * @returns {Promise<object>} 結果
  */
-export async function deleteSession(userId, firestoreId) {
+export async function deleteSession(userId, id) {
   try {
-    const sessionRef = doc(db, 'users', userId, 'pastPaperSessions', firestoreId)
+    const sessionRef = doc(db, 'users', userId, 'pastPaperSessions', id)
     await deleteDoc(sessionRef)
 
     return { success: true }
@@ -183,7 +183,7 @@ export async function deleteSessionsByTaskId(userId, taskId) {
 
     // 全てのセッションを削除
     const deletePromises = result.data.map(session =>
-      deleteSession(userId, session.firestoreId)
+      deleteSession(userId, session.id)
     )
 
     await Promise.all(deletePromises)

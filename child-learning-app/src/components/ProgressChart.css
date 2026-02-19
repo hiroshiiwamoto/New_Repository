@@ -1,8 +1,8 @@
 .progress-chart {
-  background: white;
+  background: var(--color-white);
   border-radius: 16px;
   padding: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-md);
   margin-bottom: 20px;
 }
 
@@ -30,7 +30,7 @@
 
 .legend-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
 }
 
 .legend-item.active {
@@ -45,7 +45,7 @@
 }
 
 .legend-label {
-  color: #1e293b;
+  color: var(--color-gray-800);
 }
 
 .chart-container {
@@ -63,14 +63,14 @@
 
 .axis-label {
   font-size: 12px;
-  fill: #64748b;
+  fill: var(--color-gray-500);
   font-weight: 500;
 }
 
 .no-data-message {
   text-align: center;
   padding: 60px 20px;
-  color: #64748b;
+  color: var(--color-gray-500);
 }
 
 .no-data-message p {

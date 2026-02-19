@@ -33,7 +33,7 @@ function SapixTextView({ user }) {
   const [uploading, setUploading] = useState(false)
   const [showDrivePicker, setShowDrivePicker] = useState(null) // 'add' | 'edit' | null
   const [expandedText, setExpandedText] = useState(null) // スキャンテキスト展開中のID
-  const [evaluating, setEvaluating] = useState(null) // 評価処理中の firestoreId
+  const [evaluating, setEvaluating] = useState(null) // 評価処理中の id
 
   // ── 問題ログ関連 ──────────────────────────────────────────
   const [problems, setProblems] = useState({})            // textId -> problems[]
@@ -73,9 +73,9 @@ function SapixTextView({ user }) {
       setTexts(result.data)
       // 全テキストの問題数を事前ロード（バッジ表示用）
       for (const text of result.data) {
-        const pResult = await getProblemsBySource(user.uid, 'textbook', text.firestoreId)
+        const pResult = await getProblemsBySource(user.uid, 'textbook', text.id)
         if (pResult.success) {
-          setProblems(prev => ({ ...prev, [text.firestoreId]: pResult.data }))
+          setProblems(prev => ({ ...prev, [text.id]: pResult.data }))
         }
       }
     }
@@ -149,18 +149,18 @@ function SapixTextView({ user }) {
       toast.error('単元タグが設定されていません。編集から単元タグを追加してください。')
       return
     }
-    setEvaluating(text.firestoreId)
+    setEvaluating(text.id)
     try {
-      const textProblems = problems[text.firestoreId] || []
+      const textProblems = problems[text.id] || []
       const result = await addLessonLogWithStats(user.uid, {
         unitIds: text.unitIds,
         sourceType: 'sapixTask',
-        sourceId: text.firestoreId,
+        sourceId: text.id,
         sourceName: `${text.textName}${text.textNumber ? ' ' + text.textNumber : ''}`,
         date: new Date(),
         performance: EVALUATION_SCORES[evalKey],
         evaluationKey: evalKey,
-        problemIds: textProblems.map(p => p.firestoreId),
+        problemIds: textProblems.map(p => p.id),
       })
       if (result.success) {
         toast.success(`評価を記録しました: ${EVALUATION_LABELS[evalKey]}`)
@@ -205,7 +205,7 @@ function SapixTextView({ user }) {
 
   // テキスト編集開始
   const handleStartEdit = (text) => {
-    setEditingId(text.firestoreId)
+    setEditingId(text.id)
     setEditForm({
       textName: text.textName || '',
       textNumber: text.textNumber || '',
@@ -248,11 +248,11 @@ function SapixTextView({ user }) {
   // テキスト削除
   const handleDelete = async (text) => {
     if (!window.confirm(`「${text.textName}」を削除しますか？`)) return
-    await deleteProblemsBySource(user.uid, 'textbook', text.firestoreId)
-    const result = await deleteSapixText(user.uid, text.firestoreId)
+    await deleteProblemsBySource(user.uid, 'textbook', text.id)
+    const result = await deleteSapixText(user.uid, text.id)
     if (result.success) {
       toast.success('削除しました')
-      if (viewingPDF?.id === text.firestoreId) setViewingPDF(null)
+      if (viewingPDF?.id === text.id) setViewingPDF(null)
       await loadTexts()
     } else {
       toast.error('削除に失敗しました: ' + result.error)
@@ -261,10 +261,10 @@ function SapixTextView({ user }) {
 
   // PDFビューワー
   const handleViewPDF = (text) => {
-    if (viewingPDF?.id === text.firestoreId) {
+    if (viewingPDF?.id === text.id) {
       setViewingPDF(null)
     } else {
-      setViewingPDF({ id: text.firestoreId, fileUrl: text.fileUrl, title: text.textName })
+      setViewingPDF({ id: text.id, fileUrl: text.fileUrl, title: text.textName })
     }
   }
 
@@ -476,8 +476,8 @@ function SapixTextView({ user }) {
           </div>
         ) : (
           filteredTexts.map(text => (
-            <div key={text.firestoreId} className="sapix-text-card">
-              {editingId === text.firestoreId ? (
+            <div key={text.id} className="sapix-text-card">
+              {editingId === text.id ? (
                 /* 編集モード */
                 <div className="edit-form-container">
                   <h4>📝 テキストを編集</h4>
@@ -557,18 +557,18 @@ function SapixTextView({ user }) {
                     <div className="sapix-text-actions">
                       {text.fileUrl && (
                         <button
-                          className={`pdf-view-btn ${viewingPDF?.id === text.firestoreId ? 'active' : ''}`}
+                          className={`pdf-view-btn ${viewingPDF?.id === text.id ? 'active' : ''}`}
                           onClick={() => handleViewPDF(text)}
                         >
-                          {viewingPDF?.id === text.firestoreId ? '✕ 閉じる' : '📄 PDF表示'}
+                          {viewingPDF?.id === text.id ? '✕ 閉じる' : '📄 PDF表示'}
                         </button>
                       )}
                       {text.scannedText && (
                         <button
-                          className={`sapix-scan-toggle ${expandedText === text.firestoreId ? 'active' : ''}`}
-                          onClick={() => setExpandedText(expandedText === text.firestoreId ? null : text.firestoreId)}
+                          className={`sapix-scan-toggle ${expandedText === text.id ? 'active' : ''}`}
+                          onClick={() => setExpandedText(expandedText === text.id ? null : text.id)}
                         >
-                          {expandedText === text.firestoreId ? '✕ テキスト閉じる' : '📝 テキスト表示'}
+                          {expandedText === text.id ? '✕ テキスト閉じる' : '📝 テキスト表示'}
                         </button>
                       )}
                       <button className="edit-pastpaper-btn" onClick={() => handleStartEdit(text)} title="編集">✏️</button>
@@ -577,7 +577,7 @@ function SapixTextView({ user }) {
                   </div>
 
                   {/* PDFプレビュー */}
-                  {viewingPDF?.id === text.firestoreId && (
+                  {viewingPDF?.id === text.id && (
                     <div className="pdf-preview-panel">
                       <div className="pdf-preview-header">
                         <span className="pdf-preview-title">📄 {viewingPDF.title}</span>
@@ -612,14 +612,14 @@ function SapixTextView({ user }) {
                       <button
                         key={key}
                         className="sapix-eval-btn"
-                        disabled={evaluating === text.firestoreId}
+                        disabled={evaluating === text.id}
                         onClick={() => handleEvaluate(text, key)}
                         title={EVALUATION_LABELS[key]}
                       >
                         {key === 'blue' ? '🔵' : key === 'yellow' ? '🟡' : '🔴'}
                       </button>
                     ))}
-                    {evaluating === text.firestoreId && (
+                    {evaluating === text.id && (
                       <span className="sapix-eval-saving">記録中...</span>
                     )}
                   </div>
@@ -627,10 +627,10 @@ function SapixTextView({ user }) {
                   {/* ── 問題クリップ ─────────────────────── */}
                   <ProblemClipList
                     userId={user.uid}
-                    problems={problems[text.firestoreId] || []}
-                    onReload={() => loadProblems(text.firestoreId)}
+                    problems={problems[text.id] || []}
+                    onReload={() => loadProblems(text.id)}
                     sourceType="textbook"
-                    sourceId={text.firestoreId}
+                    sourceId={text.id}
                     subject={text.subject}
                     defaultUnitIds={text.unitIds || []}
                     pdfInfo={(() => {
@@ -642,13 +642,13 @@ function SapixTextView({ user }) {
                       grade: text.grade,
                       fileUrl: text.fileUrl,
                       fileName: text.fileName,
-                      sourceRef: { type: 'textbook', id: text.firestoreId },
+                      sourceRef: { type: 'textbook', id: text.id },
                     }}
                   />
                   {/* ─────────────────────────────────────────────── */}
 
                   {/* スキャンテキスト表示 */}
-                  {expandedText === text.firestoreId && text.scannedText && (
+                  {expandedText === text.id && text.scannedText && (
                     <div className="sapix-scanned-text-display">
                       <div className="sapix-scanned-text-header">
                         <span>📝 スキャンテキスト</span>

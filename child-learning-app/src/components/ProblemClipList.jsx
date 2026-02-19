@@ -137,7 +137,7 @@ export default function ProblemClipList({
 
   // ── ステータス更新 ────────────────────────────────────
   const handleUpdateStatus = async (problemId, reviewStatus) => {
-    const problem = problems.find(p => (p.firestoreId || p.id) === problemId)
+    const problem = problems.find(p => (p.id || p.id) === problemId)
     if (onUpdateStatus) {
       await onUpdateStatus(problemId, reviewStatus, problem)
     } else {
@@ -148,7 +148,7 @@ export default function ProblemClipList({
 
   // ── ミス種別更新 ──────────────────────────────────────
   const handleUpdateMissType = async (problemId, missType) => {
-    const problem = problems.find(p => (p.firestoreId || p.id) === problemId)
+    const problem = problems.find(p => (p.id || p.id) === problemId)
     if (onUpdateStatus) {
       await onUpdateStatus(problemId, { missType }, problem)
     } else {
@@ -160,7 +160,7 @@ export default function ProblemClipList({
 
   // ── 削除 ──────────────────────────────────────────────
   const handleDelete = async (problemId) => {
-    const problem = problems.find(p => (p.firestoreId || p.id) === problemId)
+    const problem = problems.find(p => (p.id || p.id) === problemId)
     if (onDelete) {
       await onDelete(problemId, problem)
     } else {
@@ -194,7 +194,7 @@ export default function ProblemClipList({
         ...(taskGenInfo.year && { year: taskGenInfo.year }),
         problemImageUrls: problem.imageUrls || [],
         completed: false,
-        problemIds: [problem.firestoreId || problem.id],
+        problemIds: [problem.id || problem.id],
         generatedFrom: taskGenInfo.sourceRef || { type: sourceType, id: sourceId },
         createdAt: new Date().toISOString(),
       })
@@ -227,10 +227,10 @@ export default function ProblemClipList({
       const pdf = getSubjectPdf(showCropper)
       if (!pdf) return null
       const id = pdf.driveFileId || extractDriveFileId(pdf.fileUrl)
-      return id ? { driveFileId: id, fileName: pdf.fileName, firestoreId: null } : null
+      return id ? { driveFileId: id, fileName: pdf.fileName, id: null } : null
     }
     if (!pdfInfo) return null
-    return { driveFileId: pdfInfo.driveFileId, fileName: pdfInfo.fileName, firestoreId: null }
+    return { driveFileId: pdfInfo.driveFileId, fileName: pdfInfo.fileName, id: null }
   }
 
   const resetForm = () => {
@@ -269,7 +269,7 @@ export default function ProblemClipList({
     const st = reviewStatusInfo(problem.reviewStatus)
     return (
       <div
-        key={problem.firestoreId || problem.id}
+        key={problem.id || problem.id}
         className={`clip-item ${problem.isCorrect ? 'correct' : 'incorrect'}`}
         onClick={() => setSelectedProblem(problem)}
         role="button"
@@ -405,7 +405,7 @@ export default function ProblemClipList({
                           key={opt.value}
                           type="button"
                           className={`clip-miss-btn ${p.missType === opt.value ? 'active' : ''}`}
-                          onClick={() => handleUpdateMissType(p.firestoreId || p.id, opt.value)}
+                          onClick={() => handleUpdateMissType(p.id || p.id, opt.value)}
                         >
                           {opt.label}
                         </button>
@@ -424,7 +424,7 @@ export default function ProblemClipList({
                     value={p.reviewStatus || 'pending'}
                     style={{ background: st.bg, color: st.color }}
                     onChange={(e) => {
-                      handleUpdateStatus(p.firestoreId || p.id, e.target.value)
+                      handleUpdateStatus(p.id || p.id, e.target.value)
                       setSelectedProblem(prev => ({ ...prev, reviewStatus: e.target.value }))
                     }}
                   >
@@ -477,7 +477,7 @@ export default function ProblemClipList({
               className="clip-delete-btn"
               onClick={() => {
                 if (window.confirm('この問題を削除しますか？')) {
-                  handleDelete(p.firestoreId || p.id)
+                  handleDelete(p.id || p.id)
                 }
               }}
             >
