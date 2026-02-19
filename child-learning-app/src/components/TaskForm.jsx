@@ -36,23 +36,13 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
     if (editingTask) {
       setTitle(editingTask.title || '')
       setSubject(editingTask.subject || '算数')
-      // 旧 unitId（単一）との後方互換
-      setUnitIds(
-        editingTask.unitIds?.length ? editingTask.unitIds
-          : editingTask.unitId ? [editingTask.unitId]
-          : []
-      )
+      setUnitIds(editingTask.unitIds || [])
       setTaskType(editingTask.taskType || 'daily')
       setPriority(editingTask.priority || 'B')
       setDueDate(editingTask.dueDate || '')
       setFileUrl(editingTask.fileUrl || '')
       setFileName(editingTask.fileName || '')
-      // 旧 problemImageUrl（単一文字列）との後方互換
-      setProblemImageUrls(
-        editingTask.problemImageUrls?.length ? editingTask.problemImageUrls
-          : editingTask.problemImageUrl ? [editingTask.problemImageUrl]
-          : []
-      )
+      setProblemImageUrls(editingTask.problemImageUrls || [])
       // 過去問フィールド
       setSchoolName(editingTask.schoolName || '')
       setYear(editingTask.year || '')
@@ -68,8 +58,7 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
         title: title.trim(),
         subject,
         grade: '全学年',
-        unitIds,           // マスター単元タグ（配列）
-        unitId: unitIds[0] || '', // 後方互換
+        unitIds,
         taskType,
         priority,
         dueDate: dueDate || null,

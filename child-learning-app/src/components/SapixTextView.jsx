@@ -211,7 +211,7 @@ function SapixTextView({ user }) {
       textNumber: text.textNumber || '',
       subject: text.subject || '算数',
       grade: text.grade || '4年生',
-      unitIds: text.unitIds || (text.unitId ? [text.unitId] : []),
+      unitIds: text.unitIds || [],
       fileUrl: text.fileUrl || '',
       fileName: text.fileName || '',
       scannedText: text.scannedText || '',

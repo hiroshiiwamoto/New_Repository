@@ -32,9 +32,7 @@ function extractDriveFileId(fileUrl) {
   return match ? match[1] : null
 }
 
-// タスクの unitIds を正規化（旧 unitId との後方互換）
-const getTaskUnitIds = (task) =>
-  task.unitIds?.length ? task.unitIds : (task.unitId ? [task.unitId] : [])
+const getTaskUnitIds = (task) => task.unitIds || []
 
 function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask, onDeleteTask }) {
   const [viewMode, setViewMode] = useState('school') // 'school' or 'unit'

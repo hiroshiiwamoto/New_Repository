@@ -85,12 +85,7 @@ export async function getProblemsBySource(userId, sourceType, sourceId) {
     const snapshot = await getDocs(q)
     const problems = []
     snapshot.forEach(d => {
-      const data = d.data()
-      // 旧 imageUrl (string) → imageUrls (array) へ正規化
-      if (!data.imageUrls && data.imageUrl) {
-        data.imageUrls = [data.imageUrl]
-      }
-      problems.push({ firestoreId: d.id, ...data })
+      problems.push({ firestoreId: d.id, ...d.data() })
     })
     return { success: true, data: problems }
   } catch (error) {

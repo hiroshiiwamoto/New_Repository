@@ -21,6 +21,3 @@ export const generateSAPIXScheduleByGrade = (grade = '4年生') => {
       return generateGrade4Schedule(); // デフォルトは4年生
   }
 };
-
-// 後方互換性のため、デフォルトエクスポートは4年生のスケジュール
-export const generateSAPIXSchedule = generateGrade4Schedule;
