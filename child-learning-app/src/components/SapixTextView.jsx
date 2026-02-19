@@ -633,6 +633,10 @@ function SapixTextView({ user }) {
                     sourceId={text.firestoreId}
                     subject={text.subject}
                     defaultUnitIds={text.unitIds || []}
+                    pdfInfo={(() => {
+                      const id = text.fileUrl?.match(/\/file\/d\/([^/?]+)/)?.[1]
+                      return id ? { driveFileId: id, fileName: text.fileName || text.textName } : null
+                    })()}
                     taskGenInfo={{
                       title: `${text.textName}${text.textNumber ? ' ' + text.textNumber : ''}`,
                       grade: text.grade,
