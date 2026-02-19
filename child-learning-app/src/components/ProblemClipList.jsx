@@ -624,7 +624,9 @@ export default function ProblemClipList({
             <div className="clip-image-previews">
               {form.imageUrls.map((url, i) => (
                 <div key={i} className="clip-image-preview">
-                  <img src={url} alt={`問題プレビュー ${i + 1}`} />
+                  <a href={url} target="_blank" rel="noopener noreferrer">
+                    <img src={url} alt={`問題プレビュー ${i + 1}`} />
+                  </a>
                   <button type="button" className="btn-secondary"
                     onClick={() => setForm(prev => ({
                       ...prev,
