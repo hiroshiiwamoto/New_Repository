@@ -1,6 +1,10 @@
 // 学習セッション管理
+// NOTE: localStorage ベース。UnitDashboard.jsx からのみ参照されるが、
+// UnitDashboard は現在 App.jsx から未使用（MasterUnitDashboard に置換済み）。
+// 将来復活させる場合は Firestore ベースに移行すること。
 
 import { getUnitById } from './unitsDatabase'
+import { getTodayString, MS_PER_DAY } from './dateUtils'
 
 const STORAGE_KEY = 'sapix_study_sessions'
 
@@ -32,7 +36,7 @@ export function addStudySession(session) {
   const sessions = getAllSessions()
   const newSession = {
     id: `session_${Date.now()}`,
-    date: new Date().toISOString().split('T')[0],
+    date: getTodayString(),
     duration: 0,
     masteryLevel: 3,
     notes: '',
@@ -89,7 +93,7 @@ export function getUnitStats(unitId) {
   const totalDuration = sessions.reduce((sum, s) => sum + (s.duration || 0), 0)
   const averageMastery = sessions.reduce((sum, s) => sum + s.masteryLevel, 0) / sessions.length
   const lastStudyDate = sessions[0].date
-  const daysSinceLastStudy = Math.floor((new Date() - new Date(lastStudyDate)) / (1000 * 60 * 60 * 24))
+  const daysSinceLastStudy = Math.floor((new Date() - new Date(lastStudyDate)) / MS_PER_DAY)
 
   // 復習が必要か判定（最後の学習から7日以上、または理解度が低い）
   const needsReview = daysSinceLastStudy > 7 || averageMastery < 3

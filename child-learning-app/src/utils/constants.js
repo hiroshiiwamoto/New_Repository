@@ -33,3 +33,11 @@ export const taskTypes = [
 
 // 曜日の名前
 export const weekDayNames = ['日', '月', '火', '水', '木', '金', '土']
+
+// ファイルアップロード制限
+export const MAX_FILE_SIZE = 20 * 1024 * 1024  // 20MB
+export const MAX_PDF_COUNT = 100                // 最大ファイル数
+
+// 学習データ保持期間
+export const HALF_LIFE_DAYS = 90   // 習熟度半減期（日）
+export const MAX_HISTORY_DAYS = 90 // 進捗履歴保持日数

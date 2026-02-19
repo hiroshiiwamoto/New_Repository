@@ -11,6 +11,7 @@ import {
   EVALUATION_LABELS,
   EVALUATION_COLORS,
 } from '../utils/lessonLogs'
+import Loading from './Loading'
 import './MasterUnitDashboard.css'
 
 const SUBJECTS = ['算数', '国語', '理科', '社会']
@@ -224,7 +225,7 @@ function MasterUnitDashboard() {
   )
 
   if (loading) {
-    return <div className="mud-loading">📊 単元データを読み込み中...</div>
+    return <Loading message="📊 単元データを読み込み中..." />
   }
 
   return (
@@ -348,7 +349,7 @@ function MasterUnitDashboard() {
 
       {/* ドリルダウンモーダル */}
       {drillUnit && (
-        <div className="mud-modal-overlay" onClick={() => setDrillUnit(null)}>
+        <div className="modal-overlay-common" onClick={() => setDrillUnit(null)}>
           <div className="mud-modal mud-drill-modal" onClick={e => e.stopPropagation()}>
             <div className="mud-drill-header">
               <div>

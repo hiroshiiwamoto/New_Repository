@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import './PastPaperView.css'
+import { getTodayString } from '../utils/dateUtils'
 import { subjects } from '../utils/unitsDatabase'
 import { getStaticMasterUnits } from '../utils/importMasterUnits'
 import {
@@ -12,7 +13,8 @@ import {
   getProblemsBySource,
   deleteProblemsBySource,
 } from '../utils/problems'
-import { subjectColors, subjectEmojis } from '../utils/constants'
+import { subjectColors, subjectEmojis, MAX_FILE_SIZE } from '../utils/constants'
+import EmptyState from './EmptyState'
 import { toast } from '../utils/toast'
 import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
 import { refreshGoogleAccessToken } from './Auth'
@@ -41,7 +43,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
   const [sessions, setSessions] = useState({}) // taskId -> sessions[]
   const [showSessionForm, setShowSessionForm] = useState(null) // taskId
   const [sessionForm, setSessionForm] = useState({
-    studiedAt: new Date().toISOString().split('T')[0],
+    studiedAt: getTodayString(),
     score: '',
     totalScore: '',
     timeSpent: '',
@@ -85,7 +87,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       toast.error('PDFファイルのみアップロード可能です')
       return
     }
-    if (file.size > 20 * 1024 * 1024) {
+    if (file.size > MAX_FILE_SIZE) {
       toast.error('ファイルサイズは20MB以下にしてください')
       return
     }
@@ -190,7 +192,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
   const handleOpenSessionForm = (taskId) => {
     setShowSessionForm(taskId)
     setSessionForm({
-      studiedAt: new Date().toISOString().split('T')[0],
+      studiedAt: getTodayString(),
       score: '',
       totalScore: '',
       timeSpent: '',
@@ -578,11 +580,11 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       {/* タスク一覧 */}
       <div className="pastpaper-content">
         {Object.keys(groupedData).length === 0 ? (
-          <div className="no-data">
-            📝 この条件の過去問タスクがありません
-            <br />
-            <small>「+ 過去問を追加」から追加してください</small>
-          </div>
+          <EmptyState
+            icon="📝"
+            message="この条件の過去問タスクがありません"
+            hint="「+ 過去問を追加」から追加してください"
+          />
         ) : (
           Object.entries(groupedData).map(([key, taskList]) => (
             <div key={key} className="pastpaper-group">

@@ -11,7 +11,9 @@ import {
   checkDriveAccess
 } from '../utils/pdfStorage'
 import { refreshGoogleAccessToken } from './Auth'
+import { MAX_FILE_SIZE } from '../utils/constants'
 import { toast } from '../utils/toast'
+import EmptyState from './EmptyState'
 
 function PDFProblemView({ user }) {
   const [pdfs, setPdfs] = useState([])
@@ -95,7 +97,7 @@ function PDFProblemView({ user }) {
       return
     }
 
-    if (file.size > 20 * 1024 * 1024) {
+    if (file.size > MAX_FILE_SIZE) {
       toast.error('ファイルサイズは20MB以下にしてください')
       return
     }
@@ -343,8 +345,8 @@ function PDFProblemView({ user }) {
 
       {/* アップロードフォーム */}
       {showUploadForm && (
-        <div className="upload-form-overlay" onClick={() => !uploading && setShowUploadForm(false)}>
-          <div className="upload-form-container" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay-common" onClick={() => !uploading && setShowUploadForm(false)}>
+          <div className="modal-container-common" onClick={(e) => e.stopPropagation()}>
             <h3>PDFをアップロード（Google Drive）</h3>
 
             <div className="form-field">
@@ -464,13 +466,11 @@ function PDFProblemView({ user }) {
       {/* PDFリスト */}
       <div className="pdf-list">
         {pdfs.length === 0 ? (
-          <div className="no-data">
-            PDFファイルをアップロードして問題を管理しましょう
-            <br />
-            <small>過去問や問題集をPDFで保存し、問題ごとに解答状況を記録できます</small>
-            <br />
-            <small className="drive-note">PDFはあなたのGoogle Driveに安全に保存されます</small>
-          </div>
+          <EmptyState
+            icon="📄"
+            message="PDFファイルをアップロードして問題を管理しましょう"
+            hint="過去問や問題集をPDFで保存し、問題ごとに解答状況を記録できます"
+          />
         ) : (
           pdfs.map(pdf => (
             <div key={pdf.id} className="pdf-card">

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import './TestScoreView.css'
+import { getTodayString } from '../utils/dateUtils'
 import { grades } from '../utils/unitsDatabase'
 import {
   getAllTestScores,
@@ -11,6 +12,7 @@ import {
 import ScoreCard from './ScoreCard'
 import DeviationChart from './DeviationChart'
 import { toast } from '../utils/toast'
+import EmptyState from './EmptyState'
 
 function GradesView({ user }) {
   const [scores, setScores] = useState([])
@@ -22,7 +24,7 @@ function GradesView({ user }) {
   function getEmptyForm() {
     return {
       testName: '',
-      testDate: new Date().toISOString().split('T')[0],
+      testDate: getTodayString(),
       grade: '4年生',
       scores: { kokugo: '', sansu: '', rika: '', shakai: '' },
       maxScores: { kokugo: '', sansu: '', rika: '', shakai: '' },
@@ -106,7 +108,7 @@ function GradesView({ user }) {
 
   function renderScoreForm() {
     return (
-      <div className="form-overlay" onClick={() => setShowForm(false)}>
+      <div className="modal-overlay-common" onClick={() => setShowForm(false)}>
         <div className="form-container" onClick={(e) => e.stopPropagation()}>
           <h3>{editingScore ? '✏️ 成績を編集' : '➕ 成績を追加'}</h3>
 
@@ -348,10 +350,11 @@ function GradesView({ user }) {
 
       <div className="scores-content">
         {filteredScores.length === 0 ? (
-          <div className="no-data">
-            📊 この学年のテスト成績がありません
-            <small>上の「+ 成績を追加」ボタンから記録を追加してください</small>
-          </div>
+          <EmptyState
+            icon="📊"
+            message="この学年のテスト成績がありません"
+            hint="上の「+ 成績を追加」ボタンから記録を追加してください"
+          />
         ) : (
           <div className="scores-list">
             {filteredScores.map(score => (

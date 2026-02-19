@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import './SapixTextView.css'
 import { subjects, grades } from '../utils/unitsDatabase'
-import { subjectColors, subjectEmojis } from '../utils/constants'
+import { subjectColors, subjectEmojis, MAX_FILE_SIZE } from '../utils/constants'
 import { getSapixTexts, addSapixText, updateSapixText, deleteSapixText } from '../utils/sapixTexts'
 import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
 import { refreshGoogleAccessToken } from './Auth'
@@ -10,6 +10,7 @@ import DriveFilePicker from './DriveFilePicker'
 import UnitTagPicker from './UnitTagPicker'
 import { addLessonLogWithStats, EVALUATION_SCORES, EVALUATION_LABELS } from '../utils/lessonLogs'
 import { getStaticMasterUnits } from '../utils/importMasterUnits'
+import EmptyState from './EmptyState'
 import {
   getProblemsBySource,
   deleteProblemsBySource,
@@ -95,7 +96,7 @@ function SapixTextView({ user }) {
       toast.error('PDFファイルのみアップロード可能です')
       return
     }
-    if (file.size > 20 * 1024 * 1024) {
+    if (file.size > MAX_FILE_SIZE) {
       toast.error('ファイルサイズは20MB以下にしてください')
       return
     }
@@ -469,11 +470,11 @@ function SapixTextView({ user }) {
       {/* テキスト一覧 */}
       <div className="sapix-text-list">
         {filteredTexts.length === 0 ? (
-          <div className="no-data">
-            📘 この科目のSAPIXテキストがありません
-            <br />
-            <small>「+ テキスト追加」からテキストを登録してください</small>
-          </div>
+          <EmptyState
+            icon="📘"
+            message="この科目のSAPIXテキストがありません"
+            hint="「+ テキスト追加」からテキストを登録してください"
+          />
         ) : (
           filteredTexts.map(text => (
             <div key={text.id} className="sapix-text-card">

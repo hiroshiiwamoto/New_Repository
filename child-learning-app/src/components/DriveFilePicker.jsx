@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getGoogleAccessToken, refreshGoogleAccessToken } from './Auth'
+import Loading from './Loading'
 import './DriveFilePicker.css'
 
 const DRIVE_API = 'https://www.googleapis.com/drive/v3'
@@ -290,10 +291,7 @@ function DriveFilePicker({ onSelect, onClose }) {
 
         <div className="drive-picker-body">
           {loading ? (
-            <div className="drive-picker-loading">
-              <div className="drive-picker-spinner"></div>
-              <p>ファイルを読み込み中...</p>
-            </div>
+            <Loading message="ファイルを読み込み中..." />
           ) : errorType === 'no_token' ? (
             <div className="drive-picker-connect">
               <p>{error}</p>

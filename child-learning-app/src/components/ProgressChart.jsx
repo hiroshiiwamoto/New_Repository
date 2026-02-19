@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import './ProgressChart.css'
 import { subjectColors as baseSubjectColors } from '../utils/constants'
+import EmptyState from './EmptyState'
 
 function ProgressChart({ data, subjects, type: _type = 'line' }) {
   const [selectedSubjects, setSelectedSubjects] = useState(['全体', ...subjects])
@@ -204,10 +205,11 @@ function ProgressChart({ data, subjects, type: _type = 'line' }) {
         </svg>
 
         {data.length === 0 && (
-          <div className="no-data-message">
-            <p>📊 データがまだありません</p>
-            <p className="hint">タスクを完了すると、進捗が記録されます</p>
-          </div>
+          <EmptyState
+            icon="📊"
+            message="データがまだありません"
+            hint="タスクを完了すると、進捗が記録されます"
+          />
         )}
       </div>
     </div>

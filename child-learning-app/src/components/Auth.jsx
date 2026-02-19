@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { auth, googleProvider } from '../firebase'
 import { signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider } from 'firebase/auth'
 import { toast } from '../utils/toast'
+import Loading from './Loading'
 import './Auth.css'
 
 // Google Drive アクセストークンを管理
@@ -70,7 +71,7 @@ function Auth({ onAuthChange }) {
   if (loading) {
     return (
       <div className="auth-container">
-        <div className="auth-loading">読み込み中...</div>
+        <Loading message="読み込み中..." />
       </div>
     )
   }

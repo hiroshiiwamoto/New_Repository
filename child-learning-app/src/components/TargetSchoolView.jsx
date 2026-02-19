@@ -8,6 +8,7 @@ import {
   getDaysUntilExam
 } from '../utils/targetSchools'
 import { toast } from '../utils/toast'
+import EmptyState from './EmptyState'
 
 function TargetSchoolView({ user }) {
   const [schools, setSchools] = useState([])
@@ -169,11 +170,11 @@ function TargetSchoolView({ user }) {
 
       {/* 志望校カード一覧 */}
       {sortedSchools.length === 0 ? (
-        <div className="no-data">
-          🏫 志望校を追加して受験スケジュールを管理しましょう
-          <br />
-          <small>受験日、出願締切、合格最低点などを記録できます</small>
-        </div>
+        <EmptyState
+          icon="🏫"
+          message="志望校を追加して受験スケジュールを管理しましょう"
+          hint="受験日、出願締切、合格最低点などを記録できます"
+        />
       ) : (
         <div className="schools-list">
           {sortedSchools.map(school => {
@@ -291,7 +292,7 @@ function TargetSchoolView({ user }) {
 
       {/* 追加/編集フォーム */}
       {showForm && (
-        <div className="form-overlay" onClick={() => setShowForm(false)}>
+        <div className="modal-overlay-common" onClick={() => setShowForm(false)}>
           <div className="form-container" onClick={(e) => e.stopPropagation()}>
             <h3>{editingSchool ? '✏️ 志望校を編集' : '➕ 志望校を追加'}</h3>
 

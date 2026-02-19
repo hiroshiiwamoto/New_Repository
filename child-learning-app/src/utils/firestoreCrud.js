@@ -17,6 +17,7 @@ import {
   orderBy,
 } from 'firebase/firestore'
 import { db } from '../firebase'
+import { nowISO } from './dateUtils'
 
 /**
  * @param {string} collectionName - サブコレクション名 (例: 'testScores')
@@ -51,7 +52,7 @@ export function createFirestoreService(collectionName, options = {}) {
       try {
         const docData = {
           ...(beforeAdd ? beforeAdd(data) : data),
-          createdAt: new Date().toISOString(),
+          createdAt: nowISO(),
         }
         const docRef = await addDoc(getCollectionRef(userId), docData)
         return { success: true, data: { id: docRef.id, ...docData } }
@@ -93,7 +94,7 @@ export function createFirestoreService(collectionName, options = {}) {
         const docRef = getDocRef(userId, docId)
         const data = {
           ...(beforeUpdate ? beforeUpdate(updates) : updates),
-          updatedAt: new Date().toISOString(),
+          updatedAt: nowISO(),
         }
         await updateDoc(docRef, data)
         return { success: true }

@@ -4,6 +4,7 @@ import PastPaperFields from './PastPaperFields'
 import UnitTagPicker from './UnitTagPicker'
 import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
 import { refreshGoogleAccessToken } from './Auth'
+import { MAX_FILE_SIZE } from '../utils/constants'
 import { toast } from '../utils/toast'
 import DriveFilePicker from './DriveFilePicker'
 
@@ -112,7 +113,7 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
       toast.error('PDFファイルのみアップロード可能です')
       return
     }
-    if (file.size > 20 * 1024 * 1024) {
+    if (file.size > MAX_FILE_SIZE) {
       toast.error('ファイルサイズは20MB以下にしてください')
       return
     }

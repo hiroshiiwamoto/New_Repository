@@ -12,6 +12,7 @@ import {
   where
 } from 'firebase/firestore'
 import { db } from '../firebase'
+import { nowISO } from './dateUtils'
 
 /**
  * 過去問の学習セッションを追加
@@ -26,13 +27,13 @@ export async function addPastPaperSession(userId, taskId, sessionData) {
 
     const newSession = {
       taskId,
-      studiedAt: sessionData.studiedAt || new Date().toISOString(),
+      studiedAt: sessionData.studiedAt || nowISO(),
       attemptNumber: sessionData.attemptNumber || 1,
       score: sessionData.score || null,
       totalScore: sessionData.totalScore || null,
       timeSpent: sessionData.timeSpent || null, // 分
       notes: sessionData.notes || '',
-      createdAt: new Date().toISOString(),
+      createdAt: nowISO(),
     }
 
     const docRef = await addDoc(sessionsRef, newSession)
@@ -133,7 +134,7 @@ export async function updateSession(userId, id, updates) {
     const sessionRef = doc(db, 'users', userId, 'pastPaperSessions', id)
     await updateDoc(sessionRef, {
       ...updates,
-      updatedAt: new Date().toISOString()
+      updatedAt: nowISO()
     })
 
     return { success: true }
