@@ -192,7 +192,7 @@ export default function ProblemClipList({
         fileName: taskGenInfo.fileName || '',
         ...(taskGenInfo.schoolName && { schoolName: taskGenInfo.schoolName }),
         ...(taskGenInfo.year && { year: taskGenInfo.year }),
-        problemImageUrl: problem.imageUrls?.[0] || '',
+        problemImageUrls: problem.imageUrls || [],
         completed: false,
         problemIds: [problem.firestoreId || problem.id],
         generatedFrom: taskGenInfo.sourceRef || { type: sourceType, id: sourceId },

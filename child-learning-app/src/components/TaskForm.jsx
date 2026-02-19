@@ -22,8 +22,8 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
   const [showDrivePicker, setShowDrivePicker] = useState(false)
   const fileInputRef = useRef(null)
 
-  // 解き直しタスク: 紐付き問題画像
-  const [problemImageUrl, setProblemImageUrl] = useState('')
+  // 解き直しタスク: 紐付き問題画像（複数対応）
+  const [problemImageUrls, setProblemImageUrls] = useState([])
 
   // 過去問用のフィールド
   const [schoolName, setSchoolName] = useState('')
@@ -47,7 +47,12 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
       setDueDate(editingTask.dueDate || '')
       setFileUrl(editingTask.fileUrl || '')
       setFileName(editingTask.fileName || '')
-      setProblemImageUrl(editingTask.problemImageUrl || '')
+      // 旧 problemImageUrl（単一文字列）との後方互換
+      setProblemImageUrls(
+        editingTask.problemImageUrls?.length ? editingTask.problemImageUrls
+          : editingTask.problemImageUrl ? [editingTask.problemImageUrl]
+          : []
+      )
       // 過去問フィールド
       setSchoolName(editingTask.schoolName || '')
       setYear(editingTask.year || '')
@@ -70,7 +75,7 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
         dueDate: dueDate || null,
         fileUrl: fileUrl || '',
         fileName: fileName || '',
-        problemImageUrl: problemImageUrl || '',
+        problemImageUrls: problemImageUrls.length ? problemImageUrls : [],
       }
 
       // 過去問の場合、追加情報を含める
@@ -237,14 +242,16 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
         />
       )}
 
-      {/* 紐付き問題画像（解き直しタスク等） */}
-      {problemImageUrl && (
+      {/* 紐付き問題画像（解き直しタスク等・複数対応） */}
+      {problemImageUrls.length > 0 && (
         <div className="form-group">
-          <label>問題画像</label>
+          <label>問題画像（{problemImageUrls.length}枚）</label>
           <div className="task-problem-image-preview">
-            <a href={problemImageUrl} target="_blank" rel="noopener noreferrer">
-              <img src={problemImageUrl} alt="問題画像" className="task-problem-image" />
-            </a>
+            {problemImageUrls.map((url, i) => (
+              <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                <img src={url} alt={`問題画像 ${i + 1}`} className="task-problem-image" />
+              </a>
+            ))}
           </div>
         </div>
       )}
