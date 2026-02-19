@@ -80,7 +80,7 @@ function TargetSchoolView({ user }) {
     }
 
     const result = editingSchool
-      ? await updateTargetSchool(user.uid, editingSchool.firestoreId, form)
+      ? await updateTargetSchool(user.uid, editingSchool.id, form)
       : await addTargetSchool(user.uid, form)
 
     if (result.success) {
@@ -95,9 +95,9 @@ function TargetSchoolView({ user }) {
   const handleDelete = async (school) => {
     if (!window.confirm(`「${school.name}」を削除しますか？`)) return
 
-    const result = await deleteTargetSchool(user.uid, school.firestoreId)
+    const result = await deleteTargetSchool(user.uid, school.id)
     if (result.success) {
-      setSchools(schools.filter(s => s.firestoreId !== school.firestoreId))
+      setSchools(schools.filter(s => s.id !== school.id))
       toast.success('削除しました')
     } else {
       toast.error('削除に失敗しました: ' + result.error)
@@ -149,7 +149,7 @@ function TargetSchoolView({ user }) {
             .map(school => {
               const days = getDaysUntilExam(school.examDate)
               return (
-                <div key={school.firestoreId} className={`countdown-card ${getCountdownClass(days)}`}>
+                <div key={school.id} className={`countdown-card ${getCountdownClass(days)}`}>
                   <div className="countdown-school-name">{school.name}</div>
                   <div className="countdown-number">{days}</div>
                   <div className="countdown-label">日</div>
@@ -181,7 +181,7 @@ function TargetSchoolView({ user }) {
             const daysUntilExam2 = getDaysUntilExam(school.examDate2)
 
             return (
-              <div key={school.firestoreId} className="school-card">
+              <div key={school.id} className="school-card">
                 <div className="school-card-header">
                   <div className="school-info">
                     <span className="school-priority">

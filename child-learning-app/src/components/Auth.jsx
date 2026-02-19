@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { auth, googleProvider } from '../firebase'
 import { signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider } from 'firebase/auth'
+import { toast } from '../utils/toast'
 import './Auth.css'
 
 // Google Drive アクセストークンを管理
@@ -52,7 +53,7 @@ function Auth({ onAuthChange }) {
       }
     } catch (error) {
       console.error('Error signing in with Google:', error)
-      alert('ログインに失敗しました: ' + error.message)
+      toast.error('ログインに失敗しました: ' + error.message)
     }
   }
 
@@ -62,7 +63,7 @@ function Auth({ onAuthChange }) {
       await signOut(auth)
     } catch (error) {
       console.error('Error signing out:', error)
-      alert('ログアウトに失敗しました: ' + error.message)
+      toast.error('ログアウトに失敗しました: ' + error.message)
     }
   }
 

@@ -4,7 +4,7 @@
 
 .problem-clip-section {
   margin-top: 8px;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--color-gray-100);
 }
 
 /* ── トグルボタン ──────────────────────────────────────── */
@@ -19,17 +19,17 @@
   border: none;
   cursor: pointer;
   font-size: 0.85rem;
-  color: #475569;
+  color: var(--color-gray-600);
   font-weight: 600;
   text-align: left;
 }
 .clip-toggle-btn:hover {
-  background: #f8fafc;
+  background: var(--color-gray-50);
 }
 
 .clip-count-badge {
-  background: #e2e8f0;
-  color: #475569;
+  background: var(--color-gray-200);
+  color: var(--color-gray-600);
   padding: 1px 8px;
   border-radius: 10px;
   font-size: 0.75rem;
@@ -37,7 +37,7 @@
   margin-left: 4px;
 }
 .clip-wrong-count {
-  color: #dc2626;
+  color: var(--color-danger-dark);
   font-weight: 600;
 }
 
@@ -53,11 +53,11 @@
   font-size: 0.95rem;
   font-weight: 600;
   margin: 0;
-  color: #1e293b;
+  color: var(--color-gray-800);
 }
 .clip-count-inline {
   font-size: 0.8rem;
-  color: #64748b;
+  color: var(--color-gray-500);
 }
 
 /* ── ボディ ──────────────────────────────────────────── */
@@ -92,8 +92,8 @@
   border: 1px solid transparent;
 }
 .clip-item:hover {
-  background: #f8fafc;
-  border-color: #e2e8f0;
+  background: var(--color-gray-50);
+  border-color: var(--color-gray-200);
 }
 .clip-item.correct {
   background: #f0fdf4;
@@ -125,17 +125,17 @@
   text-align: center;
 }
 .clip-item.correct .clip-correctness { color: #16a34a; }
-.clip-item.incorrect .clip-correctness { color: #dc2626; }
+.clip-item.incorrect .clip-correctness { color: var(--color-danger-dark); }
 
 .clip-number {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--color-gray-800);
 }
 
 .clip-difficulty {
   font-size: 0.7rem;
-  color: #f59e0b;
+  color: var(--color-warning);
 }
 
 .clip-miss-type {
@@ -145,12 +145,12 @@
   font-weight: 500;
 }
 .clip-miss-type.miss-understanding {
-  background: #fee2e2;
-  color: #dc2626;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-dark);
 }
 .clip-miss-type.miss-careless {
-  background: #fef3c7;
-  color: #d97706;
+  background: var(--color-warning-bg);
+  color: var(--color-warning-dark);
 }
 .clip-miss-type.miss-not_studied {
   background: #e0e7ff;
@@ -164,14 +164,14 @@
   font-weight: 600;
 }
 .clip-rate.high { background: #dcfce7; color: #16a34a; }
-.clip-rate.low  { background: #fee2e2; color: #dc2626; }
+.clip-rate.low  { background: var(--color-danger-bg); color: var(--color-danger-dark); }
 
 .clip-subject {
   font-size: 0.7rem;
   padding: 1px 5px;
   border-radius: 3px;
-  background: #f1f5f9;
-  color: #475569;
+  background: var(--color-gray-100);
+  color: var(--color-gray-600);
 }
 
 .clip-units {
@@ -241,13 +241,13 @@
 .clip-task-date-picker label {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #475569;
+  color: var(--color-gray-600);
 }
 
 .clip-task-date-input {
   width: 100%;
   padding: 8px 10px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-gray-200);
   border-radius: 6px;
   font-size: 0.875rem;
 }
@@ -271,14 +271,14 @@
 .clip-form {
   margin-top: 12px;
   padding: 12px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--color-gray-50);
+  border: 1px solid var(--color-gray-200);
   border-radius: 8px;
 }
 .clip-form h4 {
   margin: 0 0 12px;
   font-size: 0.9rem;
-  color: #1e293b;
+  color: var(--color-gray-800);
 }
 
 .clip-form-row {
@@ -294,14 +294,14 @@
   display: block;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #475569;
+  color: var(--color-gray-600);
   margin-bottom: 4px;
 }
 .clip-form-field input,
 .clip-form-field select {
   width: 100%;
   padding: 6px 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-gray-200);
   border-radius: 6px;
   font-size: 0.85rem;
 }
@@ -317,7 +317,7 @@
 .clip-correctness-toggle button {
   flex: 1;
   padding: 6px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-gray-200);
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.85rem;
@@ -330,9 +330,9 @@
   font-weight: 600;
 }
 .clip-correctness-toggle .incorrect-btn.active {
-  background: #fee2e2;
-  border-color: #dc2626;
-  color: #dc2626;
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger-dark);
+  color: var(--color-danger-dark);
   font-weight: 600;
 }
 
@@ -343,17 +343,17 @@
 }
 .clip-miss-btn {
   padding: 4px 10px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-gray-200);
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.8rem;
   background: white;
-  color: #475569;
+  color: var(--color-gray-600);
 }
 .clip-miss-btn.active {
-  background: #fee2e2;
-  border-color: #dc2626;
-  color: #dc2626;
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger-dark);
+  color: var(--color-danger-dark);
   font-weight: 600;
 }
 
@@ -364,17 +364,17 @@
 .clip-diff-btn {
   width: 32px;
   height: 32px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-gray-200);
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.85rem;
   background: white;
-  color: #475569;
+  color: var(--color-gray-600);
 }
 .clip-diff-btn.active {
-  background: #fef3c7;
-  border-color: #f59e0b;
-  color: #d97706;
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning);
+  color: var(--color-warning-dark);
   font-weight: 600;
 }
 
@@ -393,7 +393,7 @@
   max-width: 200px;
   max-height: 120px;
   border-radius: 4px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-gray-200);
 }
 .clip-add-image-btn {
   font-size: 0.8rem;
@@ -422,18 +422,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: var(--z-modal);
   padding: 16px;
 }
 
 .clip-detail-modal {
-  background: white;
+  background: var(--color-white);
   border-radius: 12px;
   max-width: 480px;
   width: 100%;
   max-height: 85vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-xl);
 }
 
 .clip-detail-header {
@@ -441,7 +441,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--color-gray-100);
 }
 .clip-detail-header h3 {
   margin: 0;
@@ -458,14 +458,14 @@
   color: #94a3b8;
   padding: 0 4px;
 }
-.clip-detail-close:hover { color: #475569; }
+.clip-detail-close:hover { color: var(--color-gray-600); }
 
 .clip-correctness-lg {
   font-size: 1.3rem;
   font-weight: 700;
 }
 .clip-correctness-lg.correct { color: #16a34a; }
-.clip-correctness-lg.incorrect { color: #dc2626; }
+.clip-correctness-lg.incorrect { color: var(--color-danger-dark); }
 
 .clip-detail-body {
   padding: 16px 20px;
@@ -479,7 +479,7 @@
   max-width: 100%;
   max-height: 300px;
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-gray-200);
 }
 
 .clip-detail-fields {
@@ -498,19 +498,19 @@
   width: 80px;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--color-gray-500);
   padding-top: 4px;
 }
 .clip-field-value {
   font-size: 0.85rem;
-  color: #1e293b;
+  color: var(--color-gray-800);
   flex: 1;
 }
 
 .clip-status-select {
   padding: 4px 8px;
   border-radius: 6px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-gray-200);
   font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
@@ -520,7 +520,7 @@
   display: flex;
   justify-content: flex-end;
   padding: 12px 20px;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--color-gray-100);
   gap: 8px;
 }
 
@@ -529,11 +529,11 @@
   border: 1px solid #fecaca;
   border-radius: 6px;
   background: #fef2f2;
-  color: #dc2626;
+  color: var(--color-danger-dark);
   cursor: pointer;
   font-size: 0.8rem;
 }
-.clip-delete-btn:hover { background: #fee2e2; }
+.clip-delete-btn:hover { background: var(--color-danger-bg); }
 
 /* ── PDF切り出し科目タブ（問題追加フロー用）───────────── */
 
@@ -544,15 +544,15 @@
 }
 .clip-cropper-tab {
   padding: 4px 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-gray-200);
   border-radius: 6px;
   background: white;
   cursor: pointer;
   font-size: 0.8rem;
 }
 .clip-cropper-tab.active {
-  background: #eff6ff;
-  border-color: #3b82f6;
+  background: var(--color-primary-bg-light);
+  border-color: var(--color-primary);
   color: #1d4ed8;
   font-weight: 600;
 }

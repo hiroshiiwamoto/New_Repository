@@ -17,14 +17,14 @@
   border-radius: 12px;
   padding: 16px;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-sm);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .stat-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-md);
 }
 
 .stat-label {
@@ -65,19 +65,19 @@
   font-size: 0.875rem;
   color: #1d1d1f;
   letter-spacing: -0.01em;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-sm);
 }
 
 .subject-filter-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-md);
   border-color: rgba(0, 0, 0, 0.12);
 }
 
 .subject-filter-btn.active {
-  border-color: #007AFF;
+  border-color: var(--color-primary);
   background: rgba(0, 122, 255, 0.08);
-  color: #007AFF;
+  color: var(--color-primary);
   box-shadow: 0 2px 8px rgba(0, 122, 255, 0.15);
 }
 
@@ -94,7 +94,7 @@
   background: white;
   border-radius: 16px;
   padding: 16px 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-sm);
   flex-wrap: wrap;
   border: 1px solid rgba(0, 0, 0, 0.04);
 }
@@ -122,7 +122,7 @@
   border-radius: 10px;
   font-size: 0.9375rem;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  background: #f5f5f7;
+  background: var(--color-gray-100);
   color: #1d1d1f;
 }
 
@@ -132,9 +132,9 @@
 
 .search-input:focus {
   outline: none;
-  border-color: #007AFF;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
-  background: white;
+  background: var(--color-white);
 }
 
 .clear-search {
@@ -183,20 +183,20 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  background: #f5f5f7;
+  background: var(--color-gray-100);
   color: #1d1d1f;
 }
 
 .sort-select:hover {
-  border-color: #007AFF;
-  background: white;
+  border-color: var(--color-primary);
+  background: var(--color-white);
 }
 
 .sort-select:focus {
   outline: none;
-  border-color: #007AFF;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
-  background: white;
+  background: var(--color-white);
 }
 
 .bulk-mode-btn {
@@ -214,15 +214,15 @@
 }
 
 .bulk-mode-btn:hover {
-  border-color: #007AFF;
+  border-color: var(--color-primary);
   background: rgba(0, 122, 255, 0.08);
   transform: scale(1.02);
 }
 
 .bulk-mode-btn.active {
-  background: #007AFF;
-  color: white;
-  border-color: #007AFF;
+  background: var(--color-primary);
+  color: var(--color-white);
+  border-color: var(--color-primary);
   box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
 }
 
@@ -250,7 +250,7 @@
   width: 20px;
   height: 20px;
   cursor: pointer;
-  accent-color: #007AFF;
+  accent-color: var(--color-primary);
 }
 
 .bulk-select label {
@@ -280,8 +280,8 @@
 }
 
 .bulk-complete-btn {
-  background: #34C759;
-  color: white;
+  background: var(--color-success);
+  color: var(--color-white);
   box-shadow: 0 2px 8px rgba(52, 199, 89, 0.25);
 }
 
@@ -296,8 +296,8 @@
 }
 
 .bulk-delete-btn {
-  background: #FF3B30;
-  color: white;
+  background: var(--color-danger);
+  color: var(--color-white);
   box-shadow: 0 2px 8px rgba(255, 59, 48, 0.25);
 }
 
@@ -339,7 +339,7 @@
 }
 
 .task-item-wrapper.bulk-mode {
-  background: #f5f5f7;
+  background: var(--color-gray-100);
   padding: 10px;
   border-radius: 14px;
 }
@@ -349,7 +349,7 @@
   height: 22px;
   cursor: pointer;
   flex-shrink: 0;
-  accent-color: #007AFF;
+  accent-color: var(--color-primary);
 }
 
 .no-results {
@@ -357,7 +357,7 @@
   border-radius: 20px;
   padding: 60px 20px;
   text-align: center;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-sm);
   border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
@@ -370,8 +370,8 @@
 
 .reset-search-btn {
   padding: 12px 24px;
-  background: #007AFF;
-  color: white;
+  background: var(--color-primary);
+  color: var(--color-white);
   border: none;
   border-radius: 12px;
   font-size: 0.9375rem;
@@ -397,13 +397,13 @@
   border-radius: 20px;
   padding: 12px;
   text-align: center;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-sm);
   border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .empty-state p:first-child {
   font-size: 1.5rem;
-  color: #007AFF;
+  color: var(--color-primary);
   margin-bottom: 12px;
   letter-spacing: -0.02em;
 }

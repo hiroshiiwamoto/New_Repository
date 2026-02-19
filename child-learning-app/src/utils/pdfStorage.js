@@ -102,7 +102,7 @@ export async function uploadPDF(userId, file, metadata, onProgress) {
     return {
       success: true,
       data: {
-        firestoreId: docRef.id,
+        id: docRef.id,
         driveFileId: driveResult.driveFileId,
         viewUrl: driveResult.viewUrl,
         fileName: file.name
@@ -137,7 +137,7 @@ export async function getAllPDFs(userId, filters = {}) {
     const pdfs = []
     querySnapshot.forEach((doc) => {
       pdfs.push({
-        firestoreId: doc.id,
+        id: doc.id,
         ...doc.data()
       })
     })
@@ -152,7 +152,7 @@ export async function getAllPDFs(userId, filters = {}) {
 /**
  * PDFドキュメントを削除（Google Drive + Firestore）
  */
-export async function deletePDF(userId, firestoreId, driveFileId) {
+export async function deletePDF(userId, id, driveFileId) {
   try {
     // Google Drive から削除
     if (driveFileId) {
@@ -164,12 +164,12 @@ export async function deletePDF(userId, firestoreId, driveFileId) {
     }
 
     // Firestoreから削除
-    const pdfDocRef = doc(db, 'users', userId, 'pdfDocuments', firestoreId)
+    const pdfDocRef = doc(db, 'users', userId, 'pdfDocuments', id)
     await deleteDoc(pdfDocRef)
 
     // 関連する問題記録も削除
     const problemsRef = collection(db, 'users', userId, 'pdfProblems')
-    const q = query(problemsRef, where('pdfDocumentId', '==', firestoreId))
+    const q = query(problemsRef, where('pdfDocumentId', '==', id))
     const snapshot = await getDocs(q)
 
     const deletePromises = []
@@ -188,9 +188,9 @@ export async function deletePDF(userId, firestoreId, driveFileId) {
 /**
  * PDFドキュメント情報を更新
  */
-export async function updatePDF(userId, firestoreId, updates) {
+export async function updatePDF(userId, id, updates) {
   try {
-    const pdfDocRef = doc(db, 'users', userId, 'pdfDocuments', firestoreId)
+    const pdfDocRef = doc(db, 'users', userId, 'pdfDocuments', id)
     await updateDoc(pdfDocRef, {
       ...updates,
       updatedAt: new Date().toISOString()
@@ -223,13 +223,13 @@ export async function saveProblemRecord(userId, problemData) {
         ...problemData,
         updatedAt: new Date().toISOString()
       })
-      return { success: true, data: { firestoreId: docRef.id } }
+      return { success: true, data: { id: docRef.id } }
     } else {
       const docRef = await addDoc(problemsRef, {
         ...problemData,
         createdAt: new Date().toISOString()
       })
-      return { success: true, data: { firestoreId: docRef.id } }
+      return { success: true, data: { id: docRef.id } }
     }
   } catch (error) {
     console.error('Error saving problem record:', error)
@@ -254,7 +254,7 @@ export async function getProblemRecords(userId, pdfDocumentId) {
     const problems = []
     snapshot.forEach((doc) => {
       problems.push({
-        firestoreId: doc.id,
+        id: doc.id,
         ...doc.data()
       })
     })

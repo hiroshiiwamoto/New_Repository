@@ -57,11 +57,11 @@ function TestScoreView({ user }) {
     getProblemsForTestScore(user.uid, selectedScore).then(merged => {
       setProblemsCache(merged)
     })
-  }, [user, selectedScore?.firestoreId])
+  }, [user, selectedScore?.id])
 
   useEffect(() => {
     if (!selectedScore) return
-    const updated = scores.find(s => s.firestoreId === selectedScore.firestoreId)
+    const updated = scores.find(s => s.id === selectedScore.id)
     if (updated) setSelectedScore(updated)
   }, [scores])
 
@@ -223,7 +223,7 @@ function TestScoreView({ user }) {
       ...getSubjectPdfs(selectedScore),
       [subject]: { fileUrl, fileName }
     }
-    const result = await updateTestScore(user.uid, selectedScore.firestoreId, { subjectPdfs: updated })
+    const result = await updateTestScore(user.uid, selectedScore.id, { subjectPdfs: updated })
     if (result.success) {
       const refreshResult = await getAllTestScores(user.uid)
       if (refreshResult.success) setScores(refreshResult.data)
@@ -235,7 +235,7 @@ function TestScoreView({ user }) {
   const handleDetachPdf = async (subject) => {
     const updated = { ...getSubjectPdfs(selectedScore) }
     delete updated[subject]
-    const result = await updateTestScore(user.uid, selectedScore.firestoreId, { subjectPdfs: updated })
+    const result = await updateTestScore(user.uid, selectedScore.id, { subjectPdfs: updated })
     if (result.success) {
       const refreshResult = await getAllTestScores(user.uid)
       if (refreshResult.success) setScores(refreshResult.data)
@@ -402,7 +402,7 @@ function TestScoreView({ user }) {
           <div className="test-select-list">
             {sortedScores.map(score => (
               <button
-                key={score.firestoreId}
+                key={score.id}
                 className="test-select-item"
                 onClick={() => setSelectedScore(score)}
               >
@@ -523,7 +523,7 @@ function TestScoreView({ user }) {
         problems={problemsCache}
         onReload={() => reloadProblems()}
         sourceType="test"
-        sourceId={selectedScore.firestoreId}
+        sourceId={selectedScore.id}
         subject=""
         multiSubject
         subjects={SUBJECTS}
@@ -540,7 +540,7 @@ function TestScoreView({ user }) {
         taskGenInfo={{
           title: selectedScore.testName,
           grade: selectedScore.grade,
-          sourceRef: { type: 'test', id: selectedScore.firestoreId },
+          sourceRef: { type: 'test', id: selectedScore.id },
         }}
         onAfterAdd={async (problemData) => {
           // 弱点分析用に lessonLog も作成（単元が選択されている場合のみ）
@@ -550,7 +550,7 @@ function TestScoreView({ user }) {
               unitIds: problemData.unitIds,
               subject: problemData.subject,
               sourceType: 'test',
-              sourceId: selectedScore.firestoreId,
+              sourceId: selectedScore.id,
               sourceName: `${selectedScore.testName} 問${problemData.problemNumber}`,
               date: selectedScore.testDate ? new Date(selectedScore.testDate) : new Date(),
               performance: EVALUATION_SCORES[evaluationKey],
@@ -563,13 +563,13 @@ function TestScoreView({ user }) {
         onUpdateStatus={async (problemId, reviewStatus) => {
           const problem = problemsCache.find(p => p.id === problemId)
           if (problem) {
-            await updateProblem(user.uid, problem.firestoreId, typeof reviewStatus === 'object' ? reviewStatus : { reviewStatus })
+            await updateProblem(user.uid, problem.id, typeof reviewStatus === 'object' ? reviewStatus : { reviewStatus })
           }
         }}
         onDelete={async (problemId) => {
           const problem = problemsCache.find(p => p.id === problemId)
           if (problem) {
-            await deleteProblem(user.uid, problem.firestoreId)
+            await deleteProblem(user.uid, problem.id)
           }
         }}
       />

@@ -34,9 +34,8 @@ export const recordProgressSnapshot = (tasks) => {
     }
   })
 
-  // 今日の学習時間を計算（学習セッションから）
-  const studySessions = getStudySessionsForDate(dateKey)
-  totalStudyTime = studySessions.reduce((sum, session) => sum + (session.duration || 0), 0)
+  // 今日の学習時間（タスクデータに学習時間がある場合のみ）
+  totalStudyTime = 0
 
   // 全体の進捗
   const allCompleted = tasks.filter(task => task.completed).length
@@ -186,12 +185,6 @@ export const getWeeklyProgress = (weeks = 12) => {
   }
 
   return weeklyData
-}
-
-// 指定日の学習セッションを取得（ダミー実装 - 実際は studySessions から取得）
-const getStudySessionsForDate = (_dateKey) => {
-  // TODO: 実際の学習セッションデータと連携
-  return []
 }
 
 // 統計情報を計算

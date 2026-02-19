@@ -11,6 +11,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '../firebase'
 import { ensureMasterUnitsSeeded } from '../utils/importMasterUnits'
+import { toast } from '../utils/toast'
 import './MasterUnitEditor.css'
 
 const CATEGORIES = ['計算', '数の性質', '規則性', '特殊算', '速さ', '割合', '比', '平面図形', '立体図形', '場合の数', 'グラフ・論理']
@@ -78,7 +79,7 @@ function MasterUnitEditor() {
 
   const handleSave = async () => {
     if (!form.name.trim()) {
-      alert('単元名を入力してください')
+      toast.warning('単元名を入力してください')
       return
     }
 
@@ -114,7 +115,7 @@ function MasterUnitEditor() {
       await loadUnits()
     } catch (err) {
       console.error('保存エラー:', err)
-      alert('保存に失敗しました: ' + err.message)
+      toast.error('保存に失敗しました: ' + err.message)
     } finally {
       setSaving(false)
     }
@@ -128,7 +129,7 @@ function MasterUnitEditor() {
       await loadUnits()
     } catch (err) {
       console.error('削除エラー:', err)
-      alert('削除に失敗しました')
+      toast.error('削除に失敗しました')
     }
   }
 

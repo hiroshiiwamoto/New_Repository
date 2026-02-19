@@ -1,5 +1,7 @@
 // 学習セッション管理
 
+import { getUnitById } from './unitsDatabase'
+
 const STORAGE_KEY = 'sapix_study_sessions'
 
 // 学習セッションの構造:
@@ -157,9 +159,3 @@ export function getStudyTimeStats(startDate, endDate) {
   }
 }
 
-// 単元IDから単元情報を取得（unitsDatabase からインポート）
-function getUnitById(unitId) {
-  // この関数は unitsDatabase.js の getUnitById を使用
-  // ここでは簡易的に実装
-  return { unitId }
-}

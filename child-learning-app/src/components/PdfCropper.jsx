@@ -13,7 +13,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 // ─────────────────────────────────────────
 // Props:
 //   userId        : string
-//   attachedPdf   : { firestoreId, driveFileId, fileName } | null
+//   attachedPdf   : { id, driveFileId, fileName } | null
 //   onCropComplete: (imageUrl: string) => void
 //   onClose       : () => void
 // ─────────────────────────────────────────
@@ -494,7 +494,7 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
             ) : (
               <ul className="pdfcropper-pdf-list">
                 {filteredPdfList.map(pdf => (
-                  <li key={pdf.firestoreId} className="pdfcropper-pdf-item">
+                  <li key={pdf.id} className="pdfcropper-pdf-item">
                     <div className="pdfcropper-pdf-info">
                       <span className="pdfcropper-pdf-name">{pdf.fileName}</span>
                       <div className="pdfcropper-pdf-meta">

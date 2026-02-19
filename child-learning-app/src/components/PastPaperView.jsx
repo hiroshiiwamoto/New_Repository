@@ -802,7 +802,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                       {editingTaskId !== task.id && expandedSessions[task.id] && taskSessions.length > 0 && (
                         <div className="sessions-list">
                           {taskSessions.map(session => (
-                            <div key={session.firestoreId} className="session-item">
+                            <div key={session.id} className="session-item">
                               <span className="session-attempt">{session.attemptNumber}回目</span>
                               <span className="session-date">
                                 {new Date(session.studiedAt).toLocaleDateString('ja-JP', {

@@ -58,7 +58,7 @@ function UnitManager({ customUnits = [], onAddCustomUnit, onUpdateUnit, onDelete
     }
 
     if (editingUnit && onUpdateUnit) {
-      await onUpdateUnit(editingUnit.firestoreId, {
+      await onUpdateUnit(editingUnit.id, {
         name: customUnitName,
         category: customUnitCategory,
       })
@@ -78,7 +78,7 @@ function UnitManager({ customUnits = [], onAddCustomUnit, onUpdateUnit, onDelete
     }
 
     if (onDeleteUnit) {
-      await onDeleteUnit(unit.firestoreId)
+      await onDeleteUnit(unit.id)
       toast.success('カスタム単元を削除しました')
     }
   }
@@ -181,7 +181,7 @@ function UnitManager({ customUnits = [], onAddCustomUnit, onUpdateUnit, onDelete
 
             return (
               <div
-                key={unit.firestoreId || unit.id}
+                key={unit.id || unit.id}
                 className="unit-card"
                 style={{ backgroundColor: unitBackgroundColor }}
               >
