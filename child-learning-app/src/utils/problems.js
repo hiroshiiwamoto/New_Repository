@@ -31,7 +31,7 @@ import { db } from '../firebase'
  * @param {boolean} problemData.isCorrect
  * @param {string|null} problemData.missType - 'understanding'|'careless'|'not_studied'|null
  * @param {number|null} problemData.difficulty - 1〜5（過去問のみ）
- * @param {string|null} problemData.imageUrl
+ * @param {string[]}    problemData.imageUrls - 問題画像URL配列
  * @param {string|null} problemData.schoolName - 過去問のみ
  * @param {string|null} problemData.year       - 過去問のみ
  * @param {number|null} problemData.correctRate - テストのみ（全体正答率 %）
@@ -50,7 +50,7 @@ export async function addProblem(userId, problemData) {
       missType: problemData.isCorrect ? null : (problemData.missType || 'understanding'),
       reviewStatus: 'pending',
       difficulty: problemData.difficulty || null,
-      imageUrl: problemData.imageUrl || null,
+      imageUrls: problemData.imageUrls?.length ? problemData.imageUrls : [],
       // 過去問メタデータ
       schoolName: problemData.schoolName || null,
       year: problemData.year || null,
@@ -84,7 +84,14 @@ export async function getProblemsBySource(userId, sourceType, sourceId) {
     )
     const snapshot = await getDocs(q)
     const problems = []
-    snapshot.forEach(d => problems.push({ firestoreId: d.id, ...d.data() }))
+    snapshot.forEach(d => {
+      const data = d.data()
+      // 旧 imageUrl (string) → imageUrls (array) へ正規化
+      if (!data.imageUrls && data.imageUrl) {
+        data.imageUrls = [data.imageUrl]
+      }
+      problems.push({ firestoreId: d.id, ...data })
+    })
     return { success: true, data: problems }
   } catch (error) {
     console.error('Error getting problems:', error)
