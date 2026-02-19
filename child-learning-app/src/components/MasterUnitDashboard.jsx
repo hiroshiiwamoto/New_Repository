@@ -169,6 +169,7 @@ function MasterUnitDashboard() {
   const getSourceLabel = (log) => {
     const type = log.sourceType === 'sapixTask' ? '📘 SAPIXテキスト'
       : log.sourceType === 'pastPaper' ? '📄 過去問'
+      : log.sourceType === 'test' || log.sourceType === 'testScore' ? '📝 テスト'
       : '✏️ 練習'
     return `${type}${log.sourceName ? ': ' + log.sourceName : ''}`
   }

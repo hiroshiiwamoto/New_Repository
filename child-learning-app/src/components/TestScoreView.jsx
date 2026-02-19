@@ -468,13 +468,16 @@ function TestScoreView({ user }) {
             >
               ＋ 問題を追加
             </button>
-            <button
-              className="btn-pdf-crop"
-              onClick={() => setShowPdfCropper(getDefaultSubject())}
-              title="PDFから問題を切り出して追加"
-            >
-              📄 PDFから取り込む
-            </button>
+            {/* PDF切り出しボタンは、いずれかの科目にPDFが紐付いている場合のみ表示 */}
+            {Object.keys(getSubjectPdfs(selectedScore)).length > 0 && (
+              <button
+                className="btn-pdf-crop"
+                onClick={() => setShowPdfCropper(getDefaultSubject())}
+                title="PDFから問題を切り出して追加"
+              >
+                📄 PDFから取り込む
+              </button>
+            )}
           </div>
         </div>
 
