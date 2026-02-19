@@ -109,6 +109,7 @@ function TestScoreView({ user }) {
   function getLinkedTexts(problem) {
     if (!problem.unitIds?.length) return []
     return sapixTexts.filter(t =>
+      t.subject === problem.subject &&  // 科目が一致
       (t.unitIds || []).some(uid => problem.unitIds.includes(uid))
     )
   }
