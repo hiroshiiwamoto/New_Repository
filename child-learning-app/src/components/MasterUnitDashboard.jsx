@@ -6,6 +6,7 @@ import {
   computeAllProficiencies,
   getProficiencyLevel,
   addLessonLogWithStats,
+  resetAllLessonData,
   EVALUATION_SCORES,
   EVALUATION_LABELS,
   EVALUATION_COLORS,
@@ -150,6 +151,25 @@ function MasterUnitDashboard() {
     }
   }
 
+  // データリセット
+  const [resetting, setResetting] = useState(false)
+  const handleReset = async () => {
+    if (!window.confirm('弱点マップの学習記録をすべて削除しますか？\nこの操作は取り消せません。')) return
+    const auth = getAuth()
+    const userId = auth.currentUser?.uid
+    if (!userId) return
+    setResetting(true)
+    try {
+      const result = await resetAllLessonData(userId)
+      if (result.success) {
+        setAllLogs([])
+        setStats({})
+      }
+    } finally {
+      setResetting(false)
+    }
+  }
+
   // ログのフォーマット
   const formatLogDate = (ts) => {
     if (!ts) return '-'
@@ -226,6 +246,14 @@ function MasterUnitDashboard() {
       {<>
       {/* サマリー */}
       <div className="mud-summary">
+        <button
+          className="mud-reset-btn"
+          onClick={handleReset}
+          disabled={resetting || allLogs.length === 0}
+          title="学習記録をすべて削除"
+        >
+          {resetting ? 'リセット中...' : 'データ初期化'}
+        </button>
         <div className="mud-summary-card">
           <div className="mud-summary-value">{studiedUnits}<span className="mud-summary-total">/{totalUnits}</span></div>
           <div className="mud-summary-label">学習済み単元</div>

@@ -82,6 +82,28 @@
   flex-wrap: wrap;
 }
 
+.mud-reset-btn {
+  margin-left: auto;
+  padding: 6px 14px;
+  background: none;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  color: #64748b;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.mud-reset-btn:hover:not(:disabled) {
+  border-color: #dc2626;
+  color: #dc2626;
+  background: #fef2f2;
+}
+.mud-reset-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .mud-summary-card {
   text-align: center;
   min-width: 80px;
