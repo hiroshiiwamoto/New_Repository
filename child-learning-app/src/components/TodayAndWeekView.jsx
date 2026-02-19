@@ -73,6 +73,13 @@ function TodayAndWeekView({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
                       }}
                     >{task.subject}</span>
                     <span className="task-title">{task.title}</span>
+                    {task.problemImageUrl && (
+                      <img
+                        src={task.problemImageUrl}
+                        alt="問題"
+                        className="task-problem-thumb"
+                      />
+                    )}
                     {task.priority && (
                       <span className="task-priority-badge">{task.priority}</span>
                     )}
