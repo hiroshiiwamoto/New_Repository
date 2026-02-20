@@ -419,17 +419,15 @@ function MasterUnitDashboard() {
             </div>
 
             {/* 単元データ初期化 */}
-            {drillLogs.length > 0 && (
-              <div className="mud-drill-reset">
-                <button
-                  className="mud-drill-reset-btn"
-                  onClick={() => handleResetUnit(drillUnit.id, drillUnit.name)}
-                  disabled={resetting}
-                >
-                  {resetting ? 'リセット中...' : 'この単元のデータを初期化'}
-                </button>
-              </div>
-            )}
+            <div className="mud-drill-reset">
+              <button
+                className="mud-drill-reset-btn"
+                onClick={() => handleResetUnit(drillUnit.id, drillUnit.name)}
+                disabled={resetting || drillLogs.length === 0}
+              >
+                {resetting ? 'リセット中...' : 'この単元のデータを初期化'}
+              </button>
+            </div>
           </div>
         </div>
       )}
