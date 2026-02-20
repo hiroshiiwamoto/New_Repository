@@ -5,7 +5,7 @@
   background: rgba(0, 0, 0, 0.6);
   z-index: var(--z-modal);
   display: flex;
-  align-items: stretch;
+  align-items: center;
   justify-content: center;
   padding: 12px;
   overflow: hidden;
@@ -15,14 +15,15 @@
 .pdfcropper-modal {
   background: white;
   border-radius: 12px;
-  width: 100%;
+  width: 90vw;
+  height: calc(100vh - 24px);
   max-width: 1200px;
-  max-height: 100%;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
   gap: 0;
   overflow: hidden;
+  position: relative;
 }
 
 /* ヘッダー */
@@ -483,6 +484,51 @@
   font-weight: 600;
 }
 
+/* リサイズハンドル */
+.pdfcropper-resize-handle {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  bottom: 0;
+  right: 0;
+  cursor: nwse-resize;
+  z-index: 10;
+  background: linear-gradient(
+    135deg,
+    transparent 40%,
+    var(--color-gray-400) 40%,
+    var(--color-gray-400) 45%,
+    transparent 45%,
+    transparent 55%,
+    var(--color-gray-400) 55%,
+    var(--color-gray-400) 60%,
+    transparent 60%,
+    transparent 70%,
+    var(--color-gray-400) 70%,
+    var(--color-gray-400) 75%,
+    transparent 75%
+  );
+  border-radius: 0 0 12px 0;
+}
+
+.pdfcropper-resize-handle:hover {
+  background: linear-gradient(
+    135deg,
+    transparent 40%,
+    var(--color-primary) 40%,
+    var(--color-primary) 45%,
+    transparent 45%,
+    transparent 55%,
+    var(--color-primary) 55%,
+    var(--color-primary) 60%,
+    transparent 60%,
+    transparent 70%,
+    var(--color-primary) 70%,
+    var(--color-primary) 75%,
+    transparent 75%
+  );
+}
+
 /* レスポンシブ */
 @media (max-width: 640px) {
   .pdfcropper-overlay {
@@ -490,6 +536,8 @@
   }
   .pdfcropper-modal {
     border-radius: 0;
+    width: 100% !important;
+    height: 100% !important;
     max-width: 100%;
   }
   .pdfcropper-header {
@@ -501,5 +549,8 @@
   }
   .pdfcropper-preview-area {
     padding: 10px 14px;
+  }
+  .pdfcropper-resize-handle {
+    display: none;
   }
 }
