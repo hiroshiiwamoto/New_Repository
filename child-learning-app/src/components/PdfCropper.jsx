@@ -464,8 +464,8 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
   // ─────────────────────────────────────────
 
   return createPortal(
-    <div className="pdfcropper-overlay" onClick={onClose}>
-      <div ref={modalRef} className="pdfcropper-modal" onClick={e => e.stopPropagation()}>
+    <div className="pdfcropper-overlay">
+      <div ref={modalRef} className="pdfcropper-modal">
         {/* リサイズハンドル */}
         <div
           className="pdfcropper-resize-handle"
