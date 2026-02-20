@@ -132,6 +132,15 @@ body {
 
 /* === Subject Tabs (shared across views) === */
 
+.mud-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-bottom: 2px solid var(--color-gray-200);
+  margin-bottom: 16px;
+}
+
 .mud-subject-tabs {
   display: flex;
   justify-content: center;
@@ -161,6 +170,38 @@ body {
   color: #1d4ed8;
   border-bottom-color: var(--color-primary-dark);
   background: var(--color-primary-bg-light);
+}
+
+/* Header row right-aligned actions (reset button, mode buttons) */
+.mud-header-right {
+  position: absolute;
+  right: 0;
+  display: flex;
+  gap: 4px;
+}
+
+.mud-mode-btn {
+  padding: 6px 14px;
+  background: none;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  color: var(--color-gray-500);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.mud-mode-btn:hover {
+  background: var(--color-gray-100);
+  border-color: var(--color-gray-400);
+}
+
+.mud-mode-btn.active {
+  background: var(--color-primary-bg-light);
+  border-color: var(--color-primary-dark);
+  color: #1d4ed8;
+  font-weight: 600;
 }
 
 /* === Common Form Utilities === */

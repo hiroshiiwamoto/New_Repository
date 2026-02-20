@@ -355,7 +355,7 @@ function SapixTextView({ user }) {
   return (
     <div className="sapix-text-view">
       {/* 科目フィルター */}
-      <div className="dashboard-header">
+      <div className="mud-header-row">
         <div className="mud-subject-tabs">
           {SUBJECTS.map(subject => (
             <button
