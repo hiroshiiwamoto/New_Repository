@@ -444,19 +444,14 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           </button>
         </div>
 
-        <div className="subject-grid">
+        <div className="mud-subject-tabs">
           {SUBJECTS.map((subject) => (
             <button
               key={subject}
-              className={`pastpaper-subject-btn subject-btn-common ${state.selectedSubject === subject ? 'active' : ''}`}
+              className={`mud-subject-btn ${state.selectedSubject === subject ? 'active' : ''}`}
               onClick={() => dispatch({ type: 'SET_FIELD', field: 'selectedSubject', value: subject })}
-              style={{
-                borderColor: state.selectedSubject === subject ? subjectColors[subject] : '#e2e8f0',
-                background: state.selectedSubject === subject ? `${subjectColors[subject]}15` : 'white',
-              }}
             >
-              <span className="subject-emoji">{subjectEmojis[subject]}</span>
-              <span>{subject}</span>
+              {subjectEmojis[subject]} {subject}
             </button>
           ))}
         </div>

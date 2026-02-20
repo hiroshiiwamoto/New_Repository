@@ -24,7 +24,7 @@ body {
 .app-header {
   color: #1d1d1f;
   margin-bottom: 16px;
-  padding: 12px 32px;
+  padding: 6px 32px;
   background: linear-gradient(135deg, var(--color-gray-200) 0%, var(--color-gray-300) 100%);
   border-radius: 20px;
   box-shadow: var(--shadow-md);
@@ -36,14 +36,16 @@ body {
   justify-content: space-between;
   align-items: center;
   gap: 20px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  min-height: 40px;
 }
 
 .header-content h1 {
-  font-size: 2rem;
+  font-size: 1.5rem;
   margin: 0;
   font-weight: 600;
   letter-spacing: -0.02em;
+  line-height: 1;
 }
 
 .target-schools {
@@ -273,11 +275,11 @@ body {
   }
 
   .app-header {
-    padding: 10px 20px;
+    padding: 6px 20px;
   }
 
   .header-content h1 {
-    font-size: 1.625rem;
+    font-size: 1.25rem;
   }
 
   .view-switcher button {
@@ -301,17 +303,12 @@ body {
 
 @media (max-width: 480px) {
   .app-header {
-    padding: 8px 16px;
+    padding: 4px 16px;
     border-radius: 16px;
   }
 
-  .header-content {
-    flex-wrap: nowrap;
-    gap: 12px;
-  }
-
   .header-content h1 {
-    font-size: 1.125rem;
+    font-size: 1.05rem;
     flex: 1;
     min-width: 0;
     font-weight: 600;

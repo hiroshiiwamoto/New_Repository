@@ -18,36 +18,7 @@
   margin-bottom: 16px;
 }
 
-/* 教科タブ */
-.mud-subject-tabs {
-  display: flex;
-  gap: 4px;
-  padding-bottom: 0;
-}
-
-.mud-subject-btn {
-  padding: 8px 18px;
-  border: none;
-  border-bottom: 3px solid transparent;
-  background: none;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-gray-500);
-  cursor: pointer;
-  margin-bottom: -2px;
-  border-radius: 4px 4px 0 0;
-}
-
-.mud-subject-btn:hover {
-  color: var(--color-gray-700);
-  background: var(--color-gray-100);
-}
-
-.mud-subject-btn.active {
-  color: #1d4ed8;
-  border-bottom-color: var(--color-primary-dark);
-  background: var(--color-primary-bg-light);
-}
+/* 教科タブ — スタイルは index.css の .mud-subject-tabs / .mud-subject-btn に統合 */
 
 /* 準備中プレースホルダー */
 .mud-coming-soon {
