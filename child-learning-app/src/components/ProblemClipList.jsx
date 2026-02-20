@@ -209,9 +209,8 @@ export default function ProblemClipList({
     }
   }
 
-  // ── PDF切り出し完了 ───────────────────────────────────
+  // ── PDF切り出し完了（クロッパーは閉じず、画像だけ追加）───
   const handleCropComplete = (imageUrl) => {
-    setShowCropper(false)
     setForm(prev => ({
       ...prev,
       imageUrls: [...prev.imageUrls, imageUrl],
@@ -219,8 +218,13 @@ export default function ProblemClipList({
         ? { subject: showCropper, unitIds: [] }
         : {})
     }))
+    toast.success('画像を追加しました')
+  }
+
+  // ── クロッパーを閉じる（完了ボタン）→ フォームを表示 ──
+  const handleCropperClose = () => {
+    setShowCropper(false)
     setShowForm(true)
-    toast.success('問題画像を取り込みました。残りの情報を入力して追加してください。')
   }
 
   // ── PDF情報解決 ───────────────────────────────────────
@@ -733,7 +737,7 @@ export default function ProblemClipList({
           userId={userId}
           attachedPdf={resolvePdfInfo()}
           onCropComplete={handleCropComplete}
-          onClose={() => setShowCropper(false)}
+          onClose={handleCropperClose}
           headerSlot={
             multiSubject && getSubjectPdf ? (
               <div className="clip-cropper-subject-tabs">

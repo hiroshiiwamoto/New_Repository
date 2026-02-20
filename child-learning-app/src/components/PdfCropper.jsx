@@ -25,6 +25,7 @@ const initialState = {
   croppedPreview: null, croppedBlob: null,
   isUploading: false,
   isPanning: false, panStart: null, lastTapTime: 0,
+  addedCount: 0,
 }
 
 function reducer(state, action) {
@@ -441,6 +442,12 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
       await uploadBytes(storageRef, state.croppedBlob)
       const url = await getDownloadURL(storageRef)
       onCropComplete(url)
+      // 閉じずに選択をリセットし、次の切り出しへ
+      dispatch({ type: 'SET_FIELDS', fields: {
+        selection: null, croppedPreview: null, croppedBlob: null,
+        addedCount: state.addedCount + 1,
+      }})
+      clearOverlay()
     } catch (e) {
       dispatch({ type: 'SET_FIELD', field: 'error', value: '画像の保存に失敗しました: ' + e.message })
     } finally {
@@ -478,8 +485,15 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
 
         {/* ヘッダー */}
         <div className="pdfcropper-header">
-          <h3 className="pdfcropper-title">PDFから問題を切り出す</h3>
-          <button className="pdfcropper-close" onClick={onClose}>✕</button>
+          <h3 className="pdfcropper-title">
+            PDFから問題を切り出す
+            {state.addedCount > 0 && (
+              <span className="pdfcropper-added-badge">{state.addedCount}枚追加済み</span>
+            )}
+          </h3>
+          <button className="pdfcropper-done-btn" onClick={onClose}>
+            {state.addedCount > 0 ? '完了' : '閉じる'}
+          </button>
         </div>
 
         {/* タブ */}
