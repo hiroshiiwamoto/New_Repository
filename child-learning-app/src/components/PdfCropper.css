@@ -213,15 +213,66 @@
   white-space: nowrap;
 }
 
-/* Canvas エリア — flex-growでモーダル内の残り高さを全て使う */
-.pdfcropper-canvas-wrapper {
+/* ビューアエリア（矢印ボタン + Canvas wrapper） */
+.pdfcropper-viewer-area {
   position: relative;
-  overflow: auto;
   flex: 1 1 0;
   min-height: 200px;
+  overflow: hidden;
+}
+
+/* Canvas エリア — ビューアの全体を使う */
+.pdfcropper-canvas-wrapper {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
   background: var(--color-gray-200);
   padding: 10px;
   -webkit-overflow-scrolling: touch;
+}
+
+/* ページ送りボタン（電子コミック風） */
+.pdfcropper-page-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  width: 44px;
+  height: 80px;
+  border: none;
+  background: rgba(0, 0, 0, 0.22);
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease, background 0.2s ease;
+  pointer-events: none;
+}
+
+.pdfcropper-viewer-area:hover .pdfcropper-page-arrow {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.pdfcropper-page-arrow:hover {
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+}
+
+.pdfcropper-page-arrow:active {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.pdfcropper-page-arrow-left {
+  left: 0;
+  border-radius: 0 8px 8px 0;
+}
+
+.pdfcropper-page-arrow-right {
+  right: 0;
+  border-radius: 8px 0 0 8px;
 }
 
 .pdfcropper-canvas-container {
