@@ -1812,3 +1812,293 @@
   gap: 8px;
   justify-content: flex-end;
 }
+
+/* ─── 学校別サマリーバー ─────────────────────────────── */
+.school-summary-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.school-summary-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--color-gray-50);
+  border-radius: 10px;
+  border: 1px solid var(--color-gray-200);
+  transition: all 0.2s;
+}
+
+.school-summary-chip:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg-light);
+}
+
+.chip-school-name {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--color-gray-800);
+}
+
+.chip-attempts {
+  font-size: 0.75rem;
+  color: var(--color-gray-500);
+  background: var(--color-gray-100);
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+.chip-score {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-gray-700);
+  background: var(--color-warning-bg);
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+.chip-score.above-pass {
+  color: #16a34a;
+  background: #dcfce7;
+}
+
+.chip-pass-line {
+  font-size: 0.7rem;
+  color: var(--color-danger-dark);
+  font-weight: 600;
+}
+
+/* ─── 単元別分析サマリー ──────────────────────────────── */
+.unit-stats-summary {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.unit-stats-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-primary-darker);
+  margin-bottom: 12px;
+}
+
+.unit-stats-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.unit-stat-row {
+  display: grid;
+  grid-template-columns: 120px 1fr 100px auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.unit-stat-row:hover {
+  background: var(--color-gray-50);
+}
+
+.unit-stat-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-gray-800);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unit-stat-bar-container {
+  height: 8px;
+  background: var(--color-gray-100);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.unit-stat-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.unit-stat-bar.high { background: #16a34a; }
+.unit-stat-bar.mid { background: #f59e0b; }
+.unit-stat-bar.low { background: #ef4444; }
+
+.unit-stat-rate {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.unit-stat-rate.high { color: #16a34a; }
+.unit-stat-rate.mid { color: #b45309; }
+.unit-stat-rate.low { color: #dc2626; }
+
+.unit-stat-schools {
+  font-size: 0.7rem;
+  color: var(--color-gray-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+/* ─── 得点推移セクション ──────────────────────────────── */
+.score-progress-section {
+  margin: 6px 0;
+  padding: 8px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid var(--color-gray-100);
+}
+
+.score-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.score-progress-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--color-gray-600);
+}
+
+.passing-score-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--color-danger-dark);
+  background: var(--color-danger-bg);
+  padding: 1px 6px;
+  border-radius: 6px;
+}
+
+.score-progress-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.score-bar-item {
+  display: grid;
+  grid-template-columns: 30px 1fr auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.score-bar-attempt {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--color-primary-darker);
+}
+
+.score-bar-track {
+  height: 10px;
+  background: var(--color-gray-100);
+  border-radius: 5px;
+  overflow: visible;
+  position: relative;
+}
+
+.score-bar-pass-line {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  background: var(--color-danger-dark);
+  border-radius: 1px;
+  z-index: 1;
+  opacity: 0.7;
+}
+
+.score-bar-fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.5s ease;
+  position: relative;
+}
+
+.score-bar-fill.above-pass { background: linear-gradient(135deg, #16a34a, #22c55e); }
+.score-bar-fill.mid { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+.score-bar-fill.low { background: linear-gradient(135deg, #ef4444, #f87171); }
+
+.score-bar-value {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--color-gray-600);
+  white-space: nowrap;
+}
+
+.score-bar-value.above-pass {
+  color: #16a34a;
+}
+
+/* ─── レスポンシブ: 新規追加要素 ──────────────────────── */
+@media (max-width: 2000px) {
+  .unit-stat-row {
+    grid-template-columns: 100px 1fr 80px auto;
+    gap: 6px;
+  }
+
+  .unit-stat-name {
+    font-size: 0.78rem;
+  }
+
+  .unit-stat-schools {
+    display: none;
+  }
+
+  .school-summary-bar {
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .school-summary-chip {
+    padding: 6px 10px;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .unit-stat-row {
+    grid-template-columns: 80px 1fr 70px;
+    gap: 4px;
+  }
+
+  .unit-stat-schools {
+    display: none;
+  }
+
+  .school-summary-chip {
+    padding: 4px 8px;
+    gap: 4px;
+    font-size: 0.8rem;
+  }
+
+  .chip-school-name {
+    font-size: 0.78rem;
+  }
+
+  .score-bar-item {
+    grid-template-columns: 25px 1fr auto;
+    gap: 4px;
+  }
+}
