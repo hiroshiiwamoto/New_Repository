@@ -12,6 +12,7 @@ import {
 import { db } from '../firebase'
 import { ensureMasterUnitsSeeded } from '../utils/importMasterUnits'
 import { toast } from '../utils/toast'
+import { LABELS, TOAST } from '../utils/messages'
 import Loading from './Loading'
 import './MasterUnitEditor.css'
 
@@ -116,7 +117,7 @@ function MasterUnitEditor() {
       await loadUnits()
     } catch (err) {
       console.error('保存エラー:', err)
-      toast.error('保存に失敗しました: ' + err.message)
+      toast.error(TOAST.SAVE_FAILED + ': ' + err.message)
     } finally {
       setSaving(false)
     }
@@ -130,7 +131,7 @@ function MasterUnitEditor() {
       await loadUnits()
     } catch (err) {
       console.error('削除エラー:', err)
-      toast.error('削除に失敗しました')
+      toast.error(TOAST.DELETE_FAILED)
     }
   }
 
@@ -313,7 +314,7 @@ function MasterUnitEditor() {
 
             <div className="mue-modal-actions">
               <button className="mue-btn-cancel" onClick={() => setModal(null)} disabled={saving}>
-                キャンセル
+                {LABELS.CANCEL}
               </button>
               <button className="mue-btn-save" onClick={handleSave} disabled={saving || !form.name.trim()}>
                 {saving ? '保存中...' : '保存'}

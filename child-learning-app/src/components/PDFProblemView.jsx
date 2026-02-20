@@ -11,7 +11,8 @@ import {
   checkDriveAccess
 } from '../utils/pdfStorage'
 import { refreshGoogleAccessToken } from './Auth'
-import { MAX_FILE_SIZE } from '../utils/constants'
+import { MAX_FILE_SIZE, SUBJECTS } from '../utils/constants'
+import { LABELS, TOAST } from '../utils/messages'
 import { toast } from '../utils/toast'
 import EmptyState from './EmptyState'
 
@@ -93,12 +94,12 @@ function PDFProblemView({ user }) {
     if (!file) return
 
     if (file.type !== 'application/pdf') {
-      toast.error('PDFファイルのみアップロード可能です')
+      toast.error(TOAST.PDF_ONLY)
       return
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      toast.error('ファイルサイズは20MB以下にしてください')
+      toast.error(TOAST.FILE_TOO_LARGE)
       return
     }
 
@@ -106,7 +107,7 @@ function PDFProblemView({ user }) {
     if (!driveConnected) {
       const token = await refreshGoogleAccessToken()
       if (!token) {
-        toast.error('Google Drive に接続してからアップロードしてください')
+        toast.error(TOAST.DRIVE_NOT_CONNECTED)
         return
       }
       setDriveConnected(true)
@@ -124,7 +125,7 @@ function PDFProblemView({ user }) {
       )
 
       if (result.success) {
-        toast.success('PDFをGoogle Driveにアップロードしました')
+        toast.success(TOAST.UPLOAD_SUCCESS)
         await loadPDFs()
         await loadStorageUsage()
         setShowUploadForm(false)
@@ -136,10 +137,10 @@ function PDFProblemView({ user }) {
           type: 'textbook'
         })
       } else {
-        toast.error('アップロードに失敗しました: ' + result.error)
+        toast.error(TOAST.UPLOAD_ERROR + ': ' + result.error)
       }
     } catch (error) {
-      toast.error('アップロードエラー: ' + error.message)
+      toast.error(TOAST.UPLOAD_ERROR + ': ' + error.message)
     } finally {
       setUploading(false)
       setUploadProgress(0)
@@ -154,7 +155,7 @@ function PDFProblemView({ user }) {
 
     const result = await deletePDF(user.uid, pdf.id, pdf.driveFileId)
     if (result.success) {
-      toast.success('削除しました')
+      toast.success(TOAST.DELETE_SUCCESS)
       await loadPDFs()
       await loadStatistics()
       await loadStorageUsage()
@@ -163,7 +164,7 @@ function PDFProblemView({ user }) {
         setProblems([])
       }
     } else {
-      toast.error('削除に失敗しました: ' + result.error)
+      toast.error(TOAST.DELETE_FAILED + ': ' + result.error)
     }
   }
 
@@ -187,7 +188,7 @@ function PDFProblemView({ user }) {
       await loadProblems(selectedPDF.id)
       await loadStatistics()
     } else {
-      toast.error('記録に失敗しました')
+      toast.error(TOAST.SAVE_FAILED)
     }
   }
 
@@ -370,10 +371,9 @@ function PDFProblemView({ user }) {
                 onChange={(e) => setUploadMetadata({ ...uploadMetadata, subject: e.target.value })}
                 disabled={uploading}
               >
-                <option value="国語">国語</option>
-                <option value="算数">算数</option>
-                <option value="理科">理科</option>
-                <option value="社会">社会</option>
+                {SUBJECTS.map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
               </select>
             </div>
 
@@ -456,7 +456,7 @@ function PDFProblemView({ user }) {
                 onClick={() => setShowUploadForm(false)}
                 disabled={uploading}
               >
-                キャンセル
+                {LABELS.CANCEL}
               </button>
             </div>
           </div>

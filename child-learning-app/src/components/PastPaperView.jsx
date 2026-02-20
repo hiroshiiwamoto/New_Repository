@@ -1,7 +1,6 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { useReducer, useEffect, useMemo, useCallback, useRef } from 'react'
 import './PastPaperView.css'
 import { getTodayString } from '../utils/dateUtils'
-import { subjects } from '../utils/unitsDatabase'
 import { getStaticMasterUnits } from '../utils/importMasterUnits'
 import {
   getSessionsByTaskId,
@@ -13,9 +12,10 @@ import {
   getProblemsBySource,
   deleteProblemsBySource,
 } from '../utils/problems'
-import { subjectColors, subjectEmojis, MAX_FILE_SIZE } from '../utils/constants'
+import { subjectColors, subjectEmojis, MAX_FILE_SIZE, SUBJECTS } from '../utils/constants'
 import EmptyState from './EmptyState'
 import { toast } from '../utils/toast'
+import { LABELS, TOAST } from '../utils/messages'
 import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
 import { refreshGoogleAccessToken } from './Auth'
 import DriveFilePicker from './DriveFilePicker'
@@ -36,38 +36,48 @@ function extractDriveFileId(fileUrl) {
 
 const getTaskUnitIds = (task) => task.unitIds || []
 
-function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask, onDeleteTask }) {
-  const [viewMode, setViewMode] = useState('school') // 'school' or 'unit'
-  const [selectedSubject, setSelectedSubject] = useState('算数')
-  const [masterUnits, setMasterUnits] = useState([])
-  const [sessions, setSessions] = useState({}) // taskId -> sessions[]
-  const [showSessionForm, setShowSessionForm] = useState(null) // taskId
-  const [sessionForm, setSessionForm] = useState({
+const initialState = {
+  viewMode: 'school',
+  selectedSubject: '算数',
+  masterUnits: [],
+  sessions: {},
+  showSessionForm: null,
+  sessionForm: {
     studiedAt: getTodayString(),
     score: '',
     totalScore: '',
     timeSpent: '',
     notes: ''
-  })
-  const [showAddForm, setShowAddForm] = useState(false)
-  const [addForm, setAddForm] = useState({ ...EMPTY_ADD_FORM })
-  const [editingTaskId, setEditingTaskId] = useState(null)
-  const [editForm, setEditForm] = useState({ ...EMPTY_EDIT_FORM })
-  const [expandedSessions, setExpandedSessions] = useState({}) // taskId -> boolean
-  const [uploading, setUploading] = useState(false)
-  const [uploadTarget, setUploadTarget] = useState(null) // 'add' | taskId | null
-  const [showDrivePicker, setShowDrivePicker] = useState(null) // 'add' | 'edit' | null
-  const [viewingPDF, setViewingPDF] = useState(null) // { taskId, fileUrl, title }
-  const [fullscreenPDF, setFullscreenPDF] = useState(null) // { fileUrl, title }
+  },
+  showAddForm: false,
+  addForm: { ...EMPTY_ADD_FORM },
+  editingTaskId: null,
+  editForm: { ...EMPTY_EDIT_FORM },
+  expandedSessions: {},
+  uploading: false,
+  uploadTarget: null,
+  showDrivePicker: null,
+  viewingPDF: null,
+  fullscreenPDF: null,
+  problems: {},
+}
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'SET_FIELD': return { ...state, [action.field]: action.value }
+    case 'SET_FIELDS': return { ...state, ...action.fields }
+    default: return state
+  }
+}
+
+function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask, onDeleteTask }) {
+  const [state, dispatch] = useReducer(reducer, initialState)
   const addFileInputRef = useRef(null)
   const editFileInputRef = useRef(null)
 
-  // ── 問題ログ関連 ──────────────────────────────────────────
-  const [problems, setProblems] = useState({})           // taskId -> problems[]
-
   // マスター単元を読み込み
   useEffect(() => {
-    setMasterUnits(getStaticMasterUnits())
+    dispatch({ type: 'SET_FIELD', field: 'masterUnits', value: getStaticMasterUnits() })
   }, [])
 
   // ── 問題ログ読み込み ──────────────────────────────────────
@@ -75,20 +85,20 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     if (!user) return
     const result = await getProblemsBySource(user.uid, 'pastPaper', taskId)
     if (result.success) {
-      setProblems(prev => ({ ...prev, [taskId]: result.data }))
+      dispatch({ type: 'SET_FIELD', field: 'problems', value: { ...state.problems, [taskId]: result.data } })
     }
-  }, [user])
+  }, [user, state.problems])
 
 
   // PDF を Google Drive にアップロードする共通処理
   const handlePDFUpload = async (file, target) => {
     if (!file) return
     if (file.type !== 'application/pdf') {
-      toast.error('PDFファイルのみアップロード可能です')
+      toast.error(TOAST.PDF_ONLY)
       return
     }
     if (file.size > MAX_FILE_SIZE) {
-      toast.error('ファイルサイズは20MB以下にしてください')
+      toast.error(TOAST.FILE_TOO_LARGE)
       return
     }
 
@@ -96,37 +106,35 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     if (!hasAccess) {
       const token = await refreshGoogleAccessToken()
       if (!token) {
-        toast.error('Google Drive に接続してからアップロードしてください')
+        toast.error(TOAST.DRIVE_NOT_CONNECTED)
         return
       }
     }
 
-    setUploading(true)
-    setUploadTarget(target)
+    dispatch({ type: 'SET_FIELDS', fields: { uploading: true, uploadTarget: target } })
     try {
       const result = await uploadPDFToDrive(file, () => {})
       const viewUrl = `https://drive.google.com/file/d/${result.driveFileId}/view`
 
       if (target === 'add') {
-        setAddForm(prev => ({ ...prev, fileUrl: viewUrl, fileName: file.name }))
+        dispatch({ type: 'SET_FIELD', field: 'addForm', value: { ...state.addForm, fileUrl: viewUrl, fileName: file.name } })
       } else {
-        setEditForm(prev => ({ ...prev, fileUrl: viewUrl, fileName: file.name }))
+        dispatch({ type: 'SET_FIELD', field: 'editForm', value: { ...state.editForm, fileUrl: viewUrl, fileName: file.name } })
       }
-      toast.success('PDFをGoogle Driveにアップロードしました')
+      toast.success(TOAST.UPLOAD_SUCCESS)
     } catch (error) {
-      toast.error('アップロードエラー: ' + error.message)
+      toast.error(TOAST.UPLOAD_ERROR + error.message)
     } finally {
-      setUploading(false)
-      setUploadTarget(null)
+      dispatch({ type: 'SET_FIELDS', fields: { uploading: false, uploadTarget: null } })
     }
   }
 
   // 過去問タスクのみフィルタリング（クリップ由来の個別問題タスクは除外）
   const pastPaperTasks = useMemo(() => {
     return tasks.filter(
-      t => t.taskType === 'pastpaper' && t.subject === selectedSubject && !t.generatedFrom
+      t => t.taskType === 'pastpaper' && t.subject === state.selectedSubject && !t.generatedFrom
     )
-  }, [tasks, selectedSubject])
+  }, [tasks, state.selectedSubject])
 
   // セッションデータを読み込み
   const loadSessions = useCallback(async () => {
@@ -139,7 +147,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
         sessionData[task.id] = result.data
       }
     }
-    setSessions(sessionData)
+    dispatch({ type: 'SET_FIELD', field: 'sessions', value: sessionData })
   }, [user, pastPaperTasks])
 
   useEffect(() => {
@@ -181,7 +189,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
 
   // 単元IDから単元名を取得
   const getUnitName = (unitId) => {
-    const mu = masterUnits.find(u => u.id === unitId)
+    const mu = state.masterUnits.find(u => u.id === unitId)
     if (mu) return mu.name
     const cu = customUnits.find(u => u.id === unitId)
     if (cu) return cu.name
@@ -190,14 +198,16 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
 
   // セッション記録フォームを開く
   const handleOpenSessionForm = (taskId) => {
-    setShowSessionForm(taskId)
-    setSessionForm({
-      studiedAt: getTodayString(),
-      score: '',
-      totalScore: '',
-      timeSpent: '',
-      notes: ''
-    })
+    dispatch({ type: 'SET_FIELDS', fields: {
+      showSessionForm: taskId,
+      sessionForm: {
+        studiedAt: getTodayString(),
+        score: '',
+        totalScore: '',
+        timeSpent: '',
+        notes: ''
+      }
+    }})
   }
 
   // セッション記録を保存
@@ -210,18 +220,18 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     const attemptNumber = await getNextAttemptNumber(user.uid, taskId)
 
     const sessionData = {
-      ...sessionForm,
+      ...state.sessionForm,
       attemptNumber,
-      score: sessionForm.score ? parseInt(sessionForm.score) : null,
-      totalScore: sessionForm.totalScore ? parseInt(sessionForm.totalScore) : null,
-      timeSpent: sessionForm.timeSpent ? parseInt(sessionForm.timeSpent) : null,
+      score: state.sessionForm.score ? parseInt(state.sessionForm.score) : null,
+      totalScore: state.sessionForm.totalScore ? parseInt(state.sessionForm.totalScore) : null,
+      timeSpent: state.sessionForm.timeSpent ? parseInt(state.sessionForm.timeSpent) : null,
     }
 
     const result = await addPastPaperSession(user.uid, taskId, sessionData)
 
     if (result.success) {
       await loadSessions()
-      setShowSessionForm(null)
+      dispatch({ type: 'SET_FIELD', field: 'showSessionForm', value: null })
       toast.success('学習記録を保存しました')
     } else {
       toast.error('保存に失敗しました: ' + result.error)
@@ -238,28 +248,27 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
 
   // 過去問タスクを追加
   const handleAddPastPaper = async () => {
-    if (!addForm.schoolName || !addForm.year) {
+    if (!state.addForm.schoolName || !state.addForm.year) {
       toast.error('学校名と年度を入力してください')
       return
     }
 
     const newTask = {
-      title: `${addForm.schoolName} ${addForm.year}`,
+      title: `${state.addForm.schoolName} ${state.addForm.year}`,
       taskType: 'pastpaper',
-      subject: addForm.subject,
+      subject: state.addForm.subject,
       grade: '全学年',
-      schoolName: addForm.schoolName,
-      year: addForm.year,
-      unitIds: addForm.unitIds,
-      fileUrl: addForm.fileUrl,
-      fileName: addForm.fileName,
-      dueDate: addForm.dueDate || null,
+      schoolName: state.addForm.schoolName,
+      year: state.addForm.year,
+      unitIds: state.addForm.unitIds,
+      fileUrl: state.addForm.fileUrl,
+      fileName: state.addForm.fileName,
+      dueDate: state.addForm.dueDate || null,
       priority: 'medium'
     }
 
     await onAddTask(newTask)
-    setAddForm({ ...EMPTY_ADD_FORM })
-    setShowAddForm(false)
+    dispatch({ type: 'SET_FIELDS', fields: { addForm: { ...EMPTY_ADD_FORM }, showAddForm: false } })
     toast.success('過去問を追加しました')
   }
 
@@ -293,44 +302,45 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
 
   // 過去問タスクの編集を開始
   const handleStartEdit = (task) => {
-    setEditingTaskId(task.id)
-    setEditForm({
-      schoolName: task.schoolName || '',
-      year: task.year || '',
-      subject: task.subject || '算数',
-      unitIds: getTaskUnitIds(task),
-      fileUrl: task.fileUrl || '',
-      fileName: task.fileName || '',
-      dueDate: task.dueDate || ''
-    })
+    dispatch({ type: 'SET_FIELDS', fields: {
+      editingTaskId: task.id,
+      editForm: {
+        schoolName: task.schoolName || '',
+        year: task.year || '',
+        subject: task.subject || '算数',
+        unitIds: getTaskUnitIds(task),
+        fileUrl: task.fileUrl || '',
+        fileName: task.fileName || '',
+        dueDate: task.dueDate || ''
+      }
+    }})
   }
 
   // 過去問タスクの編集をキャンセル
   const handleCancelEdit = () => {
-    setEditingTaskId(null)
-    setEditForm({ ...EMPTY_EDIT_FORM })
+    dispatch({ type: 'SET_FIELDS', fields: { editingTaskId: null, editForm: { ...EMPTY_EDIT_FORM } } })
   }
 
   // 過去問タスクの編集を保存
   const handleSaveEdit = async () => {
-    if (!editForm.schoolName || !editForm.year) {
+    if (!state.editForm.schoolName || !state.editForm.year) {
       toast.error('学校名と年度を入力してください')
       return
     }
 
     const updatedTask = {
-      title: `${editForm.schoolName} ${editForm.year}`,
-      schoolName: editForm.schoolName,
-      year: editForm.year,
-      subject: editForm.subject,
-      unitIds: editForm.unitIds,
-      fileUrl: editForm.fileUrl,
-      fileName: editForm.fileName,
-      dueDate: editForm.dueDate || null
+      title: `${state.editForm.schoolName} ${state.editForm.year}`,
+      schoolName: state.editForm.schoolName,
+      year: state.editForm.year,
+      subject: state.editForm.subject,
+      unitIds: state.editForm.unitIds,
+      fileUrl: state.editForm.fileUrl,
+      fileName: state.editForm.fileName,
+      dueDate: state.editForm.dueDate || null
     }
 
-    await onUpdateTask(editingTaskId, updatedTask)
-    setEditingTaskId(null)
+    await onUpdateTask(state.editingTaskId, updatedTask)
+    dispatch({ type: 'SET_FIELD', field: 'editingTaskId', value: null })
     toast.success('過去問を更新しました')
   }
 
@@ -346,23 +356,20 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
 
   // PDFプレビューを表示
   const handleViewPDF = (task) => {
-    if (viewingPDF?.taskId === task.id) {
-      setViewingPDF(null)
+    if (state.viewingPDF?.taskId === task.id) {
+      dispatch({ type: 'SET_FIELD', field: 'viewingPDF', value: null })
     } else {
-      setViewingPDF({ taskId: task.id, fileUrl: task.fileUrl, title: task.title })
+      dispatch({ type: 'SET_FIELD', field: 'viewingPDF', value: { taskId: task.id, fileUrl: task.fileUrl, title: task.title } })
     }
   }
 
   // 学習記録の展開/折りたたみをトグル
   const toggleSessionExpanded = (taskId) => {
-    setExpandedSessions(prev => ({
-      ...prev,
-      [taskId]: !prev[taskId]
-    }))
+    dispatch({ type: 'SET_FIELD', field: 'expandedSessions', value: { ...state.expandedSessions, [taskId]: !state.expandedSessions[taskId] } })
   }
 
   // ファイルエリア（新規アップロード or Driveから選択）
-  const renderFileArea = (form, setForm, target) => {
+  const renderFileArea = (form, formField, target) => {
     const isAdd = target === 'add'
     const fileInputRef = isAdd ? addFileInputRef : editFileInputRef
 
@@ -375,7 +382,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           </a>
           <button
             type="button"
-            onClick={() => setForm(prev => ({ ...prev, fileUrl: '', fileName: '' }))}
+            onClick={() => dispatch({ type: 'SET_FIELD', field: formField, value: { ...form, fileUrl: '', fileName: '' } })}
           >
             &times;
           </button>
@@ -389,7 +396,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           ref={fileInputRef}
           type="file"
           accept="application/pdf"
-          style={{ display: 'none' }}
+          className="hidden-input"
           onChange={(e) => {
             handlePDFUpload(e.target.files[0], target)
             e.target.value = ''
@@ -399,23 +406,23 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           type="button"
           className="sapix-upload-btn"
           onClick={() => fileInputRef.current?.click()}
-          disabled={uploading && uploadTarget === target}
+          disabled={state.uploading && state.uploadTarget === target}
         >
-          {uploading && uploadTarget === target ? 'アップロード中...' : '新規アップロード'}
+          {state.uploading && state.uploadTarget === target ? LABELS.UPLOADING : LABELS.UPLOAD_NEW}
         </button>
         <span className="sapix-or">または</span>
         <button
           type="button"
           className="sapix-drive-btn"
-          onClick={() => setShowDrivePicker(isAdd ? 'add' : 'edit')}
+          onClick={() => dispatch({ type: 'SET_FIELD', field: 'showDrivePicker', value: isAdd ? 'add' : 'edit' })}
         >
-          Driveから選択
+          {LABELS.DRIVE_SELECT}
         </button>
       </div>
     )
   }
 
-  const groupedData = viewMode === 'school' ? groupBySchool() : groupByUnit()
+  const groupedData = state.viewMode === 'school' ? groupBySchool() : groupByUnit()
 
   return (
     <div className="pastpaper-view">
@@ -424,36 +431,28 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
         <div className="selection-area">
           <label>表示モード:</label>
           <button
-            className={`grade-btn ${viewMode === 'school' ? 'active' : ''}`}
-            onClick={() => setViewMode('school')}
+            className={`grade-btn ${state.viewMode === 'school' ? 'active' : ''}`}
+            onClick={() => dispatch({ type: 'SET_FIELD', field: 'viewMode', value: 'school' })}
           >
             学校別
           </button>
           <button
-            className={`grade-btn ${viewMode === 'unit' ? 'active' : ''}`}
-            onClick={() => setViewMode('unit')}
+            className={`grade-btn ${state.viewMode === 'unit' ? 'active' : ''}`}
+            onClick={() => dispatch({ type: 'SET_FIELD', field: 'viewMode', value: 'unit' })}
           >
             単元別
           </button>
         </div>
 
         <div className="subject-grid">
-          {subjects.map((subject) => (
+          {SUBJECTS.map((subject) => (
             <button
               key={subject}
-              className={`pastpaper-subject-btn ${selectedSubject === subject ? 'active' : ''}`}
-              onClick={() => setSelectedSubject(subject)}
+              className={`pastpaper-subject-btn subject-btn-common ${state.selectedSubject === subject ? 'active' : ''}`}
+              onClick={() => dispatch({ type: 'SET_FIELD', field: 'selectedSubject', value: subject })}
               style={{
-                borderColor: selectedSubject === subject ? subjectColors[subject] : '#e2e8f0',
-                background: selectedSubject === subject ? `${subjectColors[subject]}15` : 'white',
-                padding: '12px',
-                fontSize: '0.9rem',
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '10px',
-                whiteSpace: 'nowrap',
+                borderColor: state.selectedSubject === subject ? subjectColors[subject] : '#e2e8f0',
+                background: state.selectedSubject === subject ? `${subjectColors[subject]}15` : 'white',
               }}
             >
               <span className="subject-emoji">{subjectEmojis[subject]}</span>
@@ -473,15 +472,15 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           </div>
           <button
             className="add-pastpaper-btn"
-            onClick={() => setShowAddForm(!showAddForm)}
+            onClick={() => dispatch({ type: 'SET_FIELD', field: 'showAddForm', value: !state.showAddForm })}
           >
-            {showAddForm ? '✕ 閉じる' : '+ 過去問を追加'}
+            {state.showAddForm ? '✕ 閉じる' : '+ 過去問を追加'}
           </button>
         </div>
       </div>
 
       {/* 過去問追加フォーム */}
-      {showAddForm && (
+      {state.showAddForm && (
         <div className="add-pastpaper-form">
           <h3>📝 新しい過去問を追加</h3>
 
@@ -489,15 +488,15 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           <div className="add-form-section">
             <label className="section-label">科目:</label>
             <div className="subject-selector-inline">
-              {subjects.map((subject) => (
+              {SUBJECTS.map((subject) => (
                 <button
                   key={subject}
                   type="button"
-                  className={`subject-btn ${addForm.subject === subject ? 'active' : ''}`}
-                  onClick={() => setAddForm({ ...addForm, subject, unitIds: [] })}
+                  className={`subject-btn subject-btn-common ${state.addForm.subject === subject ? 'active' : ''}`}
+                  onClick={() => dispatch({ type: 'SET_FIELD', field: 'addForm', value: { ...state.addForm, subject, unitIds: [] } })}
                   style={{
-                    borderColor: addForm.subject === subject ? subjectColors[subject] : '#e2e8f0',
-                    background: addForm.subject === subject ? `${subjectColors[subject]}15` : 'white',
+                    borderColor: state.addForm.subject === subject ? subjectColors[subject] : '#e2e8f0',
+                    background: state.addForm.subject === subject ? `${subjectColors[subject]}15` : 'white',
                   }}
                 >
                   <span className="subject-emoji">{subjectEmojis[subject]}</span>
@@ -508,23 +507,23 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           </div>
 
           {/* 学校名 */}
-          <div className="add-form-field" style={{ marginBottom: '12px' }}>
+          <div className="add-form-field form-field-sm">
             <label>学校名:</label>
             <input
               type="text"
               placeholder="例: 開成中学校"
-              value={addForm.schoolName}
-              onChange={(e) => setAddForm({ ...addForm, schoolName: e.target.value })}
+              value={state.addForm.schoolName}
+              onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'addForm', value: { ...state.addForm, schoolName: e.target.value } })}
             />
           </div>
 
           {/* 年度 */}
-          <div className="add-form-field" style={{ marginBottom: '16px' }}>
+          <div className="add-form-field form-field-md">
             <label>年度:</label>
             <select
-              value={addForm.year}
-              onChange={(e) => setAddForm({ ...addForm, year: e.target.value })}
-              style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}
+              value={state.addForm.year}
+              onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'addForm', value: { ...state.addForm, year: e.target.value } })}
+              className="form-input-common"
             >
               <option value="">年度を選択</option>
               {YEAR_OPTIONS.map(y => (
@@ -534,29 +533,29 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           </div>
 
           {/* 実施日 */}
-          <div className="add-form-field" style={{ marginBottom: '12px' }}>
+          <div className="add-form-field form-field-sm">
             <label>📅 実施日（任意）:</label>
             <input
               type="date"
-              value={addForm.dueDate}
-              onChange={(e) => setAddForm({ ...addForm, dueDate: e.target.value })}
-              style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}
+              value={state.addForm.dueDate}
+              onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'addForm', value: { ...state.addForm, dueDate: e.target.value } })}
+              className="form-input-common"
             />
           </div>
 
           {/* 問題ファイル */}
           <div className="add-form-section">
             <label className="section-label">問題PDF（任意）:</label>
-            {renderFileArea(addForm, setAddForm, 'add')}
+            {renderFileArea(state.addForm, 'addForm', 'add')}
           </div>
 
           {/* 単元タグ */}
           <div className="add-form-section">
             <label className="section-label">単元タグ（任意）:</label>
             <UnitTagPicker
-              subject={addForm.subject}
-              value={addForm.unitIds}
-              onChange={(unitIds) => setAddForm(prev => ({ ...prev, unitIds }))}
+              subject={state.addForm.subject}
+              value={state.addForm.unitIds}
+              onChange={(unitIds) => dispatch({ type: 'SET_FIELD', field: 'addForm', value: { ...state.addForm, unitIds } })}
             />
           </div>
 
@@ -564,11 +563,10 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
             <button
               className="btn-secondary"
               onClick={() => {
-                setShowAddForm(false)
-                setAddForm({ ...EMPTY_ADD_FORM })
+                dispatch({ type: 'SET_FIELDS', fields: { showAddForm: false, addForm: { ...EMPTY_ADD_FORM } } })
               }}
             >
-              キャンセル
+              {LABELS.CANCEL}
             </button>
             <button className="btn-primary" onClick={handleAddPastPaper}>
               ✓ 追加する
@@ -589,19 +587,19 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           Object.entries(groupedData).map(([key, taskList]) => (
             <div key={key} className="pastpaper-group">
               <h3 className="group-title">
-                {viewMode === 'school' ? `🏫 ${key}` : `📚 ${key === '未分類' ? '未分類' : getUnitName(key)}`}
+                {state.viewMode === 'school' ? `🏫 ${key}` : `📚 ${key === '未分類' ? '未分類' : getUnitName(key)}`}
                 <span className="task-count">({taskList.length}問)</span>
               </h3>
 
               <div className="task-cards">
                 {taskList.map(task => {
-                  const taskSessions = (sessions[task.id] || []).sort((a, b) => a.attemptNumber - b.attemptNumber)
+                  const taskSessions = (state.sessions[task.id] || []).sort((a, b) => a.attemptNumber - b.attemptNumber)
                   const lastSession = taskSessions[taskSessions.length - 1]
                   const taskUnitIds = getTaskUnitIds(task)
 
                   return (
-                    <div key={task.id} className={`pastpaper-card${editingTaskId === task.id ? ' editing' : ''}`}>
-                      {editingTaskId === task.id ? (
+                    <div key={task.id} className={`pastpaper-card${state.editingTaskId === task.id ? ' editing' : ''}`}>
+                      {state.editingTaskId === task.id ? (
                         // 編集モード
                         <div className="edit-form-container">
                           <h4>📝 過去問を編集</h4>
@@ -610,15 +608,15 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                           <div className="edit-form-section">
                             <label className="section-label">科目:</label>
                             <div className="subject-selector-inline">
-                              {subjects.map((subject) => (
+                              {SUBJECTS.map((subject) => (
                                 <button
                                   key={subject}
                                   type="button"
-                                  className={`subject-btn ${editForm.subject === subject ? 'active' : ''}`}
-                                  onClick={() => setEditForm({ ...editForm, subject, unitIds: [] })}
+                                  className={`subject-btn subject-btn-common ${state.editForm.subject === subject ? 'active' : ''}`}
+                                  onClick={() => dispatch({ type: 'SET_FIELD', field: 'editForm', value: { ...state.editForm, subject, unitIds: [] } })}
                                   style={{
-                                    borderColor: editForm.subject === subject ? subjectColors[subject] : '#e2e8f0',
-                                    background: editForm.subject === subject ? `${subjectColors[subject]}15` : 'white',
+                                    borderColor: state.editForm.subject === subject ? subjectColors[subject] : '#e2e8f0',
+                                    background: state.editForm.subject === subject ? `${subjectColors[subject]}15` : 'white',
                                   }}
                                 >
                                   <span className="subject-emoji">{subjectEmojis[subject]}</span>
@@ -629,22 +627,22 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                           </div>
 
                           {/* 学校名 */}
-                          <div className="edit-form-field" style={{ marginBottom: '12px' }}>
+                          <div className="edit-form-field form-field-sm">
                             <label>学校名:</label>
                             <input
                               type="text"
-                              value={editForm.schoolName}
-                              onChange={(e) => setEditForm({ ...editForm, schoolName: e.target.value })}
+                              value={state.editForm.schoolName}
+                              onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'editForm', value: { ...state.editForm, schoolName: e.target.value } })}
                             />
                           </div>
 
                           {/* 年度 */}
-                          <div className="edit-form-field" style={{ marginBottom: '16px' }}>
+                          <div className="edit-form-field form-field-md">
                             <label>年度:</label>
                             <select
-                              value={editForm.year}
-                              onChange={(e) => setEditForm({ ...editForm, year: e.target.value })}
-                              style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}
+                              value={state.editForm.year}
+                              onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'editForm', value: { ...state.editForm, year: e.target.value } })}
+                              className="form-input-common"
                             >
                               <option value="">年度を選択</option>
                               {YEAR_OPTIONS.map(y => (
@@ -654,35 +652,35 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                           </div>
 
                           {/* 実施日 */}
-                          <div className="edit-form-field" style={{ marginBottom: '12px' }}>
+                          <div className="edit-form-field form-field-sm">
                             <label>📅 実施日（任意）:</label>
                             <input
                               type="date"
-                              value={editForm.dueDate}
-                              onChange={(e) => setEditForm({ ...editForm, dueDate: e.target.value })}
-                              style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}
+                              value={state.editForm.dueDate}
+                              onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'editForm', value: { ...state.editForm, dueDate: e.target.value } })}
+                              className="form-input-common"
                             />
                           </div>
 
                           {/* 問題ファイル */}
                           <div className="edit-form-section">
                             <label className="section-label">問題PDF（任意）:</label>
-                            {renderFileArea(editForm, setEditForm, task.id)}
+                            {renderFileArea(state.editForm, 'editForm', task.id)}
                           </div>
 
                           {/* 単元タグ */}
                           <div className="edit-form-section">
                             <label className="section-label">単元タグ（任意）:</label>
                             <UnitTagPicker
-                              subject={editForm.subject}
-                              value={editForm.unitIds}
-                              onChange={(unitIds) => setEditForm(prev => ({ ...prev, unitIds }))}
+                              subject={state.editForm.subject}
+                              value={state.editForm.unitIds}
+                              onChange={(unitIds) => dispatch({ type: 'SET_FIELD', field: 'editForm', value: { ...state.editForm, unitIds } })}
                             />
                           </div>
 
                           <div className="edit-form-actions">
                             <button className="btn-secondary" onClick={handleCancelEdit}>
-                              キャンセル
+                              {LABELS.CANCEL}
                             </button>
                             <button className="btn-primary" onClick={handleSaveEdit}>
                               ✓ 保存
@@ -709,11 +707,11 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                               </div>
                               {task.fileUrl && (
                                 <button
-                                  className={`pdf-view-btn ${viewingPDF?.taskId === task.id ? 'active' : ''}`}
+                                  className={`pdf-view-btn ${state.viewingPDF?.taskId === task.id ? 'active' : ''}`}
                                   onClick={() => handleViewPDF(task)}
                                   title="PDFを表示"
                                 >
-                                  {viewingPDF?.taskId === task.id ? '✕ 閉じる' : '📄 PDF表示'}
+                                  {state.viewingPDF?.taskId === task.id ? '✕ 閉じる' : '📄 PDF表示'}
                                 </button>
                               )}
                               <button
@@ -736,20 +734,20 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                       )}
 
                       {/* PDFプレビュー（編集モードでない場合のみ表示） */}
-                      {editingTaskId !== task.id && viewingPDF?.taskId === task.id && (
+                      {state.editingTaskId !== task.id && state.viewingPDF?.taskId === task.id && (
                         <div className="pdf-preview-panel">
                           <div className="pdf-preview-header">
-                            <span className="pdf-preview-title">📄 {viewingPDF.title}</span>
+                            <span className="pdf-preview-title">📄 {state.viewingPDF.title}</span>
                             <div className="pdf-preview-actions">
                               <button
                                 className="pdf-fullscreen-btn"
-                                onClick={() => setFullscreenPDF({ fileUrl: viewingPDF.fileUrl, title: viewingPDF.title })}
+                                onClick={() => dispatch({ type: 'SET_FIELD', field: 'fullscreenPDF', value: { fileUrl: state.viewingPDF.fileUrl, title: state.viewingPDF.title } })}
                                 title="フルスクリーン表示"
                               >
                                 ⛶
                               </button>
                               <a
-                                href={viewingPDF.fileUrl}
+                                href={state.viewingPDF.fileUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="pdf-open-newtab-btn"
@@ -758,7 +756,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                               </a>
                               <button
                                 className="pdf-preview-close"
-                                onClick={() => setViewingPDF(null)}
+                                onClick={() => dispatch({ type: 'SET_FIELD', field: 'viewingPDF', value: null })}
                               >
                                 &times;
                               </button>
@@ -766,8 +764,8 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                           </div>
                           <div className="pdf-preview-container">
                             <iframe
-                              src={getEmbedUrl(viewingPDF.fileUrl)}
-                              title={`PDF: ${viewingPDF.title}`}
+                              src={getEmbedUrl(state.viewingPDF.fileUrl)}
+                              title={`PDF: ${state.viewingPDF.title}`}
                               className="pdf-preview-iframe"
                               allow="autoplay"
                             />
@@ -776,7 +774,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                       )}
 
                       {/* 最新の学習記録 */}
-                      {editingTaskId !== task.id && lastSession && (
+                      {state.editingTaskId !== task.id && lastSession && (
                         <div className="last-session">
                           <span className="session-label">最新:</span>
                           <span className="session-date">
@@ -791,17 +789,17 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                       )}
 
                       {/* 学習記録の展開/折りたたみ */}
-                      {editingTaskId !== task.id && taskSessions.length > 0 && (
+                      {state.editingTaskId !== task.id && taskSessions.length > 0 && (
                         <button
                           className="toggle-sessions-btn"
                           onClick={() => toggleSessionExpanded(task.id)}
                         >
-                          {expandedSessions[task.id] ? '▼' : '▶'} 学習記録 ({taskSessions.length}回)
+                          {state.expandedSessions[task.id] ? '▼' : '▶'} 学習記録 ({taskSessions.length}回)
                         </button>
                       )}
 
                       {/* セッション一覧 */}
-                      {editingTaskId !== task.id && expandedSessions[task.id] && taskSessions.length > 0 && (
+                      {state.editingTaskId !== task.id && state.expandedSessions[task.id] && taskSessions.length > 0 && (
                         <div className="sessions-list">
                           {taskSessions.map(session => (
                             <div key={session.id} className="session-item">
@@ -826,7 +824,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                       )}
 
                       {/* セッション記録フォーム */}
-                      {editingTaskId !== task.id && showSessionForm === task.id ? (
+                      {state.editingTaskId !== task.id && state.showSessionForm === task.id ? (
                         <div className="session-form">
                           <h4>📝 学習記録を追加</h4>
                           <div className="form-grid">
@@ -834,8 +832,8 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                               <label>実施日:</label>
                               <input
                                 type="date"
-                                value={sessionForm.studiedAt}
-                                onChange={(e) => setSessionForm({ ...sessionForm, studiedAt: e.target.value })}
+                                value={state.sessionForm.studiedAt}
+                                onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'sessionForm', value: { ...state.sessionForm, studiedAt: e.target.value } })}
                               />
                             </div>
                             <div className="form-field">
@@ -844,15 +842,15 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                                 <input
                                   type="number"
                                   placeholder="得点"
-                                  value={sessionForm.score}
-                                  onChange={(e) => setSessionForm({ ...sessionForm, score: e.target.value })}
+                                  value={state.sessionForm.score}
+                                  onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'sessionForm', value: { ...state.sessionForm, score: e.target.value } })}
                                 />
                                 <span>/</span>
                                 <input
                                   type="number"
                                   placeholder="満点"
-                                  value={sessionForm.totalScore}
-                                  onChange={(e) => setSessionForm({ ...sessionForm, totalScore: e.target.value })}
+                                  value={state.sessionForm.totalScore}
+                                  onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'sessionForm', value: { ...state.sessionForm, totalScore: e.target.value } })}
                                 />
                               </div>
                             </div>
@@ -861,16 +859,16 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                               <input
                                 type="number"
                                 placeholder="分"
-                                value={sessionForm.timeSpent}
-                                onChange={(e) => setSessionForm({ ...sessionForm, timeSpent: e.target.value })}
+                                value={state.sessionForm.timeSpent}
+                                onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'sessionForm', value: { ...state.sessionForm, timeSpent: e.target.value } })}
                               />
                             </div>
                             <div className="form-field full">
                               <label>メモ:</label>
                               <textarea
                                 placeholder="間違えた問題、気づきなど..."
-                                value={sessionForm.notes}
-                                onChange={(e) => setSessionForm({ ...sessionForm, notes: e.target.value })}
+                                value={state.sessionForm.notes}
+                                onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'sessionForm', value: { ...state.sessionForm, notes: e.target.value } })}
                                 rows="3"
                               />
                             </div>
@@ -878,9 +876,9 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                           <div className="form-actions">
                             <button
                               className="btn-secondary"
-                              onClick={() => setShowSessionForm(null)}
+                              onClick={() => dispatch({ type: 'SET_FIELD', field: 'showSessionForm', value: null })}
                             >
-                              キャンセル
+                              {LABELS.CANCEL}
                             </button>
                             <button
                               className="btn-primary"
@@ -890,7 +888,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                             </button>
                           </div>
                         </div>
-                      ) : editingTaskId !== task.id ? (
+                      ) : state.editingTaskId !== task.id ? (
                         <button
                           className="add-session-btn"
                           onClick={() => handleOpenSessionForm(task.id)}
@@ -900,10 +898,10 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                       ) : null}
 
                       {/* ── 問題クリップ ─────────────────────── */}
-                      {editingTaskId !== task.id && (
+                      {state.editingTaskId !== task.id && (
                         <ProblemClipList
                           userId={user.uid}
-                          problems={problems[task.id] || []}
+                          problems={state.problems[task.id] || []}
                           onReload={() => loadProblems(task.id)}
                           sourceType="pastPaper"
                           sourceId={task.id}
@@ -936,14 +934,14 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       </div>
 
       {/* PDFフルスクリーン表示 */}
-      {fullscreenPDF && (
-        <div className="pdf-fullscreen-overlay" onClick={() => setFullscreenPDF(null)}>
+      {state.fullscreenPDF && (
+        <div className="pdf-fullscreen-overlay" onClick={() => dispatch({ type: 'SET_FIELD', field: 'fullscreenPDF', value: null })}>
           <div className="pdf-fullscreen-container" onClick={(e) => e.stopPropagation()}>
             <div className="pdf-fullscreen-header">
-              <span className="pdf-fullscreen-title">📄 {fullscreenPDF.title}</span>
+              <span className="pdf-fullscreen-title">📄 {state.fullscreenPDF.title}</span>
               <div className="pdf-fullscreen-actions">
                 <a
-                  href={fullscreenPDF.fileUrl}
+                  href={state.fullscreenPDF.fileUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="pdf-open-newtab-btn"
@@ -952,15 +950,15 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                 </a>
                 <button
                   className="pdf-fullscreen-close"
-                  onClick={() => setFullscreenPDF(null)}
+                  onClick={() => dispatch({ type: 'SET_FIELD', field: 'fullscreenPDF', value: null })}
                 >
                   &times;
                 </button>
               </div>
             </div>
             <iframe
-              src={getEmbedUrl(fullscreenPDF.fileUrl)}
-              title={`PDF: ${fullscreenPDF.title}`}
+              src={getEmbedUrl(state.fullscreenPDF.fileUrl)}
+              title={`PDF: ${state.fullscreenPDF.title}`}
               className="pdf-fullscreen-iframe"
               allow="autoplay"
             />
@@ -969,17 +967,17 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       )}
 
       {/* Google Drive ファイルピッカー */}
-      {showDrivePicker && (
+      {state.showDrivePicker && (
         <DriveFilePicker
           onSelect={(data) => {
-            if (showDrivePicker === 'add') {
-              setAddForm(prev => ({ ...prev, fileUrl: data.url, fileName: data.name }))
-            } else if (showDrivePicker === 'edit') {
-              setEditForm(prev => ({ ...prev, fileUrl: data.url, fileName: data.name }))
+            if (state.showDrivePicker === 'add') {
+              dispatch({ type: 'SET_FIELD', field: 'addForm', value: { ...state.addForm, fileUrl: data.url, fileName: data.name } })
+            } else if (state.showDrivePicker === 'edit') {
+              dispatch({ type: 'SET_FIELD', field: 'editForm', value: { ...state.editForm, fileUrl: data.url, fileName: data.name } })
             }
-            setShowDrivePicker(null)
+            dispatch({ type: 'SET_FIELD', field: 'showDrivePicker', value: null })
           }}
-          onClose={() => setShowDrivePicker(null)}
+          onClose={() => dispatch({ type: 'SET_FIELD', field: 'showDrivePicker', value: null })}
         />
       )}
 
