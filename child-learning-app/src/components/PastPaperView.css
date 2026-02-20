@@ -1812,3 +1812,18 @@
   gap: 8px;
   justify-content: flex-end;
 }
+
+/* ── 単元別ビュー ──────────────────────────────────────── */
+.pp-unit-count {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-gray-500);
+  margin-left: 8px;
+}
+
+.pp-unit-source {
+  font-size: 0.7rem;
+  color: var(--color-gray-400);
+  margin-left: auto;
+  flex-shrink: 0;
+}

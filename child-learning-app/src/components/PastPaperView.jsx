@@ -11,6 +11,8 @@ import {
 import {
   getProblemsBySource,
   deleteProblemsBySource,
+  reviewStatusInfo,
+  missTypeLabel,
 } from '../utils/problems'
 import { subjectColors, subjectEmojis, MAX_FILE_SIZE, SUBJECTS } from '../utils/constants'
 import EmptyState from './EmptyState'
@@ -186,6 +188,27 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     })
     return grouped
   }
+
+  // 単元別ビュー用: 全問題クリップを単元ごとにグループ化
+  const allProblemsByUnit = useMemo(() => {
+    if (state.viewMode !== 'unit') return {}
+    const grouped = {}
+    const taskMap = {}
+    pastPaperTasks.forEach(t => { taskMap[t.id] = t })
+
+    for (const [taskId, problems] of Object.entries(state.problems)) {
+      const task = taskMap[taskId]
+      if (!task) continue
+      for (const p of problems) {
+        const unitIds = p.unitIds && p.unitIds.length > 0 ? p.unitIds : ['未分類']
+        for (const uid of unitIds) {
+          if (!grouped[uid]) grouped[uid] = []
+          grouped[uid].push({ ...p, _schoolName: task.schoolName, _year: task.year, _taskId: taskId })
+        }
+      }
+    }
+    return grouped
+  }, [state.viewMode, state.problems, pastPaperTasks])
 
   // 単元IDから単元名を取得
   const getUnitName = (unitId) => {
@@ -570,7 +593,69 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
 
       {/* タスク一覧 */}
       <div className="pastpaper-content">
-        {Object.keys(groupedData).length === 0 ? (
+        {/* ── 単元別ビュー ── */}
+        {state.viewMode === 'unit' ? (
+          Object.keys(allProblemsByUnit).length === 0 ? (
+            <EmptyState
+              icon="📝"
+              message="問題クリップがありません"
+              hint="学校別ビューから問題を追加してください"
+            />
+          ) : (
+            <div className="mud-categories">
+              {Object.entries(allProblemsByUnit)
+                .sort((a, b) => {
+                  if (a[0] === '未分類') return 1
+                  if (b[0] === '未分類') return -1
+                  return a[0].localeCompare(b[0])
+                })
+                .map(([unitId, problems]) => {
+                  const correct = problems.filter(p => p.isCorrect).length
+                  const wrong = problems.length - correct
+                  return (
+                    <div key={unitId} className="mud-category-section">
+                      <h3 className="mud-cat-title">
+                        {unitId === '未分類' ? '未分類' : getUnitName(unitId)}
+                        <span className="pp-unit-count">
+                          {problems.length}問（○{correct} ✗{wrong}）
+                        </span>
+                      </h3>
+                      <div className="clip-list">
+                        {problems.map((p, idx) => {
+                          const st = reviewStatusInfo(p.reviewStatus)
+                          return (
+                            <div key={`${p.id || idx}`} className={`clip-item ${p.isCorrect ? 'correct' : 'incorrect'}`}>
+                              <div className="clip-item-left">
+                                <span className="clip-correctness">{p.isCorrect ? '○' : '✗'}</span>
+                                <span className="clip-number">第{p.problemNumber}問</span>
+                                {!p.isCorrect && p.missType && (
+                                  <span className={`clip-miss-type miss-${p.missType}`}>
+                                    {missTypeLabel(p.missType)}
+                                  </span>
+                                )}
+                                <span className="pp-unit-source">{p._schoolName} {p._year}</span>
+                              </div>
+                              <div className="clip-item-right">
+                                {p.difficulty && <span className="clip-difficulty">{'★'.repeat(p.difficulty)}</span>}
+                                {p.imageUrls?.length > 0 && <span className="clip-has-image">📷</span>}
+                                {!p.isCorrect && (
+                                  <span className="clip-review-badge" style={{ background: st.bg, color: st.color }}>
+                                    {st.label}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })}
+            </div>
+          )
+        ) : (
+        /* ── 学校別ビュー ── */
+        Object.keys(groupedData).length === 0 ? (
           <EmptyState
             icon="📝"
             message="この条件の過去問タスクがありません"
@@ -580,7 +665,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           Object.entries(groupedData).map(([key, taskList]) => (
             <div key={key} className="pastpaper-group">
               <h3 className="group-title">
-                {state.viewMode === 'school' ? `🏫 ${key}` : `📚 ${key === '未分類' ? '未分類' : getUnitName(key)}`}
+                {'🏫 ' + key}
                 <span className="task-count">({taskList.length}問)</span>
               </h3>
 
@@ -923,7 +1008,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
               </div>
             </div>
           ))
-        )}
+        ))}
       </div>
 
       {/* PDFフルスクリーン表示 */}
