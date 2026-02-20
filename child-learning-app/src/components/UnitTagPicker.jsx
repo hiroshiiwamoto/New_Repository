@@ -1,14 +1,13 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { getStaticMasterUnits } from '../utils/importMasterUnits'
 import './UnitTagPicker.css'
 
 /**
  * マスター単元の複数選択タグピッカー
  *
- * @param {string[]} value - 選択済みの unitId 配列
- * @param {Function} onChange - (unitIds: string[]) => void
- * @param {string} [subject] - 絞り込む教科名。指定時はその教科の単元のみドロップダウンに表示
- * @param {string} [placeholder] - 検索ボックスのプレースホルダー
+ * ドロップダウンは createPortal で document.body に描画するため、
+ * 親の overflow: hidden に影響されない。
  */
 function UnitTagPicker({ value = [], onChange, subject = null, placeholder = '単元を検索...' }) {
   const allUnits = useMemo(() => getStaticMasterUnits(), [])
@@ -18,6 +17,10 @@ function UnitTagPicker({ value = [], onChange, subject = null, placeholder = '�
   )
   const [searchText, setSearchText] = useState('')
   const [isOpen, setIsOpen] = useState(false)
+  const [dropdownStyle, setDropdownStyle] = useState({})
+
+  const triggerRef = useRef(null)
+  const dropdownRef = useRef(null)
 
   const filteredUnits = useMemo(() => {
     if (!searchText.trim()) return subjectUnits
@@ -29,11 +32,53 @@ function UnitTagPicker({ value = [], onChange, subject = null, placeholder = '�
     )
   }, [subjectUnits, searchText])
 
-  // チップ表示は value 配列の順序を維持（最初が「メイン単元」）
   const selectedUnits = useMemo(() =>
     value.map(id => allUnits.find(u => u.id === id)).filter(Boolean),
     [allUnits, value]
   )
+
+  // ドロップダウンの位置を計算
+  const updatePosition = useCallback(() => {
+    if (!triggerRef.current) return
+    const rect = triggerRef.current.getBoundingClientRect()
+    const spaceBelow = window.innerHeight - rect.bottom
+    const dropdownHeight = 360
+    // 下に十分なスペースがなければ上に表示
+    const showAbove = spaceBelow < dropdownHeight && rect.top > spaceBelow
+    setDropdownStyle({
+      position: 'fixed',
+      left: rect.left,
+      width: rect.width,
+      ...(showAbove
+        ? { bottom: window.innerHeight - rect.top + 4 }
+        : { top: rect.bottom + 4 }),
+      maxHeight: Math.min(dropdownHeight, showAbove ? rect.top - 8 : spaceBelow - 8),
+    })
+  }, [])
+
+  // 開いた時に位置計算 + スクロール/リサイズ追従
+  useEffect(() => {
+    if (!isOpen) return
+    updatePosition()
+    window.addEventListener('scroll', updatePosition, true)
+    window.addEventListener('resize', updatePosition)
+    return () => {
+      window.removeEventListener('scroll', updatePosition, true)
+      window.removeEventListener('resize', updatePosition)
+    }
+  }, [isOpen, updatePosition])
+
+  // 外側クリックで閉じる
+  useEffect(() => {
+    if (!isOpen) return
+    const handleClickOutside = (e) => {
+      if (triggerRef.current?.contains(e.target)) return
+      if (dropdownRef.current?.contains(e.target)) return
+      setIsOpen(false)
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [isOpen])
 
   const handleToggle = (unitId) => {
     if (value.includes(unitId)) {
@@ -48,7 +93,6 @@ function UnitTagPicker({ value = [], onChange, subject = null, placeholder = '�
     onChange(value.filter(id => id !== unitId))
   }
 
-  // カテゴリでグループ化
   const groupedFiltered = useMemo(() => {
     const groups = {}
     for (const unit of filteredUnits) {
@@ -60,7 +104,7 @@ function UnitTagPicker({ value = [], onChange, subject = null, placeholder = '�
   }, [filteredUnits])
 
   return (
-    <div className="utp-root">
+    <div className="utp-root" ref={triggerRef}>
       {/* 選択済みタグ表示 + 開閉トリガー */}
       <div
         className={`utp-trigger ${isOpen ? 'open' : ''}`}
@@ -86,9 +130,13 @@ function UnitTagPicker({ value = [], onChange, subject = null, placeholder = '�
         <span className="utp-arrow">{isOpen ? '▲' : '▼'}</span>
       </div>
 
-      {/* ドロップダウン */}
-      {isOpen && (
-        <div className="utp-dropdown">
+      {/* ドロップダウン — portal で body 直下に描画 */}
+      {isOpen && createPortal(
+        <div
+          ref={dropdownRef}
+          className="utp-dropdown"
+          style={dropdownStyle}
+        >
           <div className="utp-search">
             <input
               type="text"
@@ -136,7 +184,8 @@ function UnitTagPicker({ value = [], onChange, subject = null, placeholder = '�
             <span>{value.length}個選択中</span>
             <button className="utp-done" onClick={() => setIsOpen(false)}>完了</button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
