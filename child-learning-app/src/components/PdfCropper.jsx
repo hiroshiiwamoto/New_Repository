@@ -653,22 +653,41 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
               </span>
             </div>
 
-            <div
-              ref={canvasWrapperRef}
-              className="pdfcropper-canvas-wrapper"
-              onWheel={handleWheel}
-            >
-              <div className="pdfcropper-canvas-container">
-                <canvas ref={canvasRef} className="pdfcropper-canvas" />
-                <canvas
-                  ref={overlayRef}
-                  className="pdfcropper-overlay-canvas"
-                  onMouseDown={handleMouseDown}
-                  onMouseMove={handleMouseMove}
-                  onMouseUp={handleMouseUp}
-                  onMouseLeave={handleMouseUp}
-                  onContextMenu={(e) => e.preventDefault()}
-                />
+            <div className="pdfcropper-viewer-area">
+              {/* ページ送りボタン（電子コミック風） */}
+              {state.currentPage > 1 && (
+                <button
+                  className="pdfcropper-page-arrow pdfcropper-page-arrow-left"
+                  onClick={() => dispatch({ type: 'SET_FIELD', field: 'currentPage', value: state.currentPage - 1 })}
+                >
+                  <svg viewBox="0 0 24 40" width="24" height="40"><path d="M20 2 L4 20 L20 38" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </button>
+              )}
+              {state.currentPage < state.totalPages && (
+                <button
+                  className="pdfcropper-page-arrow pdfcropper-page-arrow-right"
+                  onClick={() => dispatch({ type: 'SET_FIELD', field: 'currentPage', value: state.currentPage + 1 })}
+                >
+                  <svg viewBox="0 0 24 40" width="24" height="40"><path d="M4 2 L20 20 L4 38" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </button>
+              )}
+              <div
+                ref={canvasWrapperRef}
+                className="pdfcropper-canvas-wrapper"
+                onWheel={handleWheel}
+              >
+                <div className="pdfcropper-canvas-container">
+                  <canvas ref={canvasRef} className="pdfcropper-canvas" />
+                  <canvas
+                    ref={overlayRef}
+                    className="pdfcropper-overlay-canvas"
+                    onMouseDown={handleMouseDown}
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={handleMouseUp}
+                    onContextMenu={(e) => e.preventDefault()}
+                  />
+                </div>
               </div>
             </div>
 
