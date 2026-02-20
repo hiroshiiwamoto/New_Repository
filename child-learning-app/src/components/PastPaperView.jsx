@@ -11,6 +11,8 @@ import {
 import {
   getProblemsBySource,
   deleteProblemsBySource,
+  reviewStatusInfo,
+  missTypeLabel,
 } from '../utils/problems'
 import { subjectColors, subjectEmojis, MAX_FILE_SIZE, SUBJECTS } from '../utils/constants'
 import EmptyState from './EmptyState'
@@ -21,7 +23,6 @@ import { refreshGoogleAccessToken } from './Auth'
 import DriveFilePicker from './DriveFilePicker'
 import UnitTagPicker from './UnitTagPicker'
 import ProblemClipList from './ProblemClipList'
-import { getAllTargetSchools } from '../utils/targetSchools'
 
 const YEAR_OPTIONS = Array.from({ length: 2031 - 2000 }, (_, i) => 2000 + i)
 
@@ -61,7 +62,6 @@ const initialState = {
   viewingPDF: null,
   fullscreenPDF: null,
   problems: {},
-  targetSchools: [],
 }
 
 function reducer(state, action) {
@@ -81,16 +81,6 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
   useEffect(() => {
     dispatch({ type: 'SET_FIELD', field: 'masterUnits', value: getStaticMasterUnits() })
   }, [])
-
-  // 志望校データを読み込み（合格最低点の比較用）
-  useEffect(() => {
-    if (!user) return
-    getAllTargetSchools(user.uid).then(result => {
-      if (result.success) {
-        dispatch({ type: 'SET_FIELD', field: 'targetSchools', value: result.data })
-      }
-    })
-  }, [user])
 
   // ── 問題ログ読み込み ──────────────────────────────────────
   const loadProblems = useCallback(async (taskId) => {
@@ -199,87 +189,26 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     return grouped
   }
 
-  // 学校ごとの成績サマリーを計算
-  const schoolSummaries = useMemo(() => {
-    const summaries = {}
-    pastPaperTasks.forEach(task => {
-      const school = task.schoolName || '学校名未設定'
-      if (!summaries[school]) {
-        summaries[school] = { totalAttempts: 0, scores: [], bestScore: null, latestScore: null }
-      }
-      const taskSessions = (state.sessions[task.id] || []).sort((a, b) => a.attemptNumber - b.attemptNumber)
-      summaries[school].totalAttempts += taskSessions.length
-      taskSessions.forEach(session => {
-        if (session.score !== null && session.totalScore && session.totalScore > 0) {
-          const pct = Math.round((session.score / session.totalScore) * 100)
-          summaries[school].scores.push({
-            percentage: pct,
-            score: session.score,
-            totalScore: session.totalScore,
-            year: task.year,
-            attemptNumber: session.attemptNumber,
-            date: session.studiedAt,
-          })
-        }
-      })
-    })
-    // 最高得点・最新得点を計算
-    Object.values(summaries).forEach(s => {
-      if (s.scores.length > 0) {
-        s.bestScore = Math.max(...s.scores.map(sc => sc.percentage))
-        const sorted = [...s.scores].sort((a, b) => new Date(b.date) - new Date(a.date))
-        s.latestScore = sorted[0]?.percentage ?? null
-      }
-    })
-    return summaries
-  }, [pastPaperTasks, state.sessions])
+  // 単元別ビュー用: 全問題クリップを単元ごとにグループ化
+  const allProblemsByUnit = useMemo(() => {
+    if (state.viewMode !== 'unit') return {}
+    const grouped = {}
+    const taskMap = {}
+    pastPaperTasks.forEach(t => { taskMap[t.id] = t })
 
-  // 志望校の合格最低点を学校名で取得
-  const getPassingScore = (schoolName) => {
-    if (!schoolName || !state.targetSchools.length) return null
-    const match = state.targetSchools.find(s =>
-      s.name && schoolName.includes(s.name) || s.name && s.name.includes(schoolName)
-    )
-    if (match && match.passScore && match.maxScore) {
-      return {
-        passScore: parseInt(match.passScore),
-        maxScore: parseInt(match.maxScore),
-        percentage: Math.round((parseInt(match.passScore) / parseInt(match.maxScore)) * 100)
+    for (const [taskId, problems] of Object.entries(state.problems)) {
+      const task = taskMap[taskId]
+      if (!task) continue
+      for (const p of problems) {
+        const unitIds = p.unitIds && p.unitIds.length > 0 ? p.unitIds : ['未分類']
+        for (const uid of unitIds) {
+          if (!grouped[uid]) grouped[uid] = []
+          grouped[uid].push({ ...p, _schoolName: task.schoolName, _year: task.year, _taskId: taskId })
+        }
       }
     }
-    return null
-  }
-
-  // 単元別の問題分析（問題クリップから集計）
-  const unitProblemStats = useMemo(() => {
-    const stats = {}
-    pastPaperTasks.forEach(task => {
-      const taskProblems = state.problems[task.id] || []
-      taskProblems.forEach(problem => {
-        const unitIds = problem.unitIds && problem.unitIds.length > 0
-          ? problem.unitIds
-          : (getTaskUnitIds(task).length > 0 ? getTaskUnitIds(task) : ['未分類'])
-        unitIds.forEach(unitId => {
-          if (!stats[unitId]) {
-            stats[unitId] = { total: 0, correct: 0, incorrect: 0, schools: new Set(), problems: [] }
-          }
-          stats[unitId].total += 1
-          if (problem.isCorrect) {
-            stats[unitId].correct += 1
-          } else {
-            stats[unitId].incorrect += 1
-          }
-          if (task.schoolName) stats[unitId].schools.add(task.schoolName)
-          stats[unitId].problems.push({
-            ...problem,
-            schoolName: task.schoolName,
-            year: task.year,
-          })
-        })
-      })
-    })
-    return stats
-  }, [pastPaperTasks, state.problems])
+    return grouped
+  }, [state.viewMode, state.problems, pastPaperTasks])
 
   // 単元IDから単元名を取得
   const getUnitName = (unitId) => {
@@ -662,68 +591,71 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
         </div>
       )}
 
-      {/* 学校別サマリー（学校別表示時のみ） */}
-      {state.viewMode === 'school' && Object.keys(schoolSummaries).length > 0 && (
-        <div className="school-summary-bar">
-          {Object.entries(schoolSummaries).map(([school, summary]) => {
-            const passing = getPassingScore(school)
-            return (
-              <div key={school} className="school-summary-chip">
-                <span className="chip-school-name">{school}</span>
-                <span className="chip-attempts">{summary.totalAttempts}回</span>
-                {summary.latestScore !== null && (
-                  <span className={`chip-score ${passing && summary.latestScore >= passing.percentage ? 'above-pass' : ''}`}>
-                    {summary.latestScore}%
-                  </span>
-                )}
-                {passing && (
-                  <span className="chip-pass-line">合格{passing.percentage}%</span>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      )}
-
-      {/* 単元別分析（単元別表示時のみ） */}
-      {state.viewMode === 'unit' && Object.keys(unitProblemStats).length > 0 && (
-        <div className="unit-stats-summary">
-          <h3 className="unit-stats-title">単元別 正答率</h3>
-          <div className="unit-stats-grid">
-            {Object.entries(unitProblemStats)
-              .sort((a, b) => {
-                // 正答率昇順（苦手な単元を上に）
-                const rateA = a[1].total > 0 ? a[1].correct / a[1].total : 1
-                const rateB = b[1].total > 0 ? b[1].correct / b[1].total : 1
-                return rateA - rateB
-              })
-              .map(([unitId, stats]) => {
-                const rate = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0
-                return (
-                  <div key={unitId} className="unit-stat-row">
-                    <span className="unit-stat-name">{unitId === '未分類' ? '未分類' : getUnitName(unitId)}</span>
-                    <div className="unit-stat-bar-container">
-                      <div
-                        className={`unit-stat-bar ${rate >= 80 ? 'high' : rate >= 50 ? 'mid' : 'low'}`}
-                        style={{ width: `${rate}%` }}
-                      />
-                    </div>
-                    <span className={`unit-stat-rate ${rate >= 80 ? 'high' : rate >= 50 ? 'mid' : 'low'}`}>
-                      {stats.correct}/{stats.total} ({rate}%)
-                    </span>
-                    <span className="unit-stat-schools">
-                      {Array.from(stats.schools).length > 0 && Array.from(stats.schools).map(s => s.replace(/中学校?$/, '')).join('・')}
-                    </span>
-                  </div>
-                )
-              })}
-          </div>
-        </div>
-      )}
-
       {/* タスク一覧 */}
       <div className="pastpaper-content">
-        {Object.keys(groupedData).length === 0 ? (
+        {/* ── 単元別ビュー ── */}
+        {state.viewMode === 'unit' ? (
+          Object.keys(allProblemsByUnit).length === 0 ? (
+            <EmptyState
+              icon="📝"
+              message="問題クリップがありません"
+              hint="学校別ビューから問題を追加してください"
+            />
+          ) : (
+            <div className="mud-categories">
+              {Object.entries(allProblemsByUnit)
+                .sort((a, b) => {
+                  if (a[0] === '未分類') return 1
+                  if (b[0] === '未分類') return -1
+                  return a[0].localeCompare(b[0])
+                })
+                .map(([unitId, problems]) => {
+                  const correct = problems.filter(p => p.isCorrect).length
+                  const wrong = problems.length - correct
+                  return (
+                    <div key={unitId} className="mud-category-section">
+                      <h3 className="mud-cat-title">
+                        {unitId === '未分類' ? '未分類' : getUnitName(unitId)}
+                        <span className="pp-unit-count">
+                          {problems.length}問（○{correct} ✗{wrong}）
+                        </span>
+                      </h3>
+                      <div className="clip-list">
+                        {problems.map((p, idx) => {
+                          const st = reviewStatusInfo(p.reviewStatus)
+                          return (
+                            <div key={`${p.id || idx}`} className={`clip-item ${p.isCorrect ? 'correct' : 'incorrect'}`}>
+                              <div className="clip-item-left">
+                                <span className="clip-correctness">{p.isCorrect ? '○' : '✗'}</span>
+                                <span className="clip-number">第{p.problemNumber}問</span>
+                                {!p.isCorrect && p.missType && (
+                                  <span className={`clip-miss-type miss-${p.missType}`}>
+                                    {missTypeLabel(p.missType)}
+                                  </span>
+                                )}
+                                <span className="pp-unit-source">{p._schoolName} {p._year}</span>
+                              </div>
+                              <div className="clip-item-right">
+                                {p.difficulty && <span className="clip-difficulty">{'★'.repeat(p.difficulty)}</span>}
+                                {p.imageUrls?.length > 0 && <span className="clip-has-image">📷</span>}
+                                {!p.isCorrect && (
+                                  <span className="clip-review-badge" style={{ background: st.bg, color: st.color }}>
+                                    {st.label}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })}
+            </div>
+          )
+        ) : (
+        /* ── 学校別ビュー ── */
+        Object.keys(groupedData).length === 0 ? (
           <EmptyState
             icon="📝"
             message="この条件の過去問タスクがありません"
@@ -733,7 +665,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
           Object.entries(groupedData).map(([key, taskList]) => (
             <div key={key} className="pastpaper-group">
               <h3 className="group-title">
-                {state.viewMode === 'school' ? `🏫 ${key}` : `📚 ${key === '未分類' ? '未分類' : getUnitName(key)}`}
+                {'🏫 ' + key}
                 <span className="task-count">({taskList.length}問)</span>
               </h3>
 
@@ -919,49 +851,6 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                         </div>
                       )}
 
-                      {/* 得点推移（複数回演習がある場合） */}
-                      {state.editingTaskId !== task.id && taskSessions.length > 0 && (() => {
-                        const scoredSessions = taskSessions.filter(s => s.score !== null && s.totalScore && s.totalScore > 0)
-                        const passing = getPassingScore(task.schoolName)
-                        if (scoredSessions.length === 0) return null
-                        return (
-                          <div className="score-progress-section">
-                            <div className="score-progress-header">
-                              <span className="score-progress-label">得点推移</span>
-                              {passing && (
-                                <span className="passing-score-label">合格最低点 {passing.percentage}%</span>
-                              )}
-                            </div>
-                            <div className="score-progress-bars">
-                              {scoredSessions.map((session, idx) => {
-                                const pct = getScorePercentage(session)
-                                const isAbovePass = passing && pct >= passing.percentage
-                                return (
-                                  <div key={session.id || idx} className="score-bar-item">
-                                    <span className="score-bar-attempt">{session.attemptNumber}回</span>
-                                    <div className="score-bar-track">
-                                      {passing && (
-                                        <div
-                                          className="score-bar-pass-line"
-                                          style={{ left: `${passing.percentage}%` }}
-                                        />
-                                      )}
-                                      <div
-                                        className={`score-bar-fill ${isAbovePass ? 'above-pass' : pct >= 50 ? 'mid' : 'low'}`}
-                                        style={{ width: `${pct}%` }}
-                                      />
-                                    </div>
-                                    <span className={`score-bar-value ${isAbovePass ? 'above-pass' : ''}`}>
-                                      {session.score}/{session.totalScore} ({pct}%)
-                                    </span>
-                                  </div>
-                                )
-                              })}
-                            </div>
-                          </div>
-                        )
-                      })()}
-
                       {/* 最新の学習記録 */}
                       {state.editingTaskId !== task.id && lastSession && (
                         <div className="last-session">
@@ -973,9 +862,6 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                             <span className="session-score">
                               {getScorePercentage(lastSession)}%
                             </span>
-                          )}
-                          {lastSession.timeSpent && (
-                            <span className="session-time">{lastSession.timeSpent}分</span>
                           )}
                         </div>
                       )}
@@ -1122,7 +1008,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
               </div>
             </div>
           ))
-        )}
+        ))}
       </div>
 
       {/* PDFフルスクリーン表示 */}
