@@ -1820,10 +1820,3 @@
   color: var(--color-gray-500);
   margin-left: 8px;
 }
-
-.pp-unit-source {
-  font-size: 0.7rem;
-  color: var(--color-gray-400);
-  margin-left: auto;
-  flex-shrink: 0;
-}
