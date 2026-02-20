@@ -427,23 +427,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
   return (
     <div className="pastpaper-view">
       {/* フィルター */}
-      <div className="dashboard-header">
-        <div className="selection-area">
-          <label>表示モード:</label>
-          <button
-            className={`grade-btn ${state.viewMode === 'school' ? 'active' : ''}`}
-            onClick={() => dispatch({ type: 'SET_FIELD', field: 'viewMode', value: 'school' })}
-          >
-            学校別
-          </button>
-          <button
-            className={`grade-btn ${state.viewMode === 'unit' ? 'active' : ''}`}
-            onClick={() => dispatch({ type: 'SET_FIELD', field: 'viewMode', value: 'unit' })}
-          >
-            単元別
-          </button>
-        </div>
-
+      <div className="mud-header-row">
         <div className="mud-subject-tabs">
           {SUBJECTS.map((subject) => (
             <button
@@ -454,6 +438,20 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
               {subjectEmojis[subject]} {subject}
             </button>
           ))}
+        </div>
+        <div className="mud-header-right">
+          <button
+            className={`mud-mode-btn ${state.viewMode === 'school' ? 'active' : ''}`}
+            onClick={() => dispatch({ type: 'SET_FIELD', field: 'viewMode', value: 'school' })}
+          >
+            学校別
+          </button>
+          <button
+            className={`mud-mode-btn ${state.viewMode === 'unit' ? 'active' : ''}`}
+            onClick={() => dispatch({ type: 'SET_FIELD', field: 'viewMode', value: 'unit' })}
+          >
+            単元別
+          </button>
         </div>
       </div>
 

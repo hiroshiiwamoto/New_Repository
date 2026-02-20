@@ -9,16 +9,7 @@
   font-size: 16px;
 }
 
-/* ヘッダー行（教科タブ＋リセットボタン） */
-.mud-header-row {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  border-bottom: 2px solid var(--color-gray-200);
-  margin-bottom: 16px;
-}
-
-/* 教科タブ — スタイルは index.css の .mud-subject-tabs / .mud-subject-btn に統合 */
+/* ヘッダー行・教科タブ — スタイルは index.css に統合 */
 
 /* 準備中プレースホルダー */
 .mud-coming-soon {
@@ -61,8 +52,9 @@
 }
 
 .mud-reset-btn {
+  position: absolute;
+  right: 0;
   padding: 6px 14px;
-  margin-bottom: 6px;
   background: none;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
