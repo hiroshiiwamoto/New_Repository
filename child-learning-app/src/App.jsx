@@ -256,7 +256,7 @@ function App() {
     <div className="app sapix-theme">
       <header className="app-header">
         <div className="header-content">
-          <h1>📘 SAPIX 中学受験 学習管理</h1>
+          <h1>🚀 Alpha Orbit</h1>
           <Auth onAuthChange={handleAuthChange} />
         </div>
       </header>
@@ -296,13 +296,25 @@ function App() {
             className={view === 'schedule' ? 'active' : ''}
             onClick={() => setView('schedule')}
           >
-            📅 今週のミッション
+            📅 タスク
+          </button>
+          <button
+            className={view === 'dashboard' ? 'active' : ''}
+            onClick={() => setView('dashboard')}
+          >
+            🗺️ 単元マップ
           </button>
           <button
             className={view === 'sapixtext' ? 'active' : ''}
             onClick={() => setView('sapixtext')}
           >
-            📘 授業・教材
+            📘 テキスト
+          </button>
+          <button
+            className={view === 'testscore' ? 'active' : ''}
+            onClick={() => setView('testscore')}
+          >
+            📋 テスト
           </button>
           <button
             className={view === 'pastpaper' ? 'active' : ''}
@@ -315,18 +327,6 @@ function App() {
             onClick={() => setView('grades')}
           >
             📈 成績
-          </button>
-          <button
-            className={view === 'testscore' ? 'active' : ''}
-            onClick={() => setView('testscore')}
-          >
-            📋 テスト分析
-          </button>
-          <button
-            className={view === 'dashboard' ? 'active' : ''}
-            onClick={() => setView('dashboard')}
-          >
-            🗺️ 弱点マップ
           </button>
         </div>
 
