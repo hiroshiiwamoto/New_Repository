@@ -160,17 +160,13 @@
   top: 0;
 }
 
-label.utp-item {
+.utp-item {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 7px 12px;
   cursor: pointer;
   transition: background 0.1s;
-  font-size: 13px;
-  font-weight: normal;
-  color: var(--color-gray-800);
-  margin-bottom: 0;
 }
 
 .utp-item:hover {
