@@ -40,24 +40,33 @@
   font-weight: 700;
   color: var(--color-gray-800);
   margin: 0;
-}
-
-.pdfcropper-close {
-  background: none;
-  border: none;
-  font-size: 18px;
-  color: var(--color-gray-500);
-  cursor: pointer;
-  width: 32px;
-  height: 32px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  border-radius: 6px;
+  gap: 10px;
 }
-.pdfcropper-close:hover {
-  background: var(--color-gray-200);
-  color: var(--color-gray-800);
+
+.pdfcropper-added-badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-success-dark, #15803d);
+  background: #dcfce7;
+  padding: 2px 10px;
+  border-radius: 12px;
+}
+
+.pdfcropper-done-btn {
+  padding: 6px 18px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.pdfcropper-done-btn:hover {
+  background: var(--color-primary-dark);
 }
 
 /* URL入力 */
