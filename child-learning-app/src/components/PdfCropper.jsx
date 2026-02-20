@@ -53,12 +53,16 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
   const overlayRef = useRef(null)
   const renderTaskRef = useRef(null)
   const canvasWrapperRef = useRef(null)
+  const modalRef = useRef(null)
   // タッチハンドラから最新値を参照するためのrefs
   const isDraggingRef = useRef(false)
   const dragStartRef = useRef(null)
   const isPanningRef = useRef(false)
   const panStartRef = useRef(null)
   const initialPinchDistance = useRef(null)
+  // リサイズ用refs
+  const isResizingRef = useRef(false)
+  const resizeStartRef = useRef(null)
 
   // ─── タブ2のリスト読み込み ───
   useEffect(() => {
@@ -156,6 +160,51 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
   useEffect(() => {
     if (state.pdfDoc) renderPage(state.pdfDoc, state.currentPage, state.scale)
   }, [state.pdfDoc, state.currentPage, state.scale, renderPage])
+
+  // ─────────────────────────────────────────
+  // モーダルリサイズ
+  // ─────────────────────────────────────────
+
+  const handleResizeStart = useCallback((e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY
+    const modal = modalRef.current
+    if (!modal) return
+    isResizingRef.current = true
+    resizeStartRef.current = {
+      x: clientX,
+      y: clientY,
+      w: modal.offsetWidth,
+      h: modal.offsetHeight,
+    }
+
+    const onMove = (ev) => {
+      if (!isResizingRef.current || !resizeStartRef.current) return
+      ev.preventDefault()
+      const cx = ev.touches ? ev.touches[0].clientX : ev.clientX
+      const cy = ev.touches ? ev.touches[0].clientY : ev.clientY
+      const newW = Math.max(360, resizeStartRef.current.w + (cx - resizeStartRef.current.x))
+      const newH = Math.max(300, resizeStartRef.current.h + (cy - resizeStartRef.current.y))
+      modal.style.width = newW + 'px'
+      modal.style.height = newH + 'px'
+    }
+
+    const onEnd = () => {
+      isResizingRef.current = false
+      resizeStartRef.current = null
+      document.removeEventListener('mousemove', onMove)
+      document.removeEventListener('mouseup', onEnd)
+      document.removeEventListener('touchmove', onMove)
+      document.removeEventListener('touchend', onEnd)
+    }
+
+    document.addEventListener('mousemove', onMove)
+    document.addEventListener('mouseup', onEnd)
+    document.addEventListener('touchmove', onMove, { passive: false })
+    document.addEventListener('touchend', onEnd)
+  }, [])
 
   // ─────────────────────────────────────────
   // ドラッグ選択
@@ -416,7 +465,13 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
 
   return createPortal(
     <div className="pdfcropper-overlay" onClick={onClose}>
-      <div className="pdfcropper-modal" onClick={e => e.stopPropagation()}>
+      <div ref={modalRef} className="pdfcropper-modal" onClick={e => e.stopPropagation()}>
+        {/* リサイズハンドル */}
+        <div
+          className="pdfcropper-resize-handle"
+          onMouseDown={handleResizeStart}
+          onTouchStart={handleResizeStart}
+        />
 
         {/* 呼び出し元から注入されるヘッダースロット（科目タブなど） */}
         {headerSlot}
