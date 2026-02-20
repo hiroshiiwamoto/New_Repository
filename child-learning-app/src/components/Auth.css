@@ -69,14 +69,8 @@
 .auth-user-info {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  background: white;
-  border-radius: 12px;
-  padding: 12px 20px;
-  box-shadow: var(--shadow-md);
-  margin-bottom: 20px;
-  gap: 15px;
-  flex-wrap: wrap;
+  gap: 12px;
+  flex-wrap: nowrap;
 }
 
 .user-profile {
@@ -137,7 +131,7 @@
   }
 
   .auth-user-info {
-    padding: 10px 15px;
+    gap: 10px;
   }
 
   .user-name {

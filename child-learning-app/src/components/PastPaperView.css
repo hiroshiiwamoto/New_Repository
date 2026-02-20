@@ -4,12 +4,7 @@
 
 /* ヘッダー */
 .dashboard-header {
-  background: white;
-  border-radius: 20px;
-  padding: 12px;
   margin-bottom: 24px;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .view-header {
@@ -1284,7 +1279,7 @@
 
 @media (max-width: 2000px) {
   .dashboard-header {
-    padding: 6px;
+    margin-bottom: 16px;
   }
 
   .view-filters {
@@ -1432,7 +1427,7 @@
 
 @media (max-width: 480px) {
   .dashboard-header {
-    padding: 4px;
+    margin-bottom: 12px;
   }
 
   .selection-area {
