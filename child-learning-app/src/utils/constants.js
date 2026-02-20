@@ -1,5 +1,5 @@
 // 科目リスト
-export const SUBJECTS = ['国語', '算数', '理科', '社会']
+export const SUBJECTS = ['算数', '国語', '理科', '社会']
 
 // 科目の絵文字
 export const subjectEmojis = {

@@ -23,8 +23,8 @@ body {
 
 .app-header {
   color: #1d1d1f;
-  margin-bottom: 32px;
-  padding: 28px 32px;
+  margin-bottom: 16px;
+  padding: 12px 32px;
   background: linear-gradient(135deg, var(--color-gray-200) 0%, var(--color-gray-300) 100%);
   border-radius: 20px;
   box-shadow: var(--shadow-md);
@@ -273,7 +273,7 @@ body {
   }
 
   .app-header {
-    padding: 24px 20px;
+    padding: 10px 20px;
   }
 
   .header-content h1 {
@@ -301,7 +301,7 @@ body {
 
 @media (max-width: 480px) {
   .app-header {
-    padding: 20px 16px;
+    padding: 8px 16px;
     border-radius: 16px;
   }
 
