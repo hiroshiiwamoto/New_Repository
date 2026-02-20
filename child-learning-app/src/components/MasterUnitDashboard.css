@@ -51,28 +51,6 @@
   flex-wrap: wrap;
 }
 
-.mud-reset-btn {
-  position: absolute;
-  right: 0;
-  padding: 6px 14px;
-  background: none;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  color: var(--color-gray-500);
-  font-size: 12px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.2s;
-}
-.mud-reset-btn:hover:not(:disabled) {
-  border-color: var(--color-danger-dark);
-  color: var(--color-danger-dark);
-  background: #fef2f2;
-}
-.mud-reset-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
 
 .mud-summary-card {
   text-align: center;
@@ -386,11 +364,6 @@
   }
 }
 
-@media (max-width: 600px) {
-  .mud-reset-btn {
-    position: static;
-  }
-}
 
 /* ドリルダウンモーダル */
 .mud-drill-modal {
@@ -573,6 +546,36 @@
   padding: 1px 4px;
   border-radius: 4px;
   font-weight: 600;
+}
+
+/* 単元データ初期化ボタン（ドリルダウンモーダル内） */
+.mud-drill-reset {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-gray-200);
+  text-align: center;
+}
+
+.mud-drill-reset-btn {
+  padding: 8px 20px;
+  background: none;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  color: var(--color-gray-500);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mud-drill-reset-btn:hover:not(:disabled) {
+  border-color: var(--color-danger-dark);
+  color: var(--color-danger-dark);
+  background: #fef2f2;
+}
+
+.mud-drill-reset-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 /* 共起サブ単元 */
