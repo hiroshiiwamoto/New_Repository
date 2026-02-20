@@ -1,11 +1,12 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useReducer, useEffect, useRef, useCallback, useMemo } from 'react'
 import './SapixTextView.css'
-import { subjects, grades } from '../utils/unitsDatabase'
-import { subjectColors, subjectEmojis, MAX_FILE_SIZE } from '../utils/constants'
+import { grades } from '../utils/unitsDatabase'
+import { subjectColors, subjectEmojis, MAX_FILE_SIZE, SUBJECTS } from '../utils/constants'
 import { getSapixTexts, addSapixText, updateSapixText, deleteSapixText } from '../utils/sapixTexts'
 import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
 import { refreshGoogleAccessToken } from './Auth'
 import { toast } from '../utils/toast'
+import { LABELS, TOAST } from '../utils/messages'
 import DriveFilePicker from './DriveFilePicker'
 import UnitTagPicker from './UnitTagPicker'
 import { addLessonLogWithStats, EVALUATION_SCORES, EVALUATION_LABELS } from '../utils/lessonLogs'
@@ -17,9 +18,51 @@ import {
 } from '../utils/problems'
 import ProblemClipList from './ProblemClipList'
 
+const defaultFormState = {
+  textName: '',
+  textNumber: '',
+  subject: '算数',
+  grade: '4年生',
+  unitIds: [],
+  fileUrl: '',
+  fileName: '',
+  scannedText: '',
+  studyDate: '',
+}
+
+const initialState = {
+  texts: [],
+  selectedSubject: '算数',
+  showAddForm: false,
+  editingId: null,
+  viewingPDF: null,
+  fullscreenPDF: null,
+  uploading: false,
+  showDrivePicker: null, // 'add' | 'edit' | null
+  expandedText: null, // スキャンテキスト展開中のID
+  evaluating: null, // 評価処理中の id
+  problems: {}, // textId -> problems[]
+  addForm: { ...defaultFormState },
+  editForm: { ...defaultFormState },
+}
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'SET_FIELD':
+      return { ...state, [action.field]: action.value }
+    case 'SET_FIELDS':
+      return { ...state, ...action.fields }
+    case 'RESET_ADD_FORM':
+      return { ...state, addForm: { ...defaultFormState } }
+    case 'RESET_EDIT_FORM':
+      return { ...state, editForm: { ...defaultFormState } }
+    default:
+      return state
+  }
+}
+
 function SapixTextView({ user }) {
-  const [texts, setTexts] = useState([])
-  const [selectedSubject, setSelectedSubject] = useState('算数')
+  const [state, dispatch] = useReducer(reducer, initialState)
 
   // 単元IDから単元名へのマップ
   const unitNameMap = useMemo(() => {
@@ -27,41 +70,6 @@ function SapixTextView({ user }) {
     getStaticMasterUnits().forEach(u => { map[u.id] = u.name })
     return map
   }, [])
-  const [showAddForm, setShowAddForm] = useState(false)
-  const [editingId, setEditingId] = useState(null)
-  const [viewingPDF, setViewingPDF] = useState(null)
-  const [fullscreenPDF, setFullscreenPDF] = useState(null)
-  const [uploading, setUploading] = useState(false)
-  const [showDrivePicker, setShowDrivePicker] = useState(null) // 'add' | 'edit' | null
-  const [expandedText, setExpandedText] = useState(null) // スキャンテキスト展開中のID
-  const [evaluating, setEvaluating] = useState(null) // 評価処理中の id
-
-  // ── 問題ログ関連 ──────────────────────────────────────────
-  const [problems, setProblems] = useState({})            // textId -> problems[]
-
-  const [addForm, setAddForm] = useState({
-    textName: '',
-    textNumber: '',
-    subject: '算数',
-    grade: '4年生',
-    unitIds: [],
-    fileUrl: '',
-    fileName: '',
-    scannedText: '',
-    studyDate: '',
-  })
-
-  const [editForm, setEditForm] = useState({
-    textName: '',
-    textNumber: '',
-    subject: '算数',
-    grade: '4年生',
-    unitIds: [],
-    fileUrl: '',
-    fileName: '',
-    scannedText: '',
-    studyDate: '',
-  })
 
   const addFileInputRef = useRef(null)
   const editFileInputRef = useRef(null)
@@ -71,12 +79,12 @@ function SapixTextView({ user }) {
     if (!user) return
     const result = await getSapixTexts(user.uid)
     if (result.success) {
-      setTexts(result.data)
+      dispatch({ type: 'SET_FIELD', field: 'texts', value: result.data })
       // 全テキストの問題数を事前ロード（バッジ表示用）
       for (const text of result.data) {
         const pResult = await getProblemsBySource(user.uid, 'textbook', text.id)
         if (pResult.success) {
-          setProblems(prev => ({ ...prev, [text.id]: pResult.data }))
+          dispatch({ type: 'SET_FIELD', field: 'problems', value: { ...state.problems, [text.id]: pResult.data } })
         }
       }
     }
@@ -87,41 +95,41 @@ function SapixTextView({ user }) {
   }, [loadTexts])
 
   // 科目でフィルタリング
-  const filteredTexts = texts.filter(t => t.subject === selectedSubject)
+  const filteredTexts = state.texts.filter(t => t.subject === state.selectedSubject)
 
   // PDF アップロード
   const handlePDFUpload = async (file, target) => {
     if (!file) return
     if (file.type !== 'application/pdf') {
-      toast.error('PDFファイルのみアップロード可能です')
+      toast.error(TOAST.PDF_ONLY)
       return
     }
     if (file.size > MAX_FILE_SIZE) {
-      toast.error('ファイルサイズは20MB以下にしてください')
+      toast.error(TOAST.FILE_TOO_LARGE)
       return
     }
     const hasAccess = await checkDriveAccess()
     if (!hasAccess) {
       const token = await refreshGoogleAccessToken()
       if (!token) {
-        toast.error('Google Drive に接続してからアップロードしてください')
+        toast.error(TOAST.DRIVE_NOT_CONNECTED)
         return
       }
     }
-    setUploading(true)
+    dispatch({ type: 'SET_FIELD', field: 'uploading', value: true })
     try {
       const result = await uploadPDFToDrive(file, () => {})
       const viewUrl = `https://drive.google.com/file/d/${result.driveFileId}/view`
       if (target === 'add') {
-        setAddForm(prev => ({ ...prev, fileUrl: viewUrl, fileName: file.name }))
+        dispatch({ type: 'SET_FIELD', field: 'addForm', value: { ...state.addForm, fileUrl: viewUrl, fileName: file.name } })
       } else {
-        setEditForm(prev => ({ ...prev, fileUrl: viewUrl, fileName: file.name }))
+        dispatch({ type: 'SET_FIELD', field: 'editForm', value: { ...state.editForm, fileUrl: viewUrl, fileName: file.name } })
       }
-      toast.success('PDFをGoogle Driveにアップロードしました')
+      toast.success(TOAST.UPLOAD_SUCCESS)
     } catch (error) {
-      toast.error('アップロードエラー: ' + error.message)
+      toast.error(TOAST.UPLOAD_ERROR + error.message)
     } finally {
-      setUploading(false)
+      dispatch({ type: 'SET_FIELD', field: 'uploading', value: false })
     }
   }
 
@@ -140,7 +148,7 @@ function SapixTextView({ user }) {
     if (!user) return
     const result = await getProblemsBySource(user.uid, 'textbook', textId)
     if (result.success) {
-      setProblems(prev => ({ ...prev, [textId]: result.data }))
+      dispatch({ type: 'SET_FIELD', field: 'problems', value: { ...state.problems, [textId]: result.data } })
     }
   }
 
@@ -150,9 +158,9 @@ function SapixTextView({ user }) {
       toast.error('単元タグが設定されていません。編集から単元タグを追加してください。')
       return
     }
-    setEvaluating(text.id)
+    dispatch({ type: 'SET_FIELD', field: 'evaluating', value: text.id })
     try {
-      const textProblems = problems[text.id] || []
+      const textProblems = state.problems[text.id] || []
       const result = await addLessonLogWithStats(user.uid, {
         unitIds: text.unitIds,
         sourceType: 'sapixTask',
@@ -173,31 +181,31 @@ function SapixTextView({ user }) {
       toast.error('評価の記録に失敗しました')
       console.error(err)
     } finally {
-      setEvaluating(null)
+      dispatch({ type: 'SET_FIELD', field: 'evaluating', value: null })
     }
   }
 
   // テキスト追加
   const handleAdd = async () => {
-    if (!addForm.textName.trim()) {
+    if (!state.addForm.textName.trim()) {
       toast.error('テキスト名を入力してください')
       return
     }
     const result = await addSapixText(user.uid, {
-      textName: addForm.textName.trim(),
-      textNumber: addForm.textNumber.trim(),
-      subject: addForm.subject,
-      grade: addForm.grade,
-      unitIds: addForm.unitIds,
-      fileUrl: addForm.fileUrl,
-      fileName: addForm.fileName,
-      scannedText: addForm.scannedText,
-      studyDate: addForm.studyDate,
+      textName: state.addForm.textName.trim(),
+      textNumber: state.addForm.textNumber.trim(),
+      subject: state.addForm.subject,
+      grade: state.addForm.grade,
+      unitIds: state.addForm.unitIds,
+      fileUrl: state.addForm.fileUrl,
+      fileName: state.addForm.fileName,
+      scannedText: state.addForm.scannedText,
+      studyDate: state.addForm.studyDate,
     })
     if (result.success) {
       toast.success('SAPIXテキストを追加しました')
-      setAddForm({ textName: '', textNumber: '', subject: '算数', grade: '4年生', unitIds: [], fileUrl: '', fileName: '', scannedText: '', studyDate: '' })
-      setShowAddForm(false)
+      dispatch({ type: 'RESET_ADD_FORM' })
+      dispatch({ type: 'SET_FIELD', field: 'showAddForm', value: false })
       await loadTexts()
     } else {
       toast.error('追加に失敗しました: ' + result.error)
@@ -206,40 +214,42 @@ function SapixTextView({ user }) {
 
   // テキスト編集開始
   const handleStartEdit = (text) => {
-    setEditingId(text.id)
-    setEditForm({
-      textName: text.textName || '',
-      textNumber: text.textNumber || '',
-      subject: text.subject || '算数',
-      grade: text.grade || '4年生',
-      unitIds: text.unitIds || [],
-      fileUrl: text.fileUrl || '',
-      fileName: text.fileName || '',
-      scannedText: text.scannedText || '',
-      studyDate: text.studyDate || '',
-    })
+    dispatch({ type: 'SET_FIELDS', fields: {
+      editingId: text.id,
+      editForm: {
+        textName: text.textName || '',
+        textNumber: text.textNumber || '',
+        subject: text.subject || '算数',
+        grade: text.grade || '4年生',
+        unitIds: text.unitIds || [],
+        fileUrl: text.fileUrl || '',
+        fileName: text.fileName || '',
+        scannedText: text.scannedText || '',
+        studyDate: text.studyDate || '',
+      },
+    }})
   }
 
   // テキスト編集保存
   const handleSaveEdit = async () => {
-    if (!editForm.textName.trim()) {
+    if (!state.editForm.textName.trim()) {
       toast.error('テキスト名を入力してください')
       return
     }
-    const result = await updateSapixText(user.uid, editingId, {
-      textName: editForm.textName.trim(),
-      textNumber: editForm.textNumber.trim(),
-      subject: editForm.subject,
-      grade: editForm.grade,
-      unitIds: editForm.unitIds,
-      fileUrl: editForm.fileUrl,
-      fileName: editForm.fileName,
-      scannedText: editForm.scannedText,
-      studyDate: editForm.studyDate,
+    const result = await updateSapixText(user.uid, state.editingId, {
+      textName: state.editForm.textName.trim(),
+      textNumber: state.editForm.textNumber.trim(),
+      subject: state.editForm.subject,
+      grade: state.editForm.grade,
+      unitIds: state.editForm.unitIds,
+      fileUrl: state.editForm.fileUrl,
+      fileName: state.editForm.fileName,
+      scannedText: state.editForm.scannedText,
+      studyDate: state.editForm.studyDate,
     })
     if (result.success) {
       toast.success('更新しました')
-      setEditingId(null)
+      dispatch({ type: 'SET_FIELD', field: 'editingId', value: null })
       await loadTexts()
     } else {
       toast.error('更新に失敗しました: ' + result.error)
@@ -253,7 +263,7 @@ function SapixTextView({ user }) {
     const result = await deleteSapixText(user.uid, text.id)
     if (result.success) {
       toast.success('削除しました')
-      if (viewingPDF?.id === text.id) setViewingPDF(null)
+      if (state.viewingPDF?.id === text.id) dispatch({ type: 'SET_FIELD', field: 'viewingPDF', value: null })
       await loadTexts()
     } else {
       toast.error('削除に失敗しました: ' + result.error)
@@ -262,15 +272,15 @@ function SapixTextView({ user }) {
 
   // PDFビューワー
   const handleViewPDF = (text) => {
-    if (viewingPDF?.id === text.id) {
-      setViewingPDF(null)
+    if (state.viewingPDF?.id === text.id) {
+      dispatch({ type: 'SET_FIELD', field: 'viewingPDF', value: null })
     } else {
-      setViewingPDF({ id: text.id, fileUrl: text.fileUrl, title: text.textName })
+      dispatch({ type: 'SET_FIELD', field: 'viewingPDF', value: { id: text.id, fileUrl: text.fileUrl, title: text.textName } })
     }
   }
 
   // フォームの単元タグピッカー（共通）
-  const renderUnitSelector = (form, setForm) => {
+  const renderUnitSelector = (form, formField) => {
     return (
       <>
         <div className="sapix-form-section">
@@ -281,7 +291,7 @@ function SapixTextView({ user }) {
                 key={g}
                 type="button"
                 className={`sapix-grade-btn ${form.grade === g ? 'active' : ''}`}
-                onClick={() => setForm(prev => ({ ...prev, grade: g }))}
+                onClick={() => dispatch({ type: 'SET_FIELD', field: formField, value: { ...form, grade: g } })}
               >
                 {g}
               </button>
@@ -293,7 +303,7 @@ function SapixTextView({ user }) {
           <UnitTagPicker
             subject={form.subject}
             value={form.unitIds}
-            onChange={(unitIds) => setForm(prev => ({ ...prev, unitIds }))}
+            onChange={(unitIds) => dispatch({ type: 'SET_FIELD', field: formField, value: { ...form, unitIds } })}
           />
         </div>
       </>
@@ -301,7 +311,7 @@ function SapixTextView({ user }) {
   }
 
   // PDFアップロード/選択UI（共通）
-  const renderFileUpload = (form, setForm, target) => (
+  const renderFileUpload = (form, formField, target) => (
     <div className="sapix-form-section">
       <label className="sapix-section-label">問題PDF（任意）:</label>
       {form.fileUrl ? (
@@ -310,7 +320,7 @@ function SapixTextView({ user }) {
           <a href={form.fileUrl} target="_blank" rel="noopener noreferrer">
             {form.fileName || (form.fileUrl.includes('drive.google.com') ? 'Google Drive のファイル' : form.fileUrl)}
           </a>
-          <button type="button" onClick={() => setForm(prev => ({ ...prev, fileUrl: '', fileName: '' }))}>&times;</button>
+          <button type="button" onClick={() => dispatch({ type: 'SET_FIELD', field: formField, value: { ...form, fileUrl: '', fileName: '' } })}>&times;</button>
         </div>
       ) : (
         <div className="sapix-file-upload-area">
@@ -318,24 +328,24 @@ function SapixTextView({ user }) {
             ref={target === 'add' ? addFileInputRef : editFileInputRef}
             type="file"
             accept="application/pdf"
-            style={{ display: 'none' }}
+            className="hidden-input"
             onChange={(e) => { handlePDFUpload(e.target.files[0], target); e.target.value = '' }}
           />
           <button
             type="button"
             className="sapix-upload-btn"
             onClick={() => (target === 'add' ? addFileInputRef : editFileInputRef).current?.click()}
-            disabled={uploading}
+            disabled={state.uploading}
           >
-            {uploading ? 'アップロード中...' : '新規アップロード'}
+            {state.uploading ? LABELS.UPLOADING : LABELS.UPLOAD_NEW}
           </button>
           <span className="sapix-or">または</span>
           <button
             type="button"
             className="sapix-drive-btn"
-            onClick={() => setShowDrivePicker(target)}
+            onClick={() => dispatch({ type: 'SET_FIELD', field: 'showDrivePicker', value: target })}
           >
-            Driveから選択
+            {LABELS.DRIVE_SELECT}
           </button>
         </div>
       )}
@@ -347,16 +357,14 @@ function SapixTextView({ user }) {
       {/* 科目フィルター */}
       <div className="dashboard-header">
         <div className="subject-grid">
-          {subjects.map(subject => (
+          {SUBJECTS.map(subject => (
             <button
               key={subject}
-              className={`pastpaper-subject-btn ${selectedSubject === subject ? 'active' : ''}`}
-              onClick={() => setSelectedSubject(subject)}
+              className={`pastpaper-subject-btn subject-btn-common ${state.selectedSubject === subject ? 'active' : ''}`}
+              onClick={() => dispatch({ type: 'SET_FIELD', field: 'selectedSubject', value: subject })}
               style={{
-                borderColor: selectedSubject === subject ? subjectColors[subject] : '#e2e8f0',
-                background: selectedSubject === subject ? `${subjectColors[subject]}15` : 'white',
-                padding: '12px', fontSize: '0.9rem',
-                display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: '10px', whiteSpace: 'nowrap',
+                borderColor: state.selectedSubject === subject ? subjectColors[subject] : '#e2e8f0',
+                background: state.selectedSubject === subject ? `${subjectColors[subject]}15` : 'white',
               }}
             >
               <span className="subject-emoji">{subjectEmojis[subject]}</span>
@@ -374,14 +382,14 @@ function SapixTextView({ user }) {
               SAPIXテキスト・プリントをスキャン管理。単元タグ付きでPDF閲覧できます。
             </p>
           </div>
-          <button className="add-pastpaper-btn" onClick={() => setShowAddForm(!showAddForm)}>
-            {showAddForm ? '✕ 閉じる' : '+ テキスト追加'}
+          <button className="add-pastpaper-btn" onClick={() => dispatch({ type: 'SET_FIELD', field: 'showAddForm', value: !state.showAddForm })}>
+            {state.showAddForm ? '✕ 閉じる' : '+ テキスト追加'}
           </button>
         </div>
       </div>
 
       {/* 追加フォーム */}
-      {showAddForm && (
+      {state.showAddForm && (
         <div className="add-pastpaper-form">
           <h3>📝 新しいSAPIXテキストを追加</h3>
 
@@ -389,15 +397,15 @@ function SapixTextView({ user }) {
           <div className="sapix-form-section">
             <label className="sapix-section-label">科目:</label>
             <div className="subject-selector-inline">
-              {subjects.map(subject => (
+              {SUBJECTS.map(subject => (
                 <button
                   key={subject}
                   type="button"
-                  className={`subject-btn ${addForm.subject === subject ? 'active' : ''}`}
-                  onClick={() => setAddForm(prev => ({ ...prev, subject, unitIds: [] }))}
+                  className={`subject-btn subject-btn-common ${state.addForm.subject === subject ? 'active' : ''}`}
+                  onClick={() => dispatch({ type: 'SET_FIELD', field: 'addForm', value: { ...state.addForm, subject, unitIds: [] } })}
                   style={{
-                    borderColor: addForm.subject === subject ? subjectColors[subject] : '#e2e8f0',
-                    background: addForm.subject === subject ? `${subjectColors[subject]}15` : 'white',
+                    borderColor: state.addForm.subject === subject ? subjectColors[subject] : '#e2e8f0',
+                    background: state.addForm.subject === subject ? `${subjectColors[subject]}15` : 'white',
                   }}
                 >
                   <span className="subject-emoji">{subjectEmojis[subject]}</span>
@@ -413,8 +421,8 @@ function SapixTextView({ user }) {
               <input
                 type="text"
                 placeholder="例: デイリーサピックス"
-                value={addForm.textName}
-                onChange={(e) => setAddForm(prev => ({ ...prev, textName: e.target.value }))}
+                value={state.addForm.textName}
+                onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'addForm', value: { ...state.addForm, textName: e.target.value } })}
               />
             </div>
             <div className="add-form-field">
@@ -422,8 +430,8 @@ function SapixTextView({ user }) {
               <input
                 type="text"
                 placeholder="例: No.23"
-                value={addForm.textNumber}
-                onChange={(e) => setAddForm(prev => ({ ...prev, textNumber: e.target.value }))}
+                value={state.addForm.textNumber}
+                onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'addForm', value: { ...state.addForm, textNumber: e.target.value } })}
               />
             </div>
           </div>
@@ -432,14 +440,14 @@ function SapixTextView({ user }) {
             <label>学習日（任意）:</label>
             <input
               type="date"
-              value={addForm.studyDate}
-              onChange={(e) => setAddForm(prev => ({ ...prev, studyDate: e.target.value }))}
-              style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}
+              value={state.addForm.studyDate}
+              onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'addForm', value: { ...state.addForm, studyDate: e.target.value } })}
+              className="form-input-common"
             />
           </div>
 
-          {renderFileUpload(addForm, setAddForm, 'add')}
-          {renderUnitSelector(addForm, setAddForm)}
+          {renderFileUpload(state.addForm, 'addForm', 'add')}
+          {renderUnitSelector(state.addForm, 'addForm')}
 
           {/* スキャンテキスト */}
           <div className="sapix-form-section">
@@ -447,8 +455,8 @@ function SapixTextView({ user }) {
             <textarea
               className="sapix-scanned-text-input"
               placeholder="OCRでスキャンしたテキストをここに貼り付け..."
-              value={addForm.scannedText}
-              onChange={(e) => setAddForm(prev => ({ ...prev, scannedText: e.target.value }))}
+              value={state.addForm.scannedText}
+              onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'addForm', value: { ...state.addForm, scannedText: e.target.value } })}
               rows="5"
             />
           </div>
@@ -456,9 +464,9 @@ function SapixTextView({ user }) {
           <div className="add-form-actions">
             <button
               className="btn-secondary"
-              onClick={() => { setShowAddForm(false); setAddForm({ textName: '', textNumber: '', subject: '算数', grade: '4年生', unitIds: [], fileUrl: '', fileName: '', scannedText: '', studyDate: '' }) }}
+              onClick={() => dispatch({ type: 'SET_FIELDS', fields: { showAddForm: false, addForm: { ...defaultFormState } } })}
             >
-              キャンセル
+              {LABELS.CANCEL}
             </button>
             <button className="btn-primary" onClick={handleAdd}>
               追加する
@@ -478,22 +486,22 @@ function SapixTextView({ user }) {
         ) : (
           filteredTexts.map(text => (
             <div key={text.id} className="sapix-text-card">
-              {editingId === text.id ? (
+              {state.editingId === text.id ? (
                 /* 編集モード */
                 <div className="edit-form-container">
                   <h4>📝 テキストを編集</h4>
                   <div className="sapix-form-section">
                     <label className="sapix-section-label">科目:</label>
                     <div className="subject-selector-inline">
-                      {subjects.map(subject => (
+                      {SUBJECTS.map(subject => (
                         <button
                           key={subject}
                           type="button"
-                          className={`subject-btn ${editForm.subject === subject ? 'active' : ''}`}
-                          onClick={() => setEditForm(prev => ({ ...prev, subject, unitIds: [] }))}
+                          className={`subject-btn subject-btn-common ${state.editForm.subject === subject ? 'active' : ''}`}
+                          onClick={() => dispatch({ type: 'SET_FIELD', field: 'editForm', value: { ...state.editForm, subject, unitIds: [] } })}
                           style={{
-                            borderColor: editForm.subject === subject ? subjectColors[subject] : '#e2e8f0',
-                            background: editForm.subject === subject ? `${subjectColors[subject]}15` : 'white',
+                            borderColor: state.editForm.subject === subject ? subjectColors[subject] : '#e2e8f0',
+                            background: state.editForm.subject === subject ? `${subjectColors[subject]}15` : 'white',
                           }}
                         >
                           <span className="subject-emoji">{subjectEmojis[subject]}</span>
@@ -505,35 +513,35 @@ function SapixTextView({ user }) {
                   <div className="add-form-grid-two-cols">
                     <div className="add-form-field">
                       <label>テキスト名:</label>
-                      <input type="text" value={editForm.textName} onChange={(e) => setEditForm(prev => ({ ...prev, textName: e.target.value }))} />
+                      <input type="text" value={state.editForm.textName} onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'editForm', value: { ...state.editForm, textName: e.target.value } })} />
                     </div>
                     <div className="add-form-field">
                       <label>番号:</label>
-                      <input type="text" value={editForm.textNumber} onChange={(e) => setEditForm(prev => ({ ...prev, textNumber: e.target.value }))} />
+                      <input type="text" value={state.editForm.textNumber} onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'editForm', value: { ...state.editForm, textNumber: e.target.value } })} />
                     </div>
                   </div>
                   <div className="add-form-field">
                     <label>学習日（任意）:</label>
                     <input
                       type="date"
-                      value={editForm.studyDate}
-                      onChange={(e) => setEditForm(prev => ({ ...prev, studyDate: e.target.value }))}
-                      style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}
+                      value={state.editForm.studyDate}
+                      onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'editForm', value: { ...state.editForm, studyDate: e.target.value } })}
+                      className="form-input-common"
                     />
                   </div>
-                  {renderFileUpload(editForm, setEditForm, 'edit')}
-                  {renderUnitSelector(editForm, setEditForm)}
+                  {renderFileUpload(state.editForm, 'editForm', 'edit')}
+                  {renderUnitSelector(state.editForm, 'editForm')}
                   <div className="sapix-form-section">
                     <label className="sapix-section-label">スキャンテキスト:</label>
                     <textarea
                       className="sapix-scanned-text-input"
-                      value={editForm.scannedText}
-                      onChange={(e) => setEditForm(prev => ({ ...prev, scannedText: e.target.value }))}
+                      value={state.editForm.scannedText}
+                      onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'editForm', value: { ...state.editForm, scannedText: e.target.value } })}
                       rows="5"
                     />
                   </div>
                   <div className="edit-form-actions">
-                    <button className="btn-secondary" onClick={() => setEditingId(null)}>キャンセル</button>
+                    <button className="btn-secondary" onClick={() => dispatch({ type: 'SET_FIELD', field: 'editingId', value: null })}>{LABELS.CANCEL}</button>
                     <button className="btn-primary" onClick={handleSaveEdit}>保存</button>
                   </div>
                 </div>
@@ -558,18 +566,18 @@ function SapixTextView({ user }) {
                     <div className="sapix-text-actions">
                       {text.fileUrl && (
                         <button
-                          className={`pdf-view-btn ${viewingPDF?.id === text.id ? 'active' : ''}`}
+                          className={`pdf-view-btn ${state.viewingPDF?.id === text.id ? 'active' : ''}`}
                           onClick={() => handleViewPDF(text)}
                         >
-                          {viewingPDF?.id === text.id ? '✕ 閉じる' : '📄 PDF表示'}
+                          {state.viewingPDF?.id === text.id ? '✕ 閉じる' : '📄 PDF表示'}
                         </button>
                       )}
                       {text.scannedText && (
                         <button
-                          className={`sapix-scan-toggle ${expandedText === text.id ? 'active' : ''}`}
-                          onClick={() => setExpandedText(expandedText === text.id ? null : text.id)}
+                          className={`sapix-scan-toggle ${state.expandedText === text.id ? 'active' : ''}`}
+                          onClick={() => dispatch({ type: 'SET_FIELD', field: 'expandedText', value: state.expandedText === text.id ? null : text.id })}
                         >
-                          {expandedText === text.id ? '✕ テキスト閉じる' : '📝 テキスト表示'}
+                          {state.expandedText === text.id ? '✕ テキスト閉じる' : '📝 テキスト表示'}
                         </button>
                       )}
                       <button className="edit-pastpaper-btn" onClick={() => handleStartEdit(text)} title="編集">✏️</button>
@@ -578,27 +586,27 @@ function SapixTextView({ user }) {
                   </div>
 
                   {/* PDFプレビュー */}
-                  {viewingPDF?.id === text.id && (
+                  {state.viewingPDF?.id === text.id && (
                     <div className="pdf-preview-panel">
                       <div className="pdf-preview-header">
-                        <span className="pdf-preview-title">📄 {viewingPDF.title}</span>
+                        <span className="pdf-preview-title">📄 {state.viewingPDF.title}</span>
                         <div className="pdf-preview-actions">
                           <button
                             className="pdf-fullscreen-btn"
-                            onClick={() => setFullscreenPDF({ fileUrl: viewingPDF.fileUrl, title: viewingPDF.title })}
+                            onClick={() => dispatch({ type: 'SET_FIELD', field: 'fullscreenPDF', value: { fileUrl: state.viewingPDF.fileUrl, title: state.viewingPDF.title } })}
                           >
                             ⛶
                           </button>
-                          <a href={viewingPDF.fileUrl} target="_blank" rel="noopener noreferrer" className="pdf-open-newtab-btn">
+                          <a href={state.viewingPDF.fileUrl} target="_blank" rel="noopener noreferrer" className="pdf-open-newtab-btn">
                             新しいタブで開く
                           </a>
-                          <button className="pdf-preview-close" onClick={() => setViewingPDF(null)}>&times;</button>
+                          <button className="pdf-preview-close" onClick={() => dispatch({ type: 'SET_FIELD', field: 'viewingPDF', value: null })}>&times;</button>
                         </div>
                       </div>
                       <div className="pdf-preview-container">
                         <iframe
-                          src={getEmbedUrl(viewingPDF.fileUrl)}
-                          title={`PDF: ${viewingPDF.title}`}
+                          src={getEmbedUrl(state.viewingPDF.fileUrl)}
+                          title={`PDF: ${state.viewingPDF.title}`}
                           className="pdf-preview-iframe"
                           allow="autoplay"
                         />
@@ -613,14 +621,14 @@ function SapixTextView({ user }) {
                       <button
                         key={key}
                         className="sapix-eval-btn"
-                        disabled={evaluating === text.id}
+                        disabled={state.evaluating === text.id}
                         onClick={() => handleEvaluate(text, key)}
                         title={EVALUATION_LABELS[key]}
                       >
                         {key === 'blue' ? '🔵' : key === 'yellow' ? '🟡' : '🔴'}
                       </button>
                     ))}
-                    {evaluating === text.id && (
+                    {state.evaluating === text.id && (
                       <span className="sapix-eval-saving">記録中...</span>
                     )}
                   </div>
@@ -628,7 +636,7 @@ function SapixTextView({ user }) {
                   {/* ── 問題クリップ ─────────────────────── */}
                   <ProblemClipList
                     userId={user.uid}
-                    problems={problems[text.id] || []}
+                    problems={state.problems[text.id] || []}
                     onReload={() => loadProblems(text.id)}
                     sourceType="textbook"
                     sourceId={text.id}
@@ -649,11 +657,11 @@ function SapixTextView({ user }) {
                   {/* ─────────────────────────────────────────────── */}
 
                   {/* スキャンテキスト表示 */}
-                  {expandedText === text.id && text.scannedText && (
+                  {state.expandedText === text.id && text.scannedText && (
                     <div className="sapix-scanned-text-display">
                       <div className="sapix-scanned-text-header">
                         <span>📝 スキャンテキスト</span>
-                        <button onClick={() => setExpandedText(null)}>&times;</button>
+                        <button onClick={() => dispatch({ type: 'SET_FIELD', field: 'expandedText', value: null })}>&times;</button>
                       </div>
                       <pre className="sapix-scanned-text-content">{text.scannedText}</pre>
                     </div>
@@ -666,21 +674,21 @@ function SapixTextView({ user }) {
       </div>
 
       {/* フルスクリーンPDF */}
-      {fullscreenPDF && (
-        <div className="pdf-fullscreen-overlay" onClick={() => setFullscreenPDF(null)}>
+      {state.fullscreenPDF && (
+        <div className="pdf-fullscreen-overlay" onClick={() => dispatch({ type: 'SET_FIELD', field: 'fullscreenPDF', value: null })}>
           <div className="pdf-fullscreen-container" onClick={(e) => e.stopPropagation()}>
             <div className="pdf-fullscreen-header">
-              <span className="pdf-fullscreen-title">📄 {fullscreenPDF.title}</span>
+              <span className="pdf-fullscreen-title">📄 {state.fullscreenPDF.title}</span>
               <div className="pdf-fullscreen-actions">
-                <a href={fullscreenPDF.fileUrl} target="_blank" rel="noopener noreferrer" className="pdf-open-newtab-btn">
+                <a href={state.fullscreenPDF.fileUrl} target="_blank" rel="noopener noreferrer" className="pdf-open-newtab-btn">
                   新しいタブで開く
                 </a>
-                <button className="pdf-fullscreen-close" onClick={() => setFullscreenPDF(null)}>&times;</button>
+                <button className="pdf-fullscreen-close" onClick={() => dispatch({ type: 'SET_FIELD', field: 'fullscreenPDF', value: null })}>&times;</button>
               </div>
             </div>
             <iframe
-              src={getEmbedUrl(fullscreenPDF.fileUrl)}
-              title={`PDF: ${fullscreenPDF.title}`}
+              src={getEmbedUrl(state.fullscreenPDF.fileUrl)}
+              title={`PDF: ${state.fullscreenPDF.title}`}
               className="pdf-fullscreen-iframe"
               allow="autoplay"
             />
@@ -689,17 +697,17 @@ function SapixTextView({ user }) {
       )}
 
       {/* Drive ファイルピッカー */}
-      {showDrivePicker && (
+      {state.showDrivePicker && (
         <DriveFilePicker
           onSelect={(data) => {
-            if (showDrivePicker === 'add') {
-              setAddForm(prev => ({ ...prev, fileUrl: data.url, fileName: data.name }))
+            if (state.showDrivePicker === 'add') {
+              dispatch({ type: 'SET_FIELD', field: 'addForm', value: { ...state.addForm, fileUrl: data.url, fileName: data.name } })
             } else {
-              setEditForm(prev => ({ ...prev, fileUrl: data.url, fileName: data.name }))
+              dispatch({ type: 'SET_FIELD', field: 'editForm', value: { ...state.editForm, fileUrl: data.url, fileName: data.name } })
             }
-            setShowDrivePicker(null)
+            dispatch({ type: 'SET_FIELD', field: 'showDrivePicker', value: null })
           }}
-          onClose={() => setShowDrivePicker(null)}
+          onClose={() => dispatch({ type: 'SET_FIELD', field: 'showDrivePicker', value: null })}
         />
       )}
 

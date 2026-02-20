@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import './TestScoreView.css'
 import { getTodayString } from '../utils/dateUtils'
 import { grades } from '../utils/unitsDatabase'
@@ -12,10 +12,15 @@ import {
 import ScoreCard from './ScoreCard'
 import DeviationChart from './DeviationChart'
 import { toast } from '../utils/toast'
+import { LABELS, TOAST } from '../utils/messages'
 import EmptyState from './EmptyState'
+import { useFirestoreQuery } from '../hooks/useFirestoreQuery'
 
 function GradesView({ user }) {
-  const [scores, setScores] = useState([])
+  const { data: scores, reload: reloadScores } = useFirestoreQuery(
+    () => user ? getAllTestScores(user.uid) : null,
+    [user]
+  )
   const [selectedGrade, setSelectedGrade] = useState('4年生')
   const [showForm, setShowForm] = useState(false)
   const [editingScore, setEditingScore] = useState(null)
@@ -37,14 +42,7 @@ function GradesView({ user }) {
     }
   }
 
-  useEffect(() => {
-    if (!user) return
-    getAllTestScores(user.uid).then(result => {
-      if (result.success) setScores(result.data)
-    })
-  }, [user])
-
-  const filteredScores = scores.filter(s => s.grade === selectedGrade)
+  const filteredScores = (scores || []).filter(s => s.grade === selectedGrade)
 
   const chartData = useMemo(() => {
     return [...filteredScores]
@@ -77,7 +75,7 @@ function GradesView({ user }) {
   }
 
   const handleSave = async () => {
-    if (!user) { toast.error('ログインが必要です'); return }
+    if (!user) { toast.error(TOAST.LOGIN_REQUIRED); return }
     if (!scoreForm.testName || !scoreForm.testDate) {
       toast.error('テスト名と実施日は必須です')
       return
@@ -86,12 +84,11 @@ function GradesView({ user }) {
       ? await updateTestScore(user.uid, editingScore.id, scoreForm)
       : await addTestScore(user.uid, scoreForm)
     if (result.success) {
-      const refreshResult = await getAllTestScores(user.uid)
-      if (refreshResult.success) setScores(refreshResult.data)
+      await reloadScores()
       setShowForm(false)
-      toast.success(editingScore ? '更新しました' : '保存しました')
+      toast.success(editingScore ? TOAST.UPDATE_SUCCESS : TOAST.SAVE_SUCCESS)
     } else {
-      toast.error('保存に失敗しました: ' + result.error)
+      toast.error(TOAST.SAVE_FAILED + ': ' + result.error)
     }
   }
 
@@ -99,10 +96,10 @@ function GradesView({ user }) {
     if (!window.confirm(`「${score.testName} (${score.testDate})」を削除しますか？`)) return
     const result = await deleteTestScore(user.uid, score.id)
     if (result.success) {
-      setScores(scores.filter(s => s.id !== score.id))
-      toast.success('削除しました')
+      await reloadScores()
+      toast.success(TOAST.DELETE_SUCCESS)
     } else {
-      toast.error('削除に失敗しました')
+      toast.error(TOAST.DELETE_FAILED)
     }
   }
 
@@ -312,7 +309,7 @@ function GradesView({ user }) {
 
           <div className="form-actions">
             <button className="btn-secondary" onClick={() => setShowForm(false)}>
-              キャンセル
+              {LABELS.CANCEL}
             </button>
             <button className="btn-primary" onClick={handleSave}>
               {editingScore ? '✓ 更新' : '✓ 保存'}

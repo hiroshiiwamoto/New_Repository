@@ -18,6 +18,7 @@ import {
 import { addTaskToFirestore } from '../utils/firestore'
 import { getStaticMasterUnits } from '../utils/importMasterUnits'
 import { toast } from '../utils/toast'
+import { LABELS, TOAST } from '../utils/messages'
 import UnitTagPicker from './UnitTagPicker'
 import PdfCropper from './PdfCropper'
 import './ProblemClipList.css'
@@ -129,9 +130,9 @@ export default function ProblemClipList({
       await onReload()
       resetForm()
       setShowForm(false)
-      toast.success('問題を追加しました')
+      toast.success(TOAST.ADD_SUCCESS)
     } else {
-      toast.error('保存に失敗しました')
+      toast.error(TOAST.SAVE_FAILED)
     }
     return result
   }
@@ -169,7 +170,7 @@ export default function ProblemClipList({
     }
     setSelectedProblem(null)
     await onReload()
-    toast.success('削除しました')
+    toast.success(TOAST.DELETE_SUCCESS)
   }
 
   // ── 個別問題のタスク生成（詳細モーダル用）────
@@ -202,7 +203,7 @@ export default function ProblemClipList({
       setTaskDueDate(null)
       toast.success(`${taskLabel}タスクを作成しました`)
     } catch {
-      toast.error('タスク作成に失敗しました')
+      toast.error(TOAST.SAVE_FAILED)
     } finally {
       setCreatingTask(false)
     }
@@ -461,7 +462,7 @@ export default function ProblemClipList({
                       className="btn-secondary"
                       onClick={() => setTaskDueDate(null)}
                     >
-                      キャンセル
+                      {LABELS.CANCEL}
                     </button>
                   </div>
                 </div>
@@ -656,7 +657,7 @@ export default function ProblemClipList({
 
         <div className="clip-form-actions">
           <button className="btn-secondary" onClick={() => { setShowForm(false); resetForm() }}>
-            キャンセル
+            {LABELS.CANCEL}
           </button>
           <button className="btn-primary" onClick={handleAdd}>
             追加する

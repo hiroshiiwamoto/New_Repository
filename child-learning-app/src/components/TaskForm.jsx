@@ -1,79 +1,85 @@
-import { useState, useEffect, useRef } from 'react'
+import { useReducer, useEffect, useRef } from 'react'
 import './TaskForm.css'
 import PastPaperFields from './PastPaperFields'
 import UnitTagPicker from './UnitTagPicker'
 import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
 import { refreshGoogleAccessToken } from './Auth'
-import { MAX_FILE_SIZE } from '../utils/constants'
+import { MAX_FILE_SIZE, SUBJECTS, taskTypes, priorities } from '../utils/constants'
 import { toast } from '../utils/toast'
+import { LABELS, TOAST } from '../utils/messages'
 import DriveFilePicker from './DriveFilePicker'
 
-function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUnits = [], onAddCustomUnit }) {
-  const [title, setTitle] = useState('')
-  const [subject, setSubject] = useState('算数')
-  const [unitIds, setUnitIds] = useState([]) // マスター単元タグ（複数選択）
-  const [taskType, setTaskType] = useState('daily')
-  const [priority, setPriority] = useState('B')
-  const [dueDate, setDueDate] = useState('')
+const initialFormState = {
+  title: '', subject: '算数', unitIds: [], taskType: 'daily',
+  priority: 'B', dueDate: '', fileUrl: '', fileName: '',
+  uploading: false, showDrivePicker: false, problemImageUrls: [],
+  schoolName: '', year: '', round: '第1回', relatedUnits: [],
+}
 
-  // PDF/ファイル関連
-  const [fileUrl, setFileUrl] = useState('')
-  const [fileName, setFileName] = useState('')
-  const [uploading, setUploading] = useState(false)
-  const [showDrivePicker, setShowDrivePicker] = useState(false)
+function formReducer(state, action) {
+  switch (action.type) {
+    case 'SET_FIELD': return { ...state, [action.field]: action.value }
+    case 'SET_FIELDS': return { ...state, ...action.fields }
+    case 'RESET_FORM': return {
+      ...initialFormState,
+      subject: state.subject, taskType: state.taskType,
+      priority: state.priority, dueDate: state.dueDate,
+    }
+    case 'LOAD_TASK': return {
+      ...state,
+      title: action.task.title || '',
+      subject: action.task.subject || '算数',
+      unitIds: action.task.unitIds || [],
+      taskType: action.task.taskType || 'daily',
+      priority: action.task.priority || 'B',
+      dueDate: action.task.dueDate || '',
+      fileUrl: action.task.fileUrl || '',
+      fileName: action.task.fileName || '',
+      problemImageUrls: action.task.problemImageUrls || [],
+      schoolName: action.task.schoolName || '',
+      year: action.task.year || '',
+      round: action.task.round || '第1回',
+      relatedUnits: action.task.relatedUnits || [],
+    }
+    default: return state
+  }
+}
+
+function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUnits = [], onAddCustomUnit }) {
+  const [form, dispatch] = useReducer(formReducer, initialFormState)
   const fileInputRef = useRef(null)
 
-  // 解き直しタスク: 紐付き問題画像（複数対応）
-  const [problemImageUrls, setProblemImageUrls] = useState([])
-
-  // 過去問用のフィールド
-  const [schoolName, setSchoolName] = useState('')
-  const [year, setYear] = useState('')
-  const [round, setRound] = useState('第1回')
-  const [relatedUnits, setRelatedUnits] = useState([]) // 関連単元ID配列
+  const setField = (field) => (value) => dispatch({ type: 'SET_FIELD', field, value })
 
   // 編集モードの場合、フォームに値を設定
   useEffect(() => {
     if (editingTask) {
-      setTitle(editingTask.title || '')
-      setSubject(editingTask.subject || '算数')
-      setUnitIds(editingTask.unitIds || [])
-      setTaskType(editingTask.taskType || 'daily')
-      setPriority(editingTask.priority || 'B')
-      setDueDate(editingTask.dueDate || '')
-      setFileUrl(editingTask.fileUrl || '')
-      setFileName(editingTask.fileName || '')
-      setProblemImageUrls(editingTask.problemImageUrls || [])
-      // 過去問フィールド
-      setSchoolName(editingTask.schoolName || '')
-      setYear(editingTask.year || '')
-      setRound(editingTask.round || '第1回')
-      setRelatedUnits(editingTask.relatedUnits || [])
+      dispatch({ type: 'LOAD_TASK', task: editingTask })
     }
   }, [editingTask])
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (title.trim()) {
+    if (form.title.trim()) {
       const taskData = {
-        title: title.trim(),
-        subject,
+        title: form.title.trim(),
+        subject: form.subject,
         grade: '全学年',
-        unitIds,
-        taskType,
-        priority,
-        dueDate: dueDate || null,
-        fileUrl: fileUrl || '',
-        fileName: fileName || '',
-        problemImageUrls: problemImageUrls.length ? problemImageUrls : [],
+        unitIds: form.unitIds,
+        taskType: form.taskType,
+        priority: form.priority,
+        dueDate: form.dueDate || null,
+        fileUrl: form.fileUrl || '',
+        fileName: form.fileName || '',
+        problemImageUrls: form.problemImageUrls.length ? form.problemImageUrls : [],
       }
 
       // 過去問の場合、追加情報を含める
-      if (taskType === 'pastpaper') {
-        taskData.schoolName = schoolName.trim()
-        taskData.year = year.trim()
-        taskData.round = round
-        taskData.relatedUnits = relatedUnits
+      if (form.taskType === 'pastpaper') {
+        taskData.schoolName = form.schoolName.trim()
+        taskData.year = form.year.trim()
+        taskData.round = form.round
+        taskData.relatedUnits = form.relatedUnits
       }
 
       if (editingTask) {
@@ -83,15 +89,7 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
       }
 
       // フォームをリセット
-      setTitle('')
-      setUnitIds([])
-      setFileUrl('')
-      setFileName('')
-      // 過去問フィールドをリセット
-      setSchoolName('')
-      setYear('')
-      setRound('第1回')
-      setRelatedUnits([])
+      dispatch({ type: 'RESET_FORM' })
       if (editingTask && onCancelEdit) {
         onCancelEdit()
       }
@@ -99,8 +97,7 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
   }
 
   const handleCancel = () => {
-    setTitle('')
-    setUnitIds([])
+    dispatch({ type: 'SET_FIELDS', fields: { title: '', unitIds: [] } })
     if (onCancelEdit) {
       onCancelEdit()
     }
@@ -110,51 +107,34 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
   const handlePDFUpload = async (file) => {
     if (!file) return
     if (file.type !== 'application/pdf') {
-      toast.error('PDFファイルのみアップロード可能です')
+      toast.error(TOAST.PDF_ONLY)
       return
     }
     if (file.size > MAX_FILE_SIZE) {
-      toast.error('ファイルサイズは20MB以下にしてください')
+      toast.error(TOAST.FILE_TOO_LARGE)
       return
     }
     const hasAccess = await checkDriveAccess()
     if (!hasAccess) {
       const token = await refreshGoogleAccessToken()
       if (!token) {
-        toast.error('Google Drive に接続してからアップロードしてください')
+        toast.error(TOAST.DRIVE_NOT_CONNECTED)
         return
       }
     }
-    setUploading(true)
+    dispatch({ type: 'SET_FIELD', field: 'uploading', value: true })
     try {
       const result = await uploadPDFToDrive(file, () => {})
       const viewUrl = `https://drive.google.com/file/d/${result.driveFileId}/view`
-      setFileUrl(viewUrl)
-      setFileName(file.name)
-      toast.success('PDFをGoogle Driveにアップロードしました')
+      dispatch({ type: 'SET_FIELDS', fields: { fileUrl: viewUrl, fileName: file.name } })
+      toast.success(TOAST.UPLOAD_SUCCESS)
     } catch (error) {
-      toast.error('アップロードエラー: ' + error.message)
+      toast.error(TOAST.UPLOAD_ERROR + error.message)
     } finally {
-      setUploading(false)
+      dispatch({ type: 'SET_FIELD', field: 'uploading', value: false })
     }
   }
 
-  const taskTypes = [
-    { value: 'daily', label: 'デイリー復習', emoji: '📖' },
-    { value: 'basic', label: '基礎トレ', emoji: '✏️' },
-    { value: 'test', label: 'テスト復習', emoji: '📝' },
-    { value: 'pastpaper', label: '過去問', emoji: '📄' },
-    { value: 'weakness', label: '弱点補強', emoji: '💪' },
-    { value: 'review', label: '解き直し', emoji: '🔄' },
-  ]
-
-  const priorities = [
-    { value: 'A', label: 'A (最重要)', color: '#ef4444' },
-    { value: 'B', label: 'B (重要)', color: '#f59e0b' },
-    { value: 'C', label: 'C (通常)', color: '#3b82f6' },
-  ]
-
-  const subjects = ['国語', '算数', '理科', '社会']
 
   return (
     <form className="task-form sapix-form" onSubmit={handleSubmit}>
@@ -165,13 +145,10 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
           <label htmlFor="subject">科目</label>
           <select
             id="subject"
-            value={subject}
-            onChange={(e) => {
-              setSubject(e.target.value)
-              setUnitIds([])
-            }}
+            value={form.subject}
+            onChange={(e) => dispatch({ type: 'SET_FIELDS', fields: { subject: e.target.value, unitIds: [] } })}
           >
-            {subjects.map(s => (
+            {SUBJECTS.map(s => (
               <option key={s} value={s}>{s}</option>
             ))}
           </select>
@@ -181,8 +158,8 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
       <div className="form-group">
         <label>単元タグ（マスター単元から選択）</label>
         <UnitTagPicker
-          value={unitIds}
-          onChange={setUnitIds}
+          value={form.unitIds}
+          onChange={setField('unitIds')}
           placeholder="単元を検索..."
         />
       </div>
@@ -192,8 +169,8 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
         <input
           type="text"
           id="title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          value={form.title}
+          onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'title', value: e.target.value })}
           placeholder="例: デイリーサピックス No.23 p.12-15"
           required
         />
@@ -206,8 +183,8 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
             <button
               key={t.value}
               type="button"
-              className={`type-btn ${taskType === t.value ? 'active' : ''}`}
-              onClick={() => setTaskType(t.value)}
+              className={`type-btn ${form.taskType === t.value ? 'active' : ''}`}
+              onClick={() => dispatch({ type: 'SET_FIELD', field: 'taskType', value: t.value })}
             >
               {t.emoji} {t.label}
             </button>
@@ -216,28 +193,31 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
       </div>
 
       {/* 過去問の場合の追加フィールド */}
-      {taskType === 'pastpaper' && (
+      {form.taskType === 'pastpaper' && (
         <PastPaperFields
-          schoolName={schoolName}
-          setSchoolName={setSchoolName}
-          year={year}
-          setYear={setYear}
-          round={round}
-          setRound={setRound}
-          relatedUnits={relatedUnits}
-          onToggleRelatedUnit={(uid) => setRelatedUnits(prev =>
-            prev.includes(uid) ? prev.filter(id => id !== uid) : [...prev, uid]
-          )}
+          schoolName={form.schoolName}
+          setSchoolName={setField('schoolName')}
+          year={form.year}
+          setYear={setField('year')}
+          round={form.round}
+          setRound={setField('round')}
+          relatedUnits={form.relatedUnits}
+          onToggleRelatedUnit={(uid) => dispatch({
+            type: 'SET_FIELD', field: 'relatedUnits',
+            value: form.relatedUnits.includes(uid)
+              ? form.relatedUnits.filter(id => id !== uid)
+              : [...form.relatedUnits, uid]
+          })}
           currentUnits={[]}
         />
       )}
 
       {/* 紐付き問題画像（解き直しタスク等・複数対応） */}
-      {problemImageUrls.length > 0 && (
+      {form.problemImageUrls.length > 0 && (
         <div className="form-group">
-          <label>問題画像（{problemImageUrls.length}枚）</label>
+          <label>問題画像（{form.problemImageUrls.length}枚）</label>
           <div className="task-problem-image-preview">
-            {problemImageUrls.map((url, i) => (
+            {form.problemImageUrls.map((url, i) => (
               <a key={i} href={url} target="_blank" rel="noopener noreferrer">
                 <img src={url} alt={`問題画像 ${i + 1}`} className="task-problem-image" />
               </a>
@@ -247,18 +227,18 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
       )}
 
       {/* 問題ファイル（解き直しタスクでは非表示） */}
-      {taskType !== 'review' && <div className="form-group">
+      {form.taskType !== 'review' && <div className="form-group">
         <label>問題ファイル（任意）</label>
-        {fileUrl ? (
+        {form.fileUrl ? (
           <div className="task-file-url-preview">
             <span className="task-file-icon">📎</span>
-            <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="task-file-link">
-              {fileName || (fileUrl.includes('drive.google.com') ? 'Google Drive のファイル' : fileUrl)}
+            <a href={form.fileUrl} target="_blank" rel="noopener noreferrer" className="task-file-link">
+              {form.fileName || (form.fileUrl.includes('drive.google.com') ? 'Google Drive のファイル' : form.fileUrl)}
             </a>
             <button
               type="button"
               className="task-file-clear-btn"
-              onClick={() => { setFileUrl(''); setFileName('') }}
+              onClick={() => dispatch({ type: 'SET_FIELDS', fields: { fileUrl: '', fileName: '' } })}
             >
               &times;
             </button>
@@ -269,7 +249,7 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
               ref={fileInputRef}
               type="file"
               accept="application/pdf"
-              style={{ display: 'none' }}
+              className="hidden-input"
               onChange={(e) => {
                 handlePDFUpload(e.target.files[0])
                 e.target.value = ''
@@ -279,17 +259,17 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
               type="button"
               className="task-pdf-upload-btn"
               onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
+              disabled={form.uploading}
             >
-              {uploading ? 'アップロード中...' : '新規アップロード'}
+              {form.uploading ? LABELS.UPLOADING : LABELS.UPLOAD_NEW}
             </button>
             <span className="task-file-or">または</span>
             <button
               type="button"
               className="task-drive-select-btn"
-              onClick={() => setShowDrivePicker(true)}
+              onClick={() => dispatch({ type: 'SET_FIELD', field: 'showDrivePicker', value: true })}
             >
-              Driveから選択
+              {LABELS.DRIVE_SELECT}
             </button>
           </div>
         )}
@@ -303,13 +283,13 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
               <button
                 key={p.value}
                 type="button"
-                className={`priority-btn ${priority === p.value ? 'active' : ''}`}
+                className={`priority-btn ${form.priority === p.value ? 'active' : ''}`}
                 style={{
-                  borderColor: priority === p.value ? p.color : '#e0e0e0',
-                  backgroundColor: priority === p.value ? p.color : 'white',
-                  color: priority === p.value ? 'white' : '#333'
+                  borderColor: form.priority === p.value ? p.color : '#e0e0e0',
+                  backgroundColor: form.priority === p.value ? p.color : 'white',
+                  color: form.priority === p.value ? 'white' : '#333'
                 }}
-                onClick={() => setPriority(p.value)}
+                onClick={() => dispatch({ type: 'SET_FIELD', field: 'priority', value: p.value })}
               >
                 {p.label}
               </button>
@@ -322,8 +302,8 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
           <input
             type="date"
             id="dueDate"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
+            value={form.dueDate}
+            onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'dueDate', value: e.target.value })}
           />
         </div>
       </div>
@@ -339,14 +319,10 @@ function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUn
         )}
       </div>
       {/* Google Drive ファイルピッカー */}
-      {showDrivePicker && (
+      {form.showDrivePicker && (
         <DriveFilePicker
-          onSelect={(data) => {
-            setFileUrl(data.url)
-            setFileName(data.name)
-            setShowDrivePicker(false)
-          }}
-          onClose={() => setShowDrivePicker(false)}
+          onSelect={(data) => dispatch({ type: 'SET_FIELDS', fields: { fileUrl: data.url, fileName: data.name, showDrivePicker: false } })}
+          onClose={() => dispatch({ type: 'SET_FIELD', field: 'showDrivePicker', value: false })}
         />
       )}
     </form>

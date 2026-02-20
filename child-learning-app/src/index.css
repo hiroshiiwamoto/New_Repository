@@ -129,3 +129,37 @@ body {
   overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
+
+/* === Common Form Utilities === */
+
+.hidden-input {
+  display: none;
+}
+
+.form-input-common {
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.form-field-sm {
+  margin-bottom: 12px;
+}
+
+.form-field-md {
+  margin-bottom: 16px;
+}
+
+/* === Subject Button (shared across views) === */
+
+.subject-btn-common {
+  padding: 12px;
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  white-space: nowrap;
+}

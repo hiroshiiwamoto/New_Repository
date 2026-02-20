@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useReducer, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import * as pdfjsLib from 'pdfjs-dist'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
@@ -12,6 +12,31 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
   `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`
 
 // ─────────────────────────────────────────
+// Reducer
+// ─────────────────────────────────────────
+
+const initialState = {
+  activeTab: null,
+  pdfDoc: null, currentPage: 1, totalPages: 0, scale: 1.5,
+  isLoading: false, loadedPdfName: '', error: '',
+  pdfList: [], pdfListLoading: false, listSearchQuery: '',
+  urlInput: '',
+  selection: null, isDragging: false, dragStart: null,
+  croppedPreview: null, croppedBlob: null,
+  isUploading: false,
+  isPanning: false, panStart: null, lastTapTime: 0,
+}
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'SET_FIELD': return { ...state, [action.field]: action.value }
+    case 'SET_FIELDS': return { ...state, ...action.fields }
+    case 'RESET_CROP': return { ...state, selection: null, croppedPreview: null, croppedBlob: null }
+    default: return state
+  }
+}
+
+// ─────────────────────────────────────────
 // Props:
 //   userId        : string
 //   attachedPdf   : { id, driveFileId, fileName } | null
@@ -22,37 +47,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClose, headerSlot }) {
   // アクティブタブ: 'attached' | 'list' | 'url'
   const defaultTab = attachedPdf ? 'attached' : 'list'
-  const [activeTab, setActiveTab] = useState(defaultTab)
-
-  // PDF読み込み
-  const [pdfDoc, setPdfDoc] = useState(null)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(0)
-  const [scale, setScale] = useState(1.5)
-  const [isLoading, setIsLoading] = useState(false)
-  const [loadedPdfName, setLoadedPdfName] = useState('')
-  const [error, setError] = useState('')
-
-  // タブ2: 登録済みリスト
-  const [pdfList, setPdfList] = useState([])
-  const [pdfListLoading, setPdfListLoading] = useState(false)
-  const [listSearchQuery, setListSearchQuery] = useState('')
-
-  // タブ3: URL入力
-  const [urlInput, setUrlInput] = useState('')
-
-  // 選択・切り出し
-  const [selection, setSelection] = useState(null)
-  const [isDragging, setIsDragging] = useState(false)
-  const [dragStart, setDragStart] = useState(null)
-  const [croppedPreview, setCroppedPreview] = useState(null)
-  const [croppedBlob, setCroppedBlob] = useState(null)
-  const [isUploading, setIsUploading] = useState(false)
-
-  // タッチ/マウス操作状態
-  const [isPanning, setIsPanning] = useState(false) // パンモード（ダブルタップ後 or 中ボタン）
-  const [panStart, setPanStart] = useState(null) // パン開始座標
-  const [lastTapTime, setLastTapTime] = useState(0) // ダブルタップ判定用
+  const [state, dispatch] = useReducer(reducer, { ...initialState, activeTab: defaultTab })
 
   const canvasRef = useRef(null)
   const overlayRef = useRef(null)
@@ -67,32 +62,30 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
 
   // ─── タブ2のリスト読み込み ───
   useEffect(() => {
-    if (activeTab !== 'list' || pdfList.length > 0) return
-    setPdfListLoading(true)
+    if (state.activeTab !== 'list' || state.pdfList.length > 0) return
+    dispatch({ type: 'SET_FIELD', field: 'pdfListLoading', value: true })
     getAllPDFs(userId).then(result => {
-      if (result.success) setPdfList(result.data)
-      setPdfListLoading(false)
+      if (result.success) dispatch({ type: 'SET_FIELD', field: 'pdfList', value: result.data })
+      dispatch({ type: 'SET_FIELD', field: 'pdfListLoading', value: false })
     })
-  }, [activeTab, userId])
+  }, [state.activeTab, userId])
 
   // ─── タブ1: attachedPdf が指定されたら自動読み込み ───
   useEffect(() => {
-    if (activeTab === 'attached' && attachedPdf?.driveFileId && !pdfDoc) {
+    if (state.activeTab === 'attached' && attachedPdf?.driveFileId && !state.pdfDoc) {
       loadPdfFromDriveId(attachedPdf.driveFileId, attachedPdf.fileName)
     }
-  }, [activeTab])
+  }, [state.activeTab])
 
   // ─────────────────────────────────────────
   // PDF読み込みコア
   // ─────────────────────────────────────────
 
   const loadPdfFromDriveId = async (driveFileId, fileName = '') => {
-    setIsLoading(true)
-    setError('')
-    setPdfDoc(null)
-    setSelection(null)
-    setCroppedPreview(null)
-    setCroppedBlob(null)
+    dispatch({ type: 'SET_FIELDS', fields: {
+      isLoading: true, error: '', pdfDoc: null,
+      selection: null, croppedPreview: null, croppedBlob: null,
+    }})
 
     try {
       let token = getGoogleAccessToken()
@@ -107,24 +100,23 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
 
       const arrayBuffer = await response.arrayBuffer()
       const doc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
-      setPdfDoc(doc)
-      setTotalPages(doc.numPages)
-      setCurrentPage(1)
-      setLoadedPdfName(fileName)
+      dispatch({ type: 'SET_FIELDS', fields: {
+        pdfDoc: doc, totalPages: doc.numPages, currentPage: 1, loadedPdfName: fileName,
+      }})
     } catch (e) {
-      setError(e.message || 'PDFの読み込みに失敗しました')
+      dispatch({ type: 'SET_FIELD', field: 'error', value: e.message || 'PDFの読み込みに失敗しました' })
     } finally {
-      setIsLoading(false)
+      dispatch({ type: 'SET_FIELD', field: 'isLoading', value: false })
     }
   }
 
   const loadPdfFromUrl = async () => {
-    const fileId = extractDriveFileId(urlInput)
+    const fileId = extractDriveFileId(state.urlInput)
     if (!fileId) {
-      setError('Google DriveのURLを入力してください（例: https://drive.google.com/file/d/.../view）')
+      dispatch({ type: 'SET_FIELD', field: 'error', value: 'Google DriveのURLを入力してください（例: https://drive.google.com/file/d/.../view）' })
       return
     }
-    await loadPdfFromDriveId(fileId, urlInput)
+    await loadPdfFromDriveId(fileId, state.urlInput)
   }
 
   // ─────────────────────────────────────────
@@ -157,15 +149,13 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
     } catch (e) {
       if (e.name !== 'RenderingCancelledException') console.error(e)
     }
-    setSelection(null)
-    setCroppedPreview(null)
-    setCroppedBlob(null)
+    dispatch({ type: 'RESET_CROP' })
     clearOverlay()
   }, [clearOverlay])
 
   useEffect(() => {
-    if (pdfDoc) renderPage(pdfDoc, currentPage, scale)
-  }, [pdfDoc, currentPage, scale, renderPage])
+    if (state.pdfDoc) renderPage(state.pdfDoc, state.currentPage, state.scale)
+  }, [state.pdfDoc, state.currentPage, state.scale, renderPage])
 
   // ─────────────────────────────────────────
   // ドラッグ選択
@@ -207,23 +197,20 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
   const startDrag = (pos) => {
     isDraggingRef.current = true
     dragStartRef.current = pos
-    setIsDragging(true)
-    setDragStart(pos)
-    setSelection(null)
-    setCroppedPreview(null)
-    setCroppedBlob(null)
+    dispatch({ type: 'SET_FIELDS', fields: { isDragging: true, dragStart: pos } })
+    dispatch({ type: 'RESET_CROP' })
     clearOverlay()
   }
 
   const endDrag = (pos) => {
     if (!isDraggingRef.current || !dragStartRef.current) return
     isDraggingRef.current = false
-    setIsDragging(false)
+    dispatch({ type: 'SET_FIELD', field: 'isDragging', value: false })
     const sel = normRect(dragStartRef.current, pos)
     dragStartRef.current = null
-    setDragStart(null)
+    dispatch({ type: 'SET_FIELD', field: 'dragStart', value: null })
     if (sel.w < 10 || sel.h < 10) { clearOverlay(); return }
-    setSelection(sel)
+    dispatch({ type: 'SET_FIELD', field: 'selection', value: sel })
     drawSelectionRect(sel)
     cropToPreview(sel)
   }
@@ -242,7 +229,7 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
         scrollLeft: canvasWrapperRef.current?.scrollLeft || 0,
         scrollTop: canvasWrapperRef.current?.scrollTop || 0,
       }
-      setIsPanning(true)
+      dispatch({ type: 'SET_FIELD', field: 'isPanning', value: true })
     }
   }
 
@@ -264,7 +251,7 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
     } else if (e.button === 1 && isPanningRef.current) {
       isPanningRef.current = false
       panStartRef.current = null
-      setIsPanning(false)
+      dispatch({ type: 'SET_FIELD', field: 'isPanning', value: false })
     }
   }
 
@@ -272,7 +259,7 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
     // ホイール → ズーム
     e.preventDefault()
     const delta = e.deltaY > 0 ? -0.1 : 0.1
-    setScale(s => Math.max(0.5, Math.min(3, Math.round((s + delta) * 100) / 100)))
+    dispatch({ type: 'SET_FIELD', field: 'scale', value: Math.max(0.5, Math.min(3, Math.round((state.scale + delta) * 100) / 100)) })
   }
 
   // ── タッチイベント用ネイティブリスナー ──
@@ -325,7 +312,7 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
         // ピンチ判定: 距離が変化している → ズーム
         if (initialPinchDistance.current && Math.abs(distance - initialPinchDistance.current) > 5) {
           const scaleChange = distance / initialPinchDistance.current
-          setScale(s => Math.max(0.5, Math.min(3, Math.round(s * scaleChange * 100) / 100)))
+          dispatch({ type: 'SET_FIELD', field: 'scale', value: Math.max(0.5, Math.min(3, Math.round(state.scale * scaleChange * 100) / 100)) })
           initialPinchDistance.current = distance
         }
 
@@ -381,7 +368,7 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
       overlay.removeEventListener('touchend', onTouchEnd)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pdfDoc, currentPage, scale])
+  }, [state.pdfDoc, state.currentPage, state.scale])
 
   function cropToPreview(sel) {
     const src = canvasRef.current
@@ -389,8 +376,8 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
     const tmp = document.createElement('canvas')
     tmp.width = sel.w; tmp.height = sel.h
     tmp.getContext('2d').drawImage(src, sel.x, sel.y, sel.w, sel.h, 0, 0, sel.w, sel.h)
-    setCroppedPreview(tmp.toDataURL('image/png'))
-    tmp.toBlob(blob => setCroppedBlob(blob), 'image/png')
+    dispatch({ type: 'SET_FIELD', field: 'croppedPreview', value: tmp.toDataURL('image/png') })
+    tmp.toBlob(blob => dispatch({ type: 'SET_FIELD', field: 'croppedBlob', value: blob }), 'image/png')
   }
 
   // ─────────────────────────────────────────
@@ -398,17 +385,17 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
   // ─────────────────────────────────────────
 
   const handleConfirmCrop = async () => {
-    if (!croppedBlob) return
-    setIsUploading(true)
+    if (!state.croppedBlob) return
+    dispatch({ type: 'SET_FIELD', field: 'isUploading', value: true })
     try {
       const storageRef = ref(storage, `problemImages/${userId}/${Date.now()}.png`)
-      await uploadBytes(storageRef, croppedBlob)
+      await uploadBytes(storageRef, state.croppedBlob)
       const url = await getDownloadURL(storageRef)
       onCropComplete(url)
     } catch (e) {
-      setError('画像の保存に失敗しました: ' + e.message)
+      dispatch({ type: 'SET_FIELD', field: 'error', value: '画像の保存に失敗しました: ' + e.message })
     } finally {
-      setIsUploading(false)
+      dispatch({ type: 'SET_FIELD', field: 'isUploading', value: false })
     }
   }
 
@@ -416,11 +403,11 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
   // フィルタ
   // ─────────────────────────────────────────
 
-  const filteredPdfList = pdfList.filter(p =>
-    !listSearchQuery ||
-    p.fileName?.toLowerCase().includes(listSearchQuery.toLowerCase()) ||
-    p.subject?.includes(listSearchQuery) ||
-    String(p.year)?.includes(listSearchQuery)
+  const filteredPdfList = state.pdfList.filter(p =>
+    !state.listSearchQuery ||
+    p.fileName?.toLowerCase().includes(state.listSearchQuery.toLowerCase()) ||
+    p.subject?.includes(state.listSearchQuery) ||
+    String(p.year)?.includes(state.listSearchQuery)
   )
 
   // ─────────────────────────────────────────
@@ -444,28 +431,28 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
         <div className="pdfcropper-tabs">
           {attachedPdf && (
             <button
-              className={`pdfcropper-tab ${activeTab === 'attached' ? 'active' : ''}`}
-              onClick={() => setActiveTab('attached')}
+              className={`pdfcropper-tab ${state.activeTab === 'attached' ? 'active' : ''}`}
+              onClick={() => dispatch({ type: 'SET_FIELD', field: 'activeTab', value: 'attached' })}
             >
               📎 紐付けPDF
             </button>
           )}
           <button
-            className={`pdfcropper-tab ${activeTab === 'list' ? 'active' : ''}`}
-            onClick={() => setActiveTab('list')}
+            className={`pdfcropper-tab ${state.activeTab === 'list' ? 'active' : ''}`}
+            onClick={() => dispatch({ type: 'SET_FIELD', field: 'activeTab', value: 'list' })}
           >
             📂 登録済みから選択
           </button>
           <button
-            className={`pdfcropper-tab ${activeTab === 'url' ? 'active' : ''}`}
-            onClick={() => setActiveTab('url')}
+            className={`pdfcropper-tab ${state.activeTab === 'url' ? 'active' : ''}`}
+            onClick={() => dispatch({ type: 'SET_FIELD', field: 'activeTab', value: 'url' })}
           >
             🔗 URLを入力
           </button>
         </div>
 
         {/* ─── タブ1: 紐付けPDF ─── */}
-        {activeTab === 'attached' && attachedPdf && !pdfDoc && !isLoading && (
+        {state.activeTab === 'attached' && attachedPdf && !state.pdfDoc && !state.isLoading && (
           <div className="pdfcropper-attached-info">
             <span className="pdfcropper-attached-name">{attachedPdf.fileName}</span>
             <button className="pdfcropper-load-btn" onClick={() => loadPdfFromDriveId(attachedPdf.driveFileId, attachedPdf.fileName)}>
@@ -475,20 +462,20 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
         )}
 
         {/* ─── タブ2: 登録済みリスト ─── */}
-        {activeTab === 'list' && !pdfDoc && (
+        {state.activeTab === 'list' && !state.pdfDoc && (
           <div className="pdfcropper-list-area">
             <input
               className="pdfcropper-list-search"
               type="text"
               placeholder="ファイル名・科目・年度で絞り込み"
-              value={listSearchQuery}
-              onChange={e => setListSearchQuery(e.target.value)}
+              value={state.listSearchQuery}
+              onChange={e => dispatch({ type: 'SET_FIELD', field: 'listSearchQuery', value: e.target.value })}
             />
-            {pdfListLoading ? (
+            {state.pdfListLoading ? (
               <Loading message="読み込み中..." />
             ) : filteredPdfList.length === 0 ? (
               <div className="pdfcropper-empty">
-                {pdfList.length === 0
+                {state.pdfList.length === 0
                   ? '登録済みのPDFがありません。「PDF問題集」タブからアップロードしてください。'
                   : '該当するPDFが見つかりません'}
               </div>
@@ -518,36 +505,36 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
         )}
 
         {/* ─── タブ3: URL入力 ─── */}
-        {activeTab === 'url' && !pdfDoc && (
+        {state.activeTab === 'url' && !state.pdfDoc && (
           <div className="pdfcropper-url-row">
             <input
               className="pdfcropper-url-input"
               type="text"
               placeholder="Google Drive URL を貼り付け（例: https://drive.google.com/file/d/.../view）"
-              value={urlInput}
-              onChange={e => setUrlInput(e.target.value)}
+              value={state.urlInput}
+              onChange={e => dispatch({ type: 'SET_FIELD', field: 'urlInput', value: e.target.value })}
               onKeyDown={e => e.key === 'Enter' && loadPdfFromUrl()}
             />
             <button
               className="pdfcropper-load-btn"
               onClick={loadPdfFromUrl}
-              disabled={isLoading}
+              disabled={state.isLoading}
             >
-              {isLoading ? '読込中...' : '読込'}
+              {state.isLoading ? '読込中...' : '読込'}
             </button>
           </div>
         )}
 
-        {error && <div className="pdfcropper-error">{error}</div>}
+        {state.error && <div className="pdfcropper-error">{state.error}</div>}
 
         {/* ─── PDF読み込み済み: ページビュー ─── */}
-        {pdfDoc && (
+        {state.pdfDoc && (
           <>
             <div className="pdfcropper-loaded-bar">
-              <span className="pdfcropper-loaded-name">{loadedPdfName}</span>
+              <span className="pdfcropper-loaded-name">{state.loadedPdfName}</span>
               <button
                 className="pdfcropper-unload-btn"
-                onClick={() => { setPdfDoc(null); setLoadedPdfName(''); setError('') }}
+                onClick={() => dispatch({ type: 'SET_FIELDS', fields: { pdfDoc: null, loadedPdfName: '', error: '' } })}
               >
                 ← 選び直す
               </button>
@@ -557,14 +544,14 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
               <div className="pdfcropper-page-nav">
                 <button
                   className="pdfcropper-page-btn"
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  disabled={currentPage <= 1}
+                  onClick={() => dispatch({ type: 'SET_FIELD', field: 'currentPage', value: Math.max(1, state.currentPage - 1) })}
+                  disabled={state.currentPage <= 1}
                 >←</button>
-                <span className="pdfcropper-page-info">{currentPage} / {totalPages}</span>
+                <span className="pdfcropper-page-info">{state.currentPage} / {state.totalPages}</span>
                 <button
                   className="pdfcropper-page-btn"
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  disabled={currentPage >= totalPages}
+                  onClick={() => dispatch({ type: 'SET_FIELD', field: 'currentPage', value: Math.min(state.totalPages, state.currentPage + 1) })}
+                  disabled={state.currentPage >= state.totalPages}
                 >→</button>
               </div>
               <div className="pdfcropper-zoom">
@@ -576,7 +563,7 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
                       const wrapperWidth = canvasWrapperRef.current.clientWidth - 20 // padding分を引く
                       const canvasWidth = canvasRef.current.width
                       const fitScale = wrapperWidth / canvasWidth
-                      setScale(Math.max(0.5, Math.min(3, Math.round(fitScale * 100) / 100)))
+                      dispatch({ type: 'SET_FIELD', field: 'scale', value: Math.max(0.5, Math.min(3, Math.round(fitScale * 100) / 100)) })
                     }
                   }}
                   title="ページ幅に合わせる"
@@ -585,22 +572,22 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
                 </button>
                 <button
                   className="pdfcropper-zoom-reset"
-                  onClick={() => setScale(1.0)}
+                  onClick={() => dispatch({ type: 'SET_FIELD', field: 'scale', value: 1.0 })}
                   title="100%に戻す"
                 >
                   100%
                 </button>
                 <button
                   className="pdfcropper-zoom-btn"
-                  onClick={() => setScale(s => Math.max(0.5, Math.round((s - 0.1) * 10) / 10))}
+                  onClick={() => dispatch({ type: 'SET_FIELD', field: 'scale', value: Math.max(0.5, Math.round((state.scale - 0.1) * 10) / 10) })}
                   title="縮小"
                 >
                   −
                 </button>
-                <span className="pdfcropper-zoom-display">{Math.round(scale * 100)}%</span>
+                <span className="pdfcropper-zoom-display">{Math.round(state.scale * 100)}%</span>
                 <button
                   className="pdfcropper-zoom-btn"
-                  onClick={() => setScale(s => Math.min(3, Math.round((s + 0.1) * 10) / 10))}
+                  onClick={() => dispatch({ type: 'SET_FIELD', field: 'scale', value: Math.min(3, Math.round((state.scale + 0.1) * 10) / 10) })}
                   title="拡大"
                 >
                   ＋
@@ -630,25 +617,25 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
               </div>
             </div>
 
-            {croppedPreview && (
+            {state.croppedPreview && (
               <div className="pdfcropper-preview-area">
                 <div className="pdfcropper-preview-label">選択範囲のプレビュー</div>
                 <div className="pdfcropper-preview-scroll">
-                  <img src={croppedPreview} alt="crop preview" className="pdfcropper-preview-img" />
+                  <img src={state.croppedPreview} alt="crop preview" className="pdfcropper-preview-img" />
                 </div>
                 <div className="pdfcropper-preview-actions">
                   <button
                     className="pdfcropper-reselect-btn"
-                    onClick={() => { setCroppedPreview(null); setCroppedBlob(null); clearOverlay(); setSelection(null) }}
+                    onClick={() => { dispatch({ type: 'RESET_CROP' }); clearOverlay() }}
                   >
                     選び直す
                   </button>
                   <button
                     className="pdfcropper-confirm-btn"
                     onClick={handleConfirmCrop}
-                    disabled={isUploading}
+                    disabled={state.isUploading}
                   >
-                    {isUploading ? '保存中...' : 'この範囲で確定'}
+                    {state.isUploading ? '保存中...' : 'この範囲で確定'}
                   </button>
                 </div>
               </div>
@@ -656,13 +643,13 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
           </>
         )}
 
-        {!pdfDoc && !isLoading && !error && activeTab !== 'list' && (
+        {!state.pdfDoc && !state.isLoading && !state.error && state.activeTab !== 'list' && (
           <div className="pdfcropper-empty">
             PDFを選択または読み込むと、ここに表示されます
           </div>
         )}
 
-        {isLoading && (
+        {state.isLoading && (
           <Loading message="PDFを読み込んでいます..." />
         )}
       </div>

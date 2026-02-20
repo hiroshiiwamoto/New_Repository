@@ -1,3 +1,6 @@
+// 科目リスト
+export const SUBJECTS = ['国語', '算数', '理科', '社会']
+
 // 科目の絵文字
 export const subjectEmojis = {
   '国語': '📖',
@@ -40,4 +43,3 @@ export const MAX_PDF_COUNT = 100                // 最大ファイル数
 
 // 学習データ保持期間
 export const HALF_LIFE_DAYS = 90   // 習熟度半減期（日）
-export const MAX_HISTORY_DAYS = 90 // 進捗履歴保持日数

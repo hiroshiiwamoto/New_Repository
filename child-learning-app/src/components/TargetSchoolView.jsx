@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import './TargetSchoolView.css'
 import {
   getAllTargetSchools,
@@ -7,11 +7,17 @@ import {
   deleteTargetSchool,
   getDaysUntilExam
 } from '../utils/targetSchools'
+import { SUBJECTS } from '../utils/constants'
+import { LABELS, TOAST } from '../utils/messages'
 import { toast } from '../utils/toast'
 import EmptyState from './EmptyState'
+import { useFirestoreQuery } from '../hooks/useFirestoreQuery'
 
 function TargetSchoolView({ user }) {
-  const [schools, setSchools] = useState([])
+  const { data: schools, reload: reloadSchools } = useFirestoreQuery(
+    () => user ? getAllTargetSchools(user.uid) : null,
+    [user]
+  )
   const [showForm, setShowForm] = useState(false)
   const [editingSchool, setEditingSchool] = useState(null)
   const [form, setForm] = useState(getEmptyForm())
@@ -27,21 +33,9 @@ function TargetSchoolView({ user }) {
       targetDeviation: '',
       passScore: '',
       maxScore: '',
-      examSubjects: ['国語', '算数', '理科', '社会'],
+      examSubjects: [...SUBJECTS],
       priority: 1,
       notes: ''
-    }
-  }
-
-  useEffect(() => {
-    if (!user) return
-    loadSchools()
-  }, [user])
-
-  const loadSchools = async () => {
-    const result = await getAllTargetSchools(user.uid)
-    if (result.success) {
-      setSchools(result.data)
     }
   }
 
@@ -63,7 +57,7 @@ function TargetSchoolView({ user }) {
       targetDeviation: school.targetDeviation || '',
       passScore: school.passScore || '',
       maxScore: school.maxScore || '',
-      examSubjects: school.examSubjects || ['国語', '算数', '理科', '社会'],
+      examSubjects: school.examSubjects || [...SUBJECTS],
       priority: school.priority || 1,
       notes: school.notes || ''
     })
@@ -72,7 +66,7 @@ function TargetSchoolView({ user }) {
 
   const handleSave = async () => {
     if (!user) {
-      toast.error('ログインが必要です')
+      toast.error(TOAST.LOGIN_REQUIRED)
       return
     }
     if (!form.name) {
@@ -85,11 +79,11 @@ function TargetSchoolView({ user }) {
       : await addTargetSchool(user.uid, form)
 
     if (result.success) {
-      await loadSchools()
+      await reloadSchools()
       setShowForm(false)
-      toast.success(editingSchool ? '更新しました' : '追加しました')
+      toast.success(editingSchool ? TOAST.UPDATE_SUCCESS : TOAST.ADD_SUCCESS)
     } else {
-      toast.error('保存に失敗しました: ' + result.error)
+      toast.error(TOAST.SAVE_FAILED + ': ' + result.error)
     }
   }
 
@@ -98,10 +92,10 @@ function TargetSchoolView({ user }) {
 
     const result = await deleteTargetSchool(user.uid, school.id)
     if (result.success) {
-      setSchools(schools.filter(s => s.id !== school.id))
-      toast.success('削除しました')
+      await reloadSchools()
+      toast.success(TOAST.DELETE_SUCCESS)
     } else {
-      toast.error('削除に失敗しました: ' + result.error)
+      toast.error(TOAST.DELETE_FAILED + ': ' + result.error)
     }
   }
 
@@ -128,7 +122,7 @@ function TargetSchoolView({ user }) {
   }
 
   // 最も近い受験日の学校を先頭に
-  const sortedSchools = [...schools].sort((a, b) => {
+  const sortedSchools = [...(schools || [])].sort((a, b) => {
     const daysA = getDaysUntilExam(a.examDate)
     const daysB = getDaysUntilExam(b.examDate)
     if (daysA === null && daysB === null) return (a.priority || 0) - (b.priority || 0)
@@ -407,7 +401,7 @@ function TargetSchoolView({ user }) {
             <div className="form-section">
               <h4>受験科目</h4>
               <div className="subject-toggles">
-                {['国語', '算数', '理科', '社会'].map(subject => (
+                {SUBJECTS.map(subject => (
                   <button
                     key={subject}
                     type="button"
@@ -434,7 +428,7 @@ function TargetSchoolView({ user }) {
 
             <div className="form-actions">
               <button className="btn-secondary" onClick={() => setShowForm(false)}>
-                キャンセル
+                {LABELS.CANCEL}
               </button>
               <button className="btn-primary" onClick={handleSave}>
                 {editingSchool ? '✓ 更新' : '✓ 追加'}
