@@ -6,7 +6,7 @@ import {
   computeAllProficiencies,
   getProficiencyLevel,
   addLessonLogWithStats,
-  resetAllLessonData,
+  resetUnitLessonData,
   EVALUATION_SCORES,
   EVALUATION_LABELS,
   EVALUATION_COLORS,
@@ -152,19 +152,19 @@ function MasterUnitDashboard() {
     }
   }
 
-  // データリセット
+  // 単元別データリセット
   const [resetting, setResetting] = useState(false)
-  const handleReset = async () => {
-    if (!window.confirm('弱点マップの学習記録をすべて削除しますか？\nこの操作は取り消せません。')) return
+  const handleResetUnit = async (unitId, unitName) => {
+    if (!window.confirm(`「${unitName}」の学習記録をすべて削除しますか？\nこの操作は取り消せません。`)) return
     const auth = getAuth()
     const userId = auth.currentUser?.uid
     if (!userId) return
     setResetting(true)
     try {
-      const result = await resetAllLessonData(userId)
+      const result = await resetUnitLessonData(userId, unitId)
       if (result.success) {
-        setAllLogs([])
-        setStats({})
+        setDrillUnit(null)
+        await loadData()
       }
     } finally {
       setResetting(false)
@@ -243,13 +243,6 @@ function MasterUnitDashboard() {
             </button>
           ))}
         </div>
-        <button
-          className="mud-reset-btn"
-          onClick={handleReset}
-          disabled={resetting || allLogs.length === 0}
-        >
-          {resetting ? 'リセット中...' : 'データ初期化'}
-        </button>
       </div>
 
       {/* サマリー＋グリッド */}
@@ -424,6 +417,19 @@ function MasterUnitDashboard() {
                 </div>
               )}
             </div>
+
+            {/* 単元データ初期化 */}
+            {drillLogs.length > 0 && (
+              <div className="mud-drill-reset">
+                <button
+                  className="mud-drill-reset-btn"
+                  onClick={() => handleResetUnit(drillUnit.id, drillUnit.name)}
+                  disabled={resetting}
+                >
+                  {resetting ? 'リセット中...' : 'この単元のデータを初期化'}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

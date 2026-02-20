@@ -182,6 +182,50 @@ export async function resetAllLessonData(userId) {
   }
 }
 
+/**
+ * 特定単元の lessonLogs と masterUnitStats を削除（単元単位のリセット）
+ */
+export async function resetUnitLessonData(userId, unitId) {
+  try {
+    // unitIds に unitId を含む lessonLogs を取得
+    const q = query(
+      collection(db, 'users', userId, 'lessonLogs'),
+      where('unitIds', 'array-contains', unitId)
+    )
+    const logsSnap = await getDocs(q)
+
+    // 削除対象ログに含まれる他の unitIds を収集（stats 再計算用）
+    const affectedUnitIds = new Set()
+    for (const d of logsSnap.docs) {
+      const data = d.data()
+      for (const id of (data.unitIds || [])) {
+        if (id !== unitId) affectedUnitIds.add(id)
+      }
+    }
+
+    // lessonLogs を batch 削除
+    const docsToDelete = logsSnap.docs
+    for (let i = 0; i < docsToDelete.length; i += 500) {
+      const batch = writeBatch(db)
+      docsToDelete.slice(i, i + 500).forEach(d => batch.delete(d.ref))
+      await batch.commit()
+    }
+
+    // 対象単元の masterUnitStats を削除
+    await deleteDoc(doc(db, 'users', userId, 'masterUnitStats', unitId))
+
+    // 影響を受けた他の単元の stats を再計算
+    await Promise.all(
+      [...affectedUnitIds].map(id => updateMasterUnitStats(userId, id))
+    )
+
+    return { success: true, deletedCount: docsToDelete.length }
+  } catch (error) {
+    console.error(`単元リセットエラー (${unitId}):`, error)
+    return { success: false, error: error.message }
+  }
+}
+
 // ========================================
 // masterUnitStats CRUD
 // ========================================
