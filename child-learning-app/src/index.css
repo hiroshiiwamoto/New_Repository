@@ -204,6 +204,30 @@ body {
   font-weight: 600;
 }
 
+/* Mobile: stack right actions below tabs */
+@media (max-width: 600px) {
+  .mud-header-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .mud-subject-tabs {
+    width: 100%;
+  }
+
+  .mud-header-right {
+    position: static;
+    width: 100%;
+    justify-content: center;
+    padding-bottom: 8px;
+  }
+
+  .mud-subject-btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+
 /* === Common Form Utilities === */
 
 .hidden-input {

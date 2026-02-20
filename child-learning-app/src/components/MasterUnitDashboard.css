@@ -386,6 +386,12 @@
   }
 }
 
+@media (max-width: 600px) {
+  .mud-reset-btn {
+    position: static;
+  }
+}
+
 /* ドリルダウンモーダル */
 .mud-drill-modal {
   max-width: 480px;
