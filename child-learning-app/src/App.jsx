@@ -43,7 +43,12 @@ function App() {
       // ユーザーがログインしていない場合は、localStorageから読み込む
       const savedTasks = localStorage.getItem('sapixTasks')
       if (savedTasks) {
-        setTasks(JSON.parse(savedTasks))
+        try {
+          setTasks(JSON.parse(savedTasks))
+        } catch {
+          console.error('localStorage data corrupted, clearing')
+          localStorage.removeItem('sapixTasks')
+        }
       }
       return
     }
