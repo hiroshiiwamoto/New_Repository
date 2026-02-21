@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import './TaskItem.css'
 import { subjectEmojis, subjectColors } from '../utils/constants'
+import TaskDetailModal from './TaskDetailModal'
 
-function TaskItem({ task, onToggle, onDelete, onEdit }) {
+function TaskItem({ task, onToggle, onDelete, onEdit, userId }) {
   const subjectColor = subjectColors[task.subject] || '#007AFF'
   const [showPDF, setShowPDF] = useState(false)
   const [fullscreenPDF, setFullscreenPDF] = useState(false)
+  const [showDetail, setShowDetail] = useState(false)
 
   // Google Drive URLから埋め込みプレビューURLを生成
   const getEmbedUrl = (fileUrl) => {
@@ -15,6 +17,14 @@ function TaskItem({ task, onToggle, onDelete, onEdit }) {
       return `https://drive.google.com/file/d/${match[1]}/preview`
     }
     return fileUrl
+  }
+
+  const handleTitleClick = () => {
+    if (userId) {
+      setShowDetail(true)
+    } else if (onEdit) {
+      onEdit(task)
+    }
   }
 
   return (
@@ -41,9 +51,9 @@ function TaskItem({ task, onToggle, onDelete, onEdit }) {
           }}
         >{task.subject}</span>
         <span
-          className={`task-title ${onEdit ? 'clickable' : ''}`}
-          onClick={() => onEdit && onEdit(task)}
-          title={onEdit ? 'クリックして編集' : undefined}
+          className="task-title clickable"
+          onClick={handleTitleClick}
+          title="クリックして詳細表示"
         >{task.title}</span>
         <div className="task-actions">
           {task.fileUrl && (
@@ -146,6 +156,16 @@ function TaskItem({ task, onToggle, onDelete, onEdit }) {
             />
           </div>
         </div>
+      )}
+
+      {/* タスク詳細モーダル */}
+      {showDetail && userId && (
+        <TaskDetailModal
+          task={task}
+          userId={userId}
+          onEdit={onEdit}
+          onClose={() => setShowDetail(false)}
+        />
       )}
     </>
   )

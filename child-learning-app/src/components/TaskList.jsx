@@ -3,7 +3,7 @@ import TaskItem from './TaskItem'
 import EmptyState from './EmptyState'
 import './TaskList.css'
 
-function TaskList({ tasks, onToggleTask, onDeleteTask, onBulkDeleteTasks, onEditTask }) {
+function TaskList({ tasks, onToggleTask, onDeleteTask, onBulkDeleteTasks, onEditTask, userId }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('dueDate') // dueDate, subject, priority, created
   const [selectedTasks, setSelectedTasks] = useState([])
@@ -295,6 +295,7 @@ function TaskList({ tasks, onToggleTask, onDeleteTask, onBulkDeleteTasks, onEdit
                 onToggle={onToggleTask}
                 onDelete={onDeleteTask}
                 onEdit={onEditTask}
+                userId={userId}
               />
             </div>
           ))

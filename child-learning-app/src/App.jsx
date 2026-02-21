@@ -304,6 +304,7 @@ function App() {
               onToggleTask={toggleTask}
               onDeleteTask={deleteTask}
               onEditTask={handleEditTask}
+              userId={user.uid}
             />
 
             {/* 2. ビュー切り替え */}
@@ -354,6 +355,7 @@ function App() {
             onDeleteTask={deleteTask}
             onBulkDeleteTasks={bulkDeleteTasks}
             onEditTask={handleEditTask}
+            userId={user.uid}
           />
         ) : view === 'dashboard' ? (
           <UnitAnalysisView

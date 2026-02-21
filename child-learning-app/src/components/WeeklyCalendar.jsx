@@ -2,8 +2,9 @@ import { useState } from 'react'
 import './WeeklyCalendar.css'
 import { subjectEmojis, subjectColors, weekDayNames } from '../utils/constants'
 import { getWeekStart, formatDate, addDays } from '../utils/dateUtils'
+import TaskDetailModal from './TaskDetailModal'
 
-function WeeklyCalendar({ tasks, sapixTexts = [], onToggleTask, onDeleteTask, onEditTask }) {
+function WeeklyCalendar({ tasks, sapixTexts = [], onToggleTask, onDeleteTask, onEditTask, userId }) {
   // サンプルデータが2025年2月なので、初期表示を2月に設定
   const getInitialDate = () => {
     if (tasks.length > 0) {
@@ -20,6 +21,15 @@ function WeeklyCalendar({ tasks, sapixTexts = [], onToggleTask, onDeleteTask, on
   const [currentWeekStart, setCurrentWeekStart] = useState(getWeekStart(getInitialDate()))
   const [viewMode, setViewMode] = useState('week') // 'week' or 'month'
   const [currentMonth, setCurrentMonth] = useState(getInitialDate())
+  const [detailTask, setDetailTask] = useState(null)
+
+  const handleTaskClick = (task) => {
+    if (userId) {
+      setDetailTask(task)
+    } else if (onEditTask) {
+      onEditTask(task)
+    }
+  }
 
   function previousWeek() {
     setCurrentWeekStart(addDays(currentWeekStart, -7))
@@ -175,8 +185,8 @@ function WeeklyCalendar({ tasks, sapixTexts = [], onToggleTask, onDeleteTask, on
                       </div>
                       <div
                         className="task-title-small clickable"
-                        onClick={() => onEditTask && onEditTask(task)}
-                        title="クリックして編集"
+                        onClick={() => handleTaskClick(task)}
+                        title="クリックして詳細表示"
                       >
                         {task.title}
                       </div>
@@ -232,8 +242,8 @@ function WeeklyCalendar({ tasks, sapixTexts = [], onToggleTask, onDeleteTask, on
                           <div
                             key={task.id}
                             className={`task-dot ${task.completed ? 'completed' : ''} clickable`}
-                            title={`${task.title} (クリックして編集)`}
-                            onClick={() => onEditTask && onEditTask(task)}
+                            title={`${task.title} (クリックして詳細表示)`}
+                            onClick={() => handleTaskClick(task)}
                           >
                             {subjectEmojis[task.subject]}
                           </div>
@@ -265,8 +275,8 @@ function WeeklyCalendar({ tasks, sapixTexts = [], onToggleTask, onDeleteTask, on
               <span className="task-emoji">{subjectEmojis[task.subject]}</span>
               <span
                 className="task-title-small clickable"
-                onClick={() => onEditTask && onEditTask(task)}
-                title="クリックして編集"
+                onClick={() => handleTaskClick(task)}
+                title="クリックして詳細表示"
               >
                 {task.title}
               </span>
@@ -283,6 +293,16 @@ function WeeklyCalendar({ tasks, sapixTexts = [], onToggleTask, onDeleteTask, on
           )}
         </div>
       </div>
+
+      {/* タスク詳細モーダル */}
+      {detailTask && userId && (
+        <TaskDetailModal
+          task={detailTask}
+          userId={userId}
+          onEdit={onEditTask}
+          onClose={() => setDetailTask(null)}
+        />
+      )}
     </div>
   )
 }
