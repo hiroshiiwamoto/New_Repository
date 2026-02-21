@@ -1,4 +1,4 @@
-import { useReducer, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useReducer, useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import './SapixTextView.css'
 import { grades } from '../utils/unitsDatabase'
 import { subjectColors, subjectEmojis, MAX_FILE_SIZE, SUBJECTS } from '../utils/constants'
