@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { getAuth } from 'firebase/auth'
 import { getStaticMasterUnits } from '../utils/importMasterUnits'
 import {
@@ -11,13 +11,14 @@ import {
   EVALUATION_LABELS,
   EVALUATION_COLORS,
 } from '../utils/lessonLogs'
+import { subjectEmojis } from '../utils/constants'
 import Loading from './Loading'
 import './MasterUnitDashboard.css'
 
 const SUBJECTS = ['算数', '国語', '理科', '社会']
 const SUBJECT_ICONS = { 算数: '🔢', 国語: '📖', 理科: '🔬', 社会: '🌏' }
 
-function MasterUnitDashboard() {
+function MasterUnitDashboard({ sapixTexts = [] }) {
   const [loading, setLoading] = useState(true)
   const [masterUnits, setMasterUnits] = useState([])
   // stats: { unitId: { currentScore, statusLevel, logCount } }
@@ -195,6 +196,18 @@ function MasterUnitDashboard() {
     return `${type}${log.sourceName ? ': ' + log.sourceName : ''}`
   }
 
+  // 単元ごとのテキスト数マップ: { unitId: [text, ...] }
+  const textsByUnit = useMemo(() => {
+    const map = {}
+    for (const text of sapixTexts) {
+      for (const uid of (text.unitIds || [])) {
+        if (!map[uid]) map[uid] = []
+        map[uid].push(text)
+      }
+    }
+    return map
+  }, [sapixTexts])
+
   const subjectUnits = masterUnits.filter(u => (u.subject || '算数') === selectedSubject)
 
   // 教科ごとのカテゴリ順序を動的に取得（order_index順で単元を並べた結果から）
@@ -296,6 +309,7 @@ function MasterUnitDashboard() {
                 const unitStat = stats[unit.id]
                 const score = unitStat?.currentScore ?? -1
                 const level = getProficiencyLevel(score)
+                const textCount = textsByUnit[unit.id]?.length || 0
                 return (
                   <button
                     key={unit.id}
@@ -306,7 +320,7 @@ function MasterUnitDashboard() {
                       borderColor: level.color,
                     }}
                     onClick={() => handleDrillDown(unit)}
-                    title={`${unit.name}\n${unitStat?.directCount > 0 ? `習熟度: ${score}点 (${level.label}) / 直接${unitStat.directCount}回` : '未学習'}`}
+                    title={`${unit.name}\n${unitStat?.directCount > 0 ? `習熟度: ${score}点 (${level.label}) / 直接${unitStat.directCount}回` : '未学習'}${textCount > 0 ? `\nテキスト: ${textCount}件` : ''}`}
                   >
                     <div className="mud-unit-indicator" style={{ background: level.color }} />
                     <div className="mud-unit-name">{unit.name}</div>
@@ -319,6 +333,9 @@ function MasterUnitDashboard() {
                           {unitStat.indirectCount > 0 && (
                             <span className="mud-indirect-count">間{unitStat.indirectCount}</span>
                           )}
+                          {textCount > 0 && (
+                            <span className="mud-text-count">📘{textCount}</span>
+                          )}
                         </div>
                       </>
                     ) : unitStat?.indirectCount > 0 ? (
@@ -326,6 +343,16 @@ function MasterUnitDashboard() {
                         <div className="mud-unit-level" style={{ color: level.color }}>未学習</div>
                         <div className="mud-unit-counts">
                           <span className="mud-indirect-count">間{unitStat.indirectCount}</span>
+                          {textCount > 0 && (
+                            <span className="mud-text-count">📘{textCount}</span>
+                          )}
+                        </div>
+                      </>
+                    ) : textCount > 0 ? (
+                      <>
+                        <div className="mud-unit-level" style={{ color: level.color }}>未学習</div>
+                        <div className="mud-unit-counts">
+                          <span className="mud-text-count">📘{textCount}</span>
                         </div>
                       </>
                     ) : (
@@ -367,6 +394,29 @@ function MasterUnitDashboard() {
                       {u.name}
                       <span className="mud-cooccurring-count">×{u.count}</span>
                     </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 関連テキスト */}
+            {(textsByUnit[drillUnit.id]?.length > 0) && (
+              <div className="mud-drill-texts">
+                <h4>📘 関連テキスト ({textsByUnit[drillUnit.id].length}件)</h4>
+                <div className="mud-drill-text-list">
+                  {textsByUnit[drillUnit.id].map(text => (
+                    <div key={text.id} className="mud-drill-text-item">
+                      <span className="mud-drill-text-icon">{subjectEmojis[text.subject] || '📘'}</span>
+                      <div className="mud-drill-text-info">
+                        <span className="mud-drill-text-name">
+                          {text.textName}
+                          {text.textNumber && ` ${text.textNumber}`}
+                        </span>
+                        {text.studyDate && (
+                          <span className="mud-drill-text-date">📅 {text.studyDate}</span>
+                        )}
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>

@@ -360,6 +360,7 @@ function App() {
         ) : view === 'dashboard' ? (
           <UnitAnalysisView
             tasks={tasks}
+            sapixTexts={sapixTexts}
           />
         ) : view === 'pastpaper' ? (
           <PastPaperView
