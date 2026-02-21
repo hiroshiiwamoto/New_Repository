@@ -9,7 +9,7 @@ import { toast } from '../utils/toast'
 import { LABELS, TOAST } from '../utils/messages'
 import DriveFilePicker from './DriveFilePicker'
 import UnitTagPicker from './UnitTagPicker'
-import { addLessonLogWithStats, EVALUATION_SCORES, EVALUATION_LABELS } from '../utils/lessonLogs'
+import { addLessonLogWithStats, getLessonLogs, EVALUATION_SCORES, EVALUATION_LABELS, EVALUATION_COLORS } from '../utils/lessonLogs'
 import { getStaticMasterUnits } from '../utils/importMasterUnits'
 import { extractSapixCode, lookupSapixSchedule, gradeFromCode } from '../utils/sapixSchedule'
 import EmptyState from './EmptyState'
@@ -81,12 +81,34 @@ function SapixTextView({ user }) {
   const addFileInputRef = useRef(null)
   const editFileInputRef = useRef(null)
 
+  // テキスト別の最新評価マップ
+  const [lessonLogs, setLessonLogs] = useState([])
+  const latestEvalByTextId = useMemo(() => {
+    const map = {}
+    for (const log of lessonLogs) {
+      if (log.sourceType !== 'sapixTask' || !log.sourceId) continue
+      const existing = map[log.sourceId]
+      if (!existing) {
+        map[log.sourceId] = log
+      } else {
+        const tNew = log.createdAt?.toMillis?.() ?? new Date(log.createdAt ?? 0).getTime()
+        const tOld = existing.createdAt?.toMillis?.() ?? new Date(existing.createdAt ?? 0).getTime()
+        if (tNew > tOld) map[log.sourceId] = log
+      }
+    }
+    return map
+  }, [lessonLogs])
+
   // テキスト一覧を読み込み
   const loadTexts = useCallback(async () => {
     if (!user) return
-    const result = await getSapixTexts(user.uid)
+    const [result, logsResult] = await Promise.all([
+      getSapixTexts(user.uid),
+      getLessonLogs(user.uid),
+    ])
     if (!result.success) return
     dispatch({ type: 'SET_FIELD', field: 'texts', value: result.data })
+    if (logsResult.success) setLessonLogs(logsResult.data)
     // 全テキストの問題数を並列ロード（バッジ表示用）
     const pResults = await Promise.all(
       result.data.map(text => getProblemsBySource(user.uid, 'textbook', text.id))
@@ -200,6 +222,7 @@ function SapixTextView({ user }) {
         problemIds: textProblems.map(p => p.id),
       })
       if (result.success) {
+        setLessonLogs(prev => [result.data, ...prev])
         toast.success(`評価を記録しました: ${EVALUATION_LABELS[evalKey]}`)
       } else {
         toast.error('評価の記録に失敗しました: ' + result.error)
@@ -566,11 +589,16 @@ function SapixTextView({ user }) {
                   {/* 評価ボタン（編集中でもテキストを評価可能） */}
                   {text.unitIds?.length > 0 && (
                     <div className="sapix-eval-row">
-                      <span className="sapix-eval-label">評価:</span>
+                      <span className="sapix-eval-label">
+                        評価{latestEvalByTextId[text.id]
+                          ? ` (${{'blue':'🔵','yellow':'🟡','red':'🔴'}[latestEvalByTextId[text.id].evaluationKey] || '−'})`
+                          : ' (未評価)'}:
+                      </span>
                       {['blue', 'yellow', 'red'].map(key => (
                         <button
                           key={key}
-                          className="sapix-eval-btn"
+                          className={`sapix-eval-btn ${latestEvalByTextId[text.id]?.evaluationKey === key ? 'current' : ''}`}
+                          style={{ '--eval-color': EVALUATION_COLORS[key] }}
                           disabled={state.evaluating === text.id}
                           onClick={() => handleEvaluate(text, key)}
                           title={EVALUATION_LABELS[key]}
@@ -659,11 +687,16 @@ function SapixTextView({ user }) {
 
                   {/* 評価ボタン */}
                   <div className="sapix-eval-row">
-                    <span className="sapix-eval-label">評価:</span>
+                    <span className="sapix-eval-label">
+                      評価{latestEvalByTextId[text.id]
+                        ? ` (${{'blue':'🔵','yellow':'🟡','red':'🔴'}[latestEvalByTextId[text.id].evaluationKey] || '−'})`
+                        : ' (未評価)'}:
+                    </span>
                     {['blue', 'yellow', 'red'].map(key => (
                       <button
                         key={key}
-                        className="sapix-eval-btn"
+                        className={`sapix-eval-btn ${latestEvalByTextId[text.id]?.evaluationKey === key ? 'current' : ''}`}
+                        style={{ '--eval-color': EVALUATION_COLORS[key] }}
                         disabled={state.evaluating === text.id}
                         onClick={() => handleEvaluate(text, key)}
                         title={EVALUATION_LABELS[key]}

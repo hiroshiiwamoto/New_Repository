@@ -249,6 +249,23 @@ function MasterUnitDashboard({ sapixTexts = [], userId }) {
     return map
   }, [sapixTexts])
 
+  // テキスト別の最新評価: { textId: { evaluationKey, date, performance } }
+  const latestEvalByTextId = useMemo(() => {
+    const map = {}
+    for (const log of allLogs) {
+      if (log.sourceType !== 'sapixTask' || !log.sourceId) continue
+      const existing = map[log.sourceId]
+      if (!existing) {
+        map[log.sourceId] = log
+      } else {
+        const tNew = log.createdAt?.toMillis?.() ?? new Date(log.createdAt ?? 0).getTime()
+        const tOld = existing.createdAt?.toMillis?.() ?? new Date(existing.createdAt ?? 0).getTime()
+        if (tNew > tOld) map[log.sourceId] = log
+      }
+    }
+    return map
+  }, [allLogs])
+
   const subjectUnits = masterUnits.filter(u => (u.subject || '算数') === selectedSubject)
 
   // 教科ごとのカテゴリ順序を動的に取得（order_index順で単元を並べた結果から）
@@ -461,14 +478,22 @@ function MasterUnitDashboard({ sapixTexts = [], userId }) {
                             <span className="mud-drill-text-date">📅 {text.studyDate}</span>
                           )}
                         </div>
+                        {latestEvalByTextId[text.id] ? (
+                          <span className="mud-drill-text-current-eval" title={`最新: ${EVALUATION_LABELS[latestEvalByTextId[text.id].evaluationKey]} (${formatLogDate(latestEvalByTextId[text.id].createdAt)})`}>
+                            {getEvalEmoji(latestEvalByTextId[text.id])}
+                          </span>
+                        ) : (
+                          <span className="mud-drill-text-no-eval" title="未評価">−</span>
+                        )}
                         <span className="mud-drill-text-arrow">›</span>
                       </div>
                       {text.unitIds?.length > 0 && (
                         <div className="mud-drill-text-eval">
+                          <span className="mud-drill-text-eval-label">評価:</span>
                           {['blue', 'yellow', 'red'].map(key => (
                             <button
                               key={key}
-                              className="mud-drill-text-eval-btn"
+                              className={`mud-drill-text-eval-btn ${latestEvalByTextId[text.id]?.evaluationKey === key ? 'current' : ''}`}
                               style={{ '--eval-color': EVALUATION_COLORS[key] }}
                               onClick={() => handleEvaluateText(text, key)}
                               disabled={evaluatingTextId === text.id}
@@ -563,6 +588,7 @@ function MasterUnitDashboard({ sapixTexts = [], userId }) {
           userId={userId}
           onClose={() => setDetailText(null)}
           onEvaluated={(newLog) => setAllLogs(prev => [newLog, ...prev])}
+          latestEval={latestEvalByTextId[detailText.id] || null}
         />
       )}
     </div>
