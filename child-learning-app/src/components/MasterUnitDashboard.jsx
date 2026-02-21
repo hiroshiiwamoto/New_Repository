@@ -12,6 +12,7 @@ import {
   EVALUATION_COLORS,
 } from '../utils/lessonLogs'
 import { subjectEmojis } from '../utils/constants'
+import TextDetailModal from './TextDetailModal'
 import Loading from './Loading'
 import './MasterUnitDashboard.css'
 
@@ -31,6 +32,9 @@ function MasterUnitDashboard({ sapixTexts = [] }) {
   // ドリルダウンモーダル
   const [drillUnit, setDrillUnit] = useState(null)
   const [drillLogs, setDrillLogs] = useState([])
+
+  // テキスト詳細モーダル
+  const [detailText, setDetailText] = useState(null)
 
   // 練習記録モーダル
   const [practiceUnit, setPracticeUnit] = useState(null)
@@ -405,7 +409,11 @@ function MasterUnitDashboard({ sapixTexts = [] }) {
                 <h4>📘 関連テキスト ({textsByUnit[drillUnit.id].length}件)</h4>
                 <div className="mud-drill-text-list">
                   {textsByUnit[drillUnit.id].map(text => (
-                    <div key={text.id} className="mud-drill-text-item">
+                    <div
+                      key={text.id}
+                      className="mud-drill-text-item clickable"
+                      onClick={() => setDetailText(text)}
+                    >
                       <span className="mud-drill-text-icon">{subjectEmojis[text.subject] || '📘'}</span>
                       <div className="mud-drill-text-info">
                         <span className="mud-drill-text-name">
@@ -416,6 +424,7 @@ function MasterUnitDashboard({ sapixTexts = [] }) {
                           <span className="mud-drill-text-date">📅 {text.studyDate}</span>
                         )}
                       </div>
+                      <span className="mud-drill-text-arrow">›</span>
                     </div>
                   ))}
                 </div>
@@ -480,6 +489,15 @@ function MasterUnitDashboard({ sapixTexts = [] }) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* テキスト詳細モーダル */}
+      {detailText && (
+        <TextDetailModal
+          text={detailText}
+          userId={getAuth().currentUser?.uid}
+          onClose={() => setDetailText(null)}
+        />
       )}
     </div>
   )

@@ -589,6 +589,28 @@
   border: 1px solid #e2e8f0;
 }
 
+.mud-drill-text-item.clickable {
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.mud-drill-text-item.clickable:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  box-shadow: 0 1px 4px rgba(59, 130, 246, 0.15);
+}
+
+.mud-drill-text-arrow {
+  margin-left: auto;
+  font-size: 1.2rem;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.mud-drill-text-item.clickable:hover .mud-drill-text-arrow {
+  color: #3b82f6;
+}
+
 .mud-drill-text-icon {
   font-size: 1rem;
   flex-shrink: 0;
