@@ -30,17 +30,19 @@ function TaskItem({ task, onToggle, onDelete, onEdit, userId }) {
   return (
     <>
       <div
-        className={`task-item ${task.completed ? 'completed' : ''}`}
+        className={`task-item ${task.completed ? 'completed' : ''} ${userId ? 'clickable-row' : ''}`}
         style={{
           borderColor: subjectColor,
           backgroundColor: `${subjectColor}15`,
           boxShadow: `0 2px 8px ${subjectColor}25`
         }}
+        onClick={handleTitleClick}
       >
         <input
           type="checkbox"
           checked={task.completed}
           onChange={() => onToggle(task.id)}
+          onClick={e => e.stopPropagation()}
           className="task-checkbox"
         />
         <span className="subject-emoji">{subjectEmojis[task.subject]}</span>
@@ -50,12 +52,8 @@ function TaskItem({ task, onToggle, onDelete, onEdit, userId }) {
             color: subjectColor
           }}
         >{task.subject}</span>
-        <span
-          className="task-title clickable"
-          onClick={handleTitleClick}
-          title="クリックして詳細表示"
-        >{task.title}</span>
-        <div className="task-actions">
+        <span className="task-title">{task.title}</span>
+        <div className="task-actions" onClick={e => e.stopPropagation()}>
           {task.fileUrl && (
             <button
               className={`task-pdf-btn ${showPDF ? 'active' : ''}`}

@@ -88,6 +88,10 @@
   overflow: hidden;
 }
 
+.priority-task.clickable-row {
+  cursor: pointer;
+}
+
 .priority-task:hover {
   box-shadow: var(--shadow-md);
   transform: translateY(-2px);

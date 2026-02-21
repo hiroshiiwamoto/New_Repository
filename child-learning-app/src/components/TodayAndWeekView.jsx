@@ -62,17 +62,19 @@ function TodayAndWeekView({ tasks, onToggleTask, onDeleteTask, onEditTask, userI
                 return (
                   <div
                     key={task.id}
-                    className={`priority-task ${task.completed ? 'completed' : ''}`}
+                    className={`priority-task ${task.completed ? 'completed' : ''} ${userId ? 'clickable-row' : ''}`}
                     style={{
                       borderColor: subjectColor,
                       backgroundColor: `${subjectColor}15`,
                       boxShadow: `0 2px 8px ${subjectColor}25`
                     }}
+                    onClick={() => handleTaskClick(task)}
                   >
                     <input
                       type="checkbox"
                       checked={task.completed}
                       onChange={() => onToggleTask(task.id)}
+                      onClick={e => e.stopPropagation()}
                       className="task-checkbox"
                     />
                     <span className="subject-emoji">{subjectEmojis[task.subject]}</span>
@@ -82,15 +84,11 @@ function TodayAndWeekView({ tasks, onToggleTask, onDeleteTask, onEditTask, userI
                         color: subjectColor
                       }}
                     >{task.subject}</span>
-                    <span
-                      className="task-title clickable"
-                      onClick={() => handleTaskClick(task)}
-                      title="クリックして詳細表示"
-                    >{task.title}</span>
+                    <span className="task-title">{task.title}</span>
                     {task.priority && (
                       <span className="task-priority-badge">{task.priority}</span>
                     )}
-                    <div className="task-actions">
+                    <div className="task-actions" onClick={e => e.stopPropagation()}>
                       {onEditTask && (
                         <button
                           className="edit-btn"
