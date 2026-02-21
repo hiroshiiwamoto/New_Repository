@@ -347,10 +347,10 @@ export default function ProblemClipList({
             {/* 画像 */}
             {p.imageUrls?.length > 0 && (
               <div className="clip-detail-images">
-                {p.imageUrls.map((url, i) => (
-                  <div key={i} className="clip-detail-image">
+                {p.imageUrls.map((url) => (
+                  <div key={url} className="clip-detail-image">
                     <a href={url} target="_blank" rel="noopener noreferrer">
-                      <img src={url} alt={`問題画像${p.imageUrls.length > 1 ? ` ${i + 1}` : ''}`} />
+                      <img src={url} alt="問題画像" />
                     </a>
                   </div>
                 ))}
@@ -629,7 +629,7 @@ export default function ProblemClipList({
             <label>問題画像（{form.imageUrls.length}枚）</label>
             <div className="clip-image-previews">
               {form.imageUrls.map((url, i) => (
-                <div key={i} className="clip-image-preview">
+                <div key={url} className="clip-image-preview">
                   <a href={url} target="_blank" rel="noopener noreferrer">
                     <img src={url} alt={`問題プレビュー ${i + 1}`} />
                   </a>
