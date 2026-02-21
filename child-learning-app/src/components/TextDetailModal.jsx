@@ -4,11 +4,18 @@ import { createPortal } from 'react-dom'
 import { subjectEmojis, subjectColors } from '../utils/constants'
 import { getStaticMasterUnits } from '../utils/importMasterUnits'
 import { getProblemsBySource } from '../utils/problems'
+import {
+  addLessonLogWithStats,
+  EVALUATION_SCORES,
+  EVALUATION_LABELS,
+  EVALUATION_COLORS,
+} from '../utils/lessonLogs'
 import ProblemClipList from './ProblemClipList'
 import './TaskItem.css' // task-detail-* スタイルを共有
 
-export default function TextDetailModal({ text, userId, onClose }) {
+export default function TextDetailModal({ text, userId, onClose, onEvaluated }) {
   const [problems, setProblems] = useState([])
+  const [evaluating, setEvaluating] = useState(false)
   const subjectColor = subjectColors[text.subject] || '#3b82f6'
 
   const getEmbedUrl = (fileUrl) => {
@@ -30,6 +37,28 @@ export default function TextDetailModal({ text, userId, onClose }) {
     getStaticMasterUnits().forEach(u => { map[u.id] = u.name })
     return map
   }, [])
+
+  const handleEvaluate = async (evalKey) => {
+    if (!text.unitIds?.length || !userId) return
+    setEvaluating(true)
+    try {
+      const result = await addLessonLogWithStats(userId, {
+        unitIds: text.unitIds,
+        sourceType: 'sapixTask',
+        sourceId: text.id,
+        sourceName: `${text.textName}${text.textNumber ? ' ' + text.textNumber : ''}`,
+        date: new Date(),
+        performance: EVALUATION_SCORES[evalKey],
+        evaluationKey: evalKey,
+        problemIds: problems.map(p => p.id),
+      })
+      if (result.success && onEvaluated) {
+        onEvaluated(result.data)
+      }
+    } finally {
+      setEvaluating(false)
+    }
+  }
 
   const pdfInfo = useMemo(() => {
     const id = text.fileUrl?.match(/\/file\/d\/([^/?]+)/)?.[1]
@@ -83,6 +112,28 @@ export default function TextDetailModal({ text, userId, onClose }) {
               </div>
             )}
           </div>
+
+          {/* 評価ボタン */}
+          {text.unitIds?.length > 0 && (
+            <div className="task-detail-eval-row">
+              <span className="task-detail-eval-label">評価:</span>
+              {['blue', 'yellow', 'red'].map(key => (
+                <button
+                  key={key}
+                  className="task-detail-eval-btn"
+                  style={{ '--eval-color': EVALUATION_COLORS[key] }}
+                  onClick={() => handleEvaluate(key)}
+                  disabled={evaluating}
+                  title={EVALUATION_LABELS[key]}
+                >
+                  {key === 'blue' ? '🔵' : key === 'yellow' ? '🟡' : '🔴'}
+                </button>
+              ))}
+              {evaluating && (
+                <span className="task-detail-eval-saving">記録中...</span>
+              )}
+            </div>
+          )}
 
           {/* PDF プレビュー */}
           {text.fileUrl && (

@@ -563,6 +563,26 @@ function SapixTextView({ user }) {
                       rows="5"
                     />
                   </div>
+                  {/* 評価ボタン（編集中でもテキストを評価可能） */}
+                  {text.unitIds?.length > 0 && (
+                    <div className="sapix-eval-row">
+                      <span className="sapix-eval-label">評価:</span>
+                      {['blue', 'yellow', 'red'].map(key => (
+                        <button
+                          key={key}
+                          className="sapix-eval-btn"
+                          disabled={state.evaluating === text.id}
+                          onClick={() => handleEvaluate(text, key)}
+                          title={EVALUATION_LABELS[key]}
+                        >
+                          {key === 'blue' ? '🔵' : key === 'yellow' ? '🟡' : '🔴'}
+                        </button>
+                      ))}
+                      {state.evaluating === text.id && (
+                        <span className="sapix-eval-saving">記録中...</span>
+                      )}
+                    </div>
+                  )}
                   <div className="edit-form-actions">
                     <button className="btn-secondary" onClick={() => dispatch({ type: 'SET_FIELD', field: 'editingId', value: null })}>{LABELS.CANCEL}</button>
                     <button className="btn-primary" onClick={handleSaveEdit}>保存</button>

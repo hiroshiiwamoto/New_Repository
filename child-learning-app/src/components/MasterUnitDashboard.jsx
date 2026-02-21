@@ -41,6 +41,9 @@ function MasterUnitDashboard({ sapixTexts = [], userId }) {
   const [practiceEval, setPracticeEval] = useState(null)
   const [saving, setSaving] = useState(false)
 
+  // テキスト個別評価
+  const [evaluatingTextId, setEvaluatingTextId] = useState(null)
+
   useEffect(() => {
     loadData()
   }, [])
@@ -151,6 +154,28 @@ function MasterUnitDashboard({ sapixTexts = [], userId }) {
       console.error('記録エラー:', err)
     } finally {
       setSaving(false)
+    }
+  }
+
+  // テキスト個別評価
+  const handleEvaluateText = async (text, evalKey) => {
+    if (!text.unitIds?.length || !userId) return
+    setEvaluatingTextId(text.id)
+    try {
+      const result = await addLessonLogWithStats(userId, {
+        unitIds: text.unitIds,
+        sourceType: 'sapixTask',
+        sourceId: text.id,
+        sourceName: `${text.textName}${text.textNumber ? ' ' + text.textNumber : ''}`,
+        date: new Date(),
+        performance: EVALUATION_SCORES[evalKey],
+        evaluationKey: evalKey,
+      })
+      if (result.success) {
+        setAllLogs(prev => [result.data, ...prev])
+      }
+    } finally {
+      setEvaluatingTextId(null)
     }
   }
 
@@ -421,22 +446,42 @@ function MasterUnitDashboard({ sapixTexts = [], userId }) {
                 <h4>📘 関連テキスト ({textsByUnit[drillUnit.id].length}件)</h4>
                 <div className="mud-drill-text-list">
                   {textsByUnit[drillUnit.id].map(text => (
-                    <div
-                      key={text.id}
-                      className="mud-drill-text-item clickable"
-                      onClick={() => setDetailText(text)}
-                    >
-                      <span className="mud-drill-text-icon">{subjectEmojis[text.subject] || '📘'}</span>
-                      <div className="mud-drill-text-info">
-                        <span className="mud-drill-text-name">
-                          {text.textName}
-                          {text.textNumber && ` ${text.textNumber}`}
-                        </span>
-                        {text.studyDate && (
-                          <span className="mud-drill-text-date">📅 {text.studyDate}</span>
-                        )}
+                    <div key={text.id} className="mud-drill-text-item-wrap">
+                      <div
+                        className="mud-drill-text-item clickable"
+                        onClick={() => setDetailText(text)}
+                      >
+                        <span className="mud-drill-text-icon">{subjectEmojis[text.subject] || '📘'}</span>
+                        <div className="mud-drill-text-info">
+                          <span className="mud-drill-text-name">
+                            {text.textName}
+                            {text.textNumber && ` ${text.textNumber}`}
+                          </span>
+                          {text.studyDate && (
+                            <span className="mud-drill-text-date">📅 {text.studyDate}</span>
+                          )}
+                        </div>
+                        <span className="mud-drill-text-arrow">›</span>
                       </div>
-                      <span className="mud-drill-text-arrow">›</span>
+                      {text.unitIds?.length > 0 && (
+                        <div className="mud-drill-text-eval">
+                          {['blue', 'yellow', 'red'].map(key => (
+                            <button
+                              key={key}
+                              className="mud-drill-text-eval-btn"
+                              style={{ '--eval-color': EVALUATION_COLORS[key] }}
+                              onClick={() => handleEvaluateText(text, key)}
+                              disabled={evaluatingTextId === text.id}
+                              title={EVALUATION_LABELS[key]}
+                            >
+                              {key === 'blue' ? '🔵' : key === 'yellow' ? '🟡' : '🔴'}
+                            </button>
+                          ))}
+                          {evaluatingTextId === text.id && (
+                            <span className="mud-drill-text-eval-saving">記録中...</span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -517,6 +562,7 @@ function MasterUnitDashboard({ sapixTexts = [], userId }) {
           text={detailText}
           userId={userId}
           onClose={() => setDetailText(null)}
+          onEvaluated={(newLog) => setAllLogs(prev => [newLog, ...prev])}
         />
       )}
     </div>
