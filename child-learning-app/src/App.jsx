@@ -24,6 +24,7 @@ import {
   updateCustomUnit as updateCustomUnitInFirestore,
   deleteCustomUnit as deleteCustomUnitFromFirestore,
 } from './utils/customUnits'
+import { getSapixTexts } from './utils/sapixTexts'
 import { toast } from './utils/toast'
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
   const [previousView, setPreviousView] = useState('schedule') // Store previous view for returning after edit
   const [editingTask, setEditingTask] = useState(null)
   const [customUnits, setCustomUnits] = useState([]) // カスタム単元
+  const [sapixTexts, setSapixTexts] = useState([]) // SAPIXテキスト（カレンダー表示用）
   const taskFormRef = useRef(null)
   const [showTaskForm, setShowTaskForm] = useState(false)
   const [migrated, setMigrated] = useState(false)
@@ -94,6 +96,15 @@ function App() {
     return () => unsubscribe()
   }, [user, migrated])
 
+  // SAPIXテキストを読み込み（カレンダー学習日表示用）
+  useEffect(() => {
+    if (!user) return
+    const load = async () => {
+      const result = await getSapixTexts(user.uid)
+      if (result.success) setSapixTexts(result.data)
+    }
+    load()
+  }, [user])
 
   const addTask = async (task) => {
     const newTask = {
@@ -338,6 +349,7 @@ function App() {
         {view === 'schedule' ? (
           <ScheduleView
             tasks={tasks}
+            sapixTexts={sapixTexts}
             onToggleTask={toggleTask}
             onDeleteTask={deleteTask}
             onBulkDeleteTasks={bulkDeleteTasks}
