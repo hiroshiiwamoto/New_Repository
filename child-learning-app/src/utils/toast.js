@@ -15,13 +15,16 @@ export function showToast(message, type = 'info') {
   const toast = document.createElement('div')
   toast.className = `toast toast-${type}`
 
-  // アイコンを設定
-  const icon = getIcon(type)
+  const iconSpan = document.createElement('span')
+  iconSpan.className = 'toast-icon'
+  iconSpan.textContent = getIcon(type)
 
-  toast.innerHTML = `
-    <span class="toast-icon">${icon}</span>
-    <span class="toast-message">${message}</span>
-  `
+  const msgSpan = document.createElement('span')
+  msgSpan.className = 'toast-message'
+  msgSpan.textContent = message
+
+  toast.appendChild(iconSpan)
+  toast.appendChild(msgSpan)
 
   // コンテナに追加
   toastContainer.appendChild(toast)

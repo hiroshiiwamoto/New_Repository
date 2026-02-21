@@ -69,6 +69,7 @@ function reducer(state, action) {
   switch (action.type) {
     case 'SET_FIELD': return { ...state, [action.field]: action.value }
     case 'SET_FIELDS': return { ...state, ...action.fields }
+    case 'MERGE_PROBLEMS': return { ...state, problems: { ...state.problems, [action.taskId]: action.data } }
     default: return state
   }
 }
@@ -88,9 +89,9 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     if (!user) return
     const result = await getProblemsBySource(user.uid, 'pastPaper', taskId)
     if (result.success) {
-      dispatch({ type: 'SET_FIELD', field: 'problems', value: { ...state.problems, [taskId]: result.data } })
+      dispatch({ type: 'MERGE_PROBLEMS', taskId, data: result.data })
     }
-  }, [user, state.problems])
+  }, [user])
 
 
   // PDF を Google Drive にアップロードする共通処理
@@ -163,8 +164,8 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     pastPaperTasks.forEach(task => loadProblems(task.id))
   }, [user, pastPaperTasks, loadProblems])
 
-  // 学校別にグループ化
-  const groupBySchool = () => {
+  // 学校別にグループ化（メモ化）
+  const groupedBySchool = useMemo(() => {
     const grouped = {}
     pastPaperTasks.forEach(task => {
       const school = task.schoolName || '学校名未設定'
@@ -172,23 +173,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
       grouped[school].push(task)
     })
     return grouped
-  }
-
-  // 単元別にグループ化（複数unitIds対応）
-  const groupByUnit = () => {
-    const grouped = {}
-    pastPaperTasks.forEach(task => {
-      const ids = getTaskUnitIds(task)
-      if (ids.length === 0) {
-        grouped['未分類'] = [...(grouped['未分類'] || []), task]
-      } else {
-        ids.forEach(id => {
-          grouped[id] = [...(grouped[id] || []), task]
-        })
-      }
-    })
-    return grouped
-  }
+  }, [pastPaperTasks])
 
   // 単元別ビュー用: 単元 → タスク(学校+年度)タイル → 問題一覧
   const unitTileData = useMemo(() => {
@@ -448,7 +433,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
     )
   }
 
-  const groupedData = state.viewMode === 'school' ? groupBySchool() : groupByUnit()
+  const groupedData = groupedBySchool
 
   return (
     <div className="pastpaper-view">

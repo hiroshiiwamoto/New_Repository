@@ -52,6 +52,8 @@ function reducer(state, action) {
       return { ...state, [action.field]: action.value }
     case 'SET_FIELDS':
       return { ...state, ...action.fields }
+    case 'MERGE_PROBLEMS':
+      return { ...state, problems: { ...state.problems, [action.taskId]: action.data } }
     case 'RESET_ADD_FORM':
       return { ...state, addForm: { ...defaultFormState } }
     case 'RESET_EDIT_FORM':
@@ -78,16 +80,17 @@ function SapixTextView({ user }) {
   const loadTexts = useCallback(async () => {
     if (!user) return
     const result = await getSapixTexts(user.uid)
-    if (result.success) {
-      dispatch({ type: 'SET_FIELD', field: 'texts', value: result.data })
-      // 全テキストの問題数を事前ロード（バッジ表示用）
-      for (const text of result.data) {
-        const pResult = await getProblemsBySource(user.uid, 'textbook', text.id)
-        if (pResult.success) {
-          dispatch({ type: 'SET_FIELD', field: 'problems', value: { ...state.problems, [text.id]: pResult.data } })
-        }
-      }
-    }
+    if (!result.success) return
+    dispatch({ type: 'SET_FIELD', field: 'texts', value: result.data })
+    // 全テキストの問題数を並列ロード（バッジ表示用）
+    const pResults = await Promise.all(
+      result.data.map(text => getProblemsBySource(user.uid, 'textbook', text.id))
+    )
+    const problemsMap = {}
+    result.data.forEach((text, i) => {
+      if (pResults[i].success) problemsMap[text.id] = pResults[i].data
+    })
+    dispatch({ type: 'SET_FIELD', field: 'problems', value: problemsMap })
   }, [user])
 
   useEffect(() => {
@@ -148,7 +151,7 @@ function SapixTextView({ user }) {
     if (!user) return
     const result = await getProblemsBySource(user.uid, 'textbook', textId)
     if (result.success) {
-      dispatch({ type: 'SET_FIELD', field: 'problems', value: { ...state.problems, [textId]: result.data } })
+      dispatch({ type: 'MERGE_PROBLEMS', taskId: textId, data: result.data })
     }
   }
 
