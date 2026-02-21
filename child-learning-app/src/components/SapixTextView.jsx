@@ -11,6 +11,7 @@ import DriveFilePicker from './DriveFilePicker'
 import UnitTagPicker from './UnitTagPicker'
 import { addLessonLogWithStats, EVALUATION_SCORES, EVALUATION_LABELS } from '../utils/lessonLogs'
 import { getStaticMasterUnits } from '../utils/importMasterUnits'
+import { extractSapixCode, lookupSapixSchedule, gradeFromCode } from '../utils/sapixSchedule'
 import EmptyState from './EmptyState'
 import {
   getProblemsBySource,
@@ -124,11 +125,31 @@ function SapixTextView({ user }) {
       const result = await uploadPDFToDrive(file, () => {})
       const viewUrl = `https://drive.google.com/file/d/${result.driveFileId}/view`
       if (target === 'add') {
-        dispatch({ type: 'SET_FIELD', field: 'addForm', value: { ...state.addForm, fileUrl: viewUrl, fileName: file.name } })
+        // ファイル名から SAPIX テキストコードを抽出し、スケジュールと照合
+        const code = extractSapixCode(file.name)
+        const schedule = code ? lookupSapixSchedule(code) : null
+        const grade = code ? gradeFromCode(code) : null
+        dispatch({
+          type: 'SET_FIELD',
+          field: 'addForm',
+          value: {
+            ...state.addForm,
+            fileUrl: viewUrl,
+            fileName: file.name,
+            ...(schedule && { textName: schedule.name, unitIds: schedule.unitIds, subject: schedule.subject }),
+            ...(code && { textNumber: code }),
+            ...(grade && { grade }),
+          },
+        })
+        if (schedule) {
+          toast.success(`${code} → ${schedule.name} を自動設定しました`)
+        } else {
+          toast.success(TOAST.UPLOAD_SUCCESS)
+        }
       } else {
         dispatch({ type: 'SET_FIELD', field: 'editForm', value: { ...state.editForm, fileUrl: viewUrl, fileName: file.name } })
+        toast.success(TOAST.UPLOAD_SUCCESS)
       }
-      toast.success(TOAST.UPLOAD_SUCCESS)
     } catch (error) {
       toast.error(TOAST.UPLOAD_ERROR + error.message)
     } finally {
