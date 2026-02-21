@@ -244,6 +244,11 @@
   box-shadow: var(--shadow-sm);
 }
 
+.calendar-task.clickable-row,
+.unscheduled-task.clickable-row {
+  cursor: pointer;
+}
+
 .calendar-task:hover {
   box-shadow: var(--shadow-md);
   transform: translateY(-2px);

@@ -12,6 +12,10 @@
   box-shadow: var(--shadow-sm);
 }
 
+.task-item.clickable-row {
+  cursor: pointer;
+}
+
 .task-item:hover {
   box-shadow: var(--shadow-lg);
   transform: translateY(-2px);

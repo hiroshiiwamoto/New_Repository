@@ -172,9 +172,10 @@ function WeeklyCalendar({ tasks, sapixTexts = [], onToggleTask, onDeleteTask, on
                   {dayTasks.map(task => (
                     <div
                       key={task.id}
-                      className={`calendar-task ${task.completed ? 'completed' : ''}`}
+                      className={`calendar-task ${task.completed ? 'completed' : ''} ${userId ? 'clickable-row' : ''}`}
+                      onClick={() => handleTaskClick(task)}
                     >
-                      <div className="task-header">
+                      <div className="task-header" onClick={e => e.stopPropagation()}>
                         <input
                           type="checkbox"
                           checked={task.completed}
@@ -183,16 +184,12 @@ function WeeklyCalendar({ tasks, sapixTexts = [], onToggleTask, onDeleteTask, on
                         />
                         <span className="task-emoji">{subjectEmojis[task.subject]}</span>
                       </div>
-                      <div
-                        className="task-title-small clickable"
-                        onClick={() => handleTaskClick(task)}
-                        title="クリックして詳細表示"
-                      >
+                      <div className="task-title-small">
                         {task.title}
                       </div>
                       <button
                         className="delete-btn-small"
-                        onClick={() => onDeleteTask(task.id)}
+                        onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id) }}
                       >
                         ×
                       </button>
@@ -265,24 +262,25 @@ function WeeklyCalendar({ tasks, sapixTexts = [], onToggleTask, onDeleteTask, on
         <h3>📝 日付未設定のタスク</h3>
         <div className="unscheduled-list">
           {tasks.filter(task => !task.dueDate).map(task => (
-            <div key={task.id} className={`unscheduled-task ${task.completed ? 'completed' : ''}`}>
+            <div
+              key={task.id}
+              className={`unscheduled-task ${task.completed ? 'completed' : ''} ${userId ? 'clickable-row' : ''}`}
+              onClick={() => handleTaskClick(task)}
+            >
               <input
                 type="checkbox"
                 checked={task.completed}
                 onChange={() => onToggleTask(task.id)}
+                onClick={e => e.stopPropagation()}
                 className="task-checkbox-small"
               />
               <span className="task-emoji">{subjectEmojis[task.subject]}</span>
-              <span
-                className="task-title-small clickable"
-                onClick={() => handleTaskClick(task)}
-                title="クリックして詳細表示"
-              >
+              <span className="task-title-small">
                 {task.title}
               </span>
               <button
                 className="delete-btn-small"
-                onClick={() => onDeleteTask(task.id)}
+                onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id) }}
               >
                 🗑️
               </button>
