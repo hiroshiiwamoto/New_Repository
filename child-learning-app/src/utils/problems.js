@@ -8,6 +8,7 @@
 import {
   collection,
   addDoc,
+  getDoc,
   getDocs,
   doc,
   updateDoc,
@@ -17,7 +18,32 @@ import {
   orderBy,
   serverTimestamp,
 } from 'firebase/firestore'
-import { db } from '../firebase'
+import { ref, deleteObject } from 'firebase/storage'
+import { db, storage } from '../firebase'
+
+/**
+ * Firebase Storage URL から storage path を抽出して削除
+ * URL例: https://firebasestorage.googleapis.com/v0/b/bucket/o/problemImages%2FuserId%2F123.png?alt=...
+ */
+async function deleteStorageFile(url) {
+  try {
+    const match = url.match(/\/o\/(.+?)\?/)
+    if (!match) return
+    const path = decodeURIComponent(match[1])
+    await deleteObject(ref(storage, path))
+  } catch (error) {
+    // storage/object-not-found は無視（既に削除済み）
+    if (error.code !== 'storage/object-not-found') {
+      console.warn('Failed to delete storage file:', url, error)
+    }
+  }
+}
+
+/** 問題に紐づく全画像を Storage から削除 */
+async function deleteStorageImages(imageUrls) {
+  if (!imageUrls?.length) return
+  await Promise.all(imageUrls.map(url => deleteStorageFile(url)))
+}
 
 /**
  * 問題を追加
@@ -118,8 +144,13 @@ export async function updateProblem(userId, problemId, updates) {
  */
 export async function deleteProblem(userId, problemId) {
   try {
-    const ref = doc(db, 'users', userId, 'problems', problemId)
-    await deleteDoc(ref)
+    const docRef = doc(db, 'users', userId, 'problems', problemId)
+    // 削除前に画像URLを取得して Storage からも削除
+    const snap = await getDoc(docRef)
+    if (snap.exists()) {
+      await deleteStorageImages(snap.data().imageUrls)
+    }
+    await deleteDoc(docRef)
     return { success: true }
   } catch (error) {
     console.error('Error deleting problem:', error)
@@ -138,8 +169,15 @@ export async function deleteProblemsBySource(userId, sourceType, sourceId) {
   try {
     const result = await getProblemsBySource(userId, sourceType, sourceId)
     if (!result.success) return result
+    // 全画像を Storage から一括削除（getProblemsBySource で取得済みデータを利用）
+    const allImageUrls = result.data.flatMap(p => p.imageUrls || [])
+    await deleteStorageImages(allImageUrls)
+    // Firestore ドキュメントを一括削除
     await Promise.all(
-      result.data.map(p => deleteProblem(userId, p.id))
+      result.data.map(p => {
+        const docRef = doc(db, 'users', userId, 'problems', p.id)
+        return deleteDoc(docRef)
+      })
     )
     return { success: true, deletedCount: result.data.length }
   } catch (error) {
