@@ -549,6 +549,72 @@
   font-weight: 600;
 }
 
+.mud-text-count {
+  font-size: 9px;
+  background: #eff6ff;
+  color: #1e40af;
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+/* 関連テキスト（ドリルダウンモーダル内） */
+.mud-drill-texts {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.mud-drill-texts h4 {
+  margin: 0 0 8px 0;
+  font-size: 0.85rem;
+  color: #334155;
+}
+
+.mud-drill-text-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mud-drill-text-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.mud-drill-text-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.mud-drill-text-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.mud-drill-text-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mud-drill-text-date {
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
 /* 単元データ初期化ボタン（ドリルダウンモーダル内） */
 .mud-drill-reset {
   margin-top: 16px;
