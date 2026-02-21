@@ -619,14 +619,52 @@
   gap: 6px;
 }
 
+.mud-drill-text-item-wrap {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
 .mud-drill-text-item {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 6px 10px;
-  background: white;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
+}
+
+.mud-drill-text-eval {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px 6px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.mud-drill-text-eval-btn {
+  padding: 2px 8px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: var(--color-gray-50);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.mud-drill-text-eval-btn:hover:not(:disabled) {
+  background: #f0f9ff;
+  border-color: var(--eval-color, var(--color-primary));
+}
+
+.mud-drill-text-eval-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.mud-drill-text-eval-saving {
+  font-size: 11px;
+  color: var(--color-gray-400);
+  margin-left: 4px;
 }
 
 .mud-drill-text-item.clickable {
@@ -634,10 +672,13 @@
   transition: all 0.15s;
 }
 
-.mud-drill-text-item.clickable:hover {
-  background: #eff6ff;
+.mud-drill-text-item-wrap:has(.mud-drill-text-item.clickable:hover) {
   border-color: #93c5fd;
   box-shadow: 0 1px 4px rgba(59, 130, 246, 0.15);
+}
+
+.mud-drill-text-item.clickable:hover {
+  background: #eff6ff;
 }
 
 .mud-drill-text-arrow {
