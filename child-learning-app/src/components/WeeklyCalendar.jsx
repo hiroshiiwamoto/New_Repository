@@ -3,6 +3,7 @@ import './WeeklyCalendar.css'
 import { subjectEmojis, subjectColors, weekDayNames } from '../utils/constants'
 import { getWeekStart, formatDate, addDays } from '../utils/dateUtils'
 import TaskDetailModal from './TaskDetailModal'
+import TextDetailModal from './TextDetailModal'
 
 function WeeklyCalendar({ tasks, sapixTexts = [], onToggleTask, onDeleteTask, onEditTask, userId }) {
   // サンプルデータが2025年2月なので、初期表示を2月に設定
@@ -22,6 +23,7 @@ function WeeklyCalendar({ tasks, sapixTexts = [], onToggleTask, onDeleteTask, on
   const [viewMode, setViewMode] = useState('week') // 'week' or 'month'
   const [currentMonth, setCurrentMonth] = useState(getInitialDate())
   const [detailTask, setDetailTask] = useState(null)
+  const [detailText, setDetailText] = useState(null)
 
   const handleTaskClick = (task) => {
     if (userId) {
@@ -164,7 +166,11 @@ function WeeklyCalendar({ tasks, sapixTexts = [], onToggleTask, onDeleteTask, on
 
                 <div className="day-tasks">
                   {dayLessons.map(lesson => (
-                    <div key={lesson.id} className="calendar-lesson">
+                    <div
+                      key={lesson.id}
+                      className={`calendar-lesson ${userId ? 'clickable-row' : ''}`}
+                      onClick={() => userId && setDetailText(lesson)}
+                    >
                       <span className="lesson-icon">{subjectEmojis[lesson.subject] || '📘'}</span>
                       <span className="lesson-name">{lesson.textNumber ? `${lesson.textNumber} ` : ''}{lesson.textName}</span>
                     </div>
@@ -227,7 +233,12 @@ function WeeklyCalendar({ tasks, sapixTexts = [], onToggleTask, onDeleteTask, on
                     {dayLessons.length > 0 && (
                       <div className="lesson-indicators">
                         {dayLessons.map(lesson => (
-                          <div key={lesson.id} className="lesson-dot" title={`${lesson.textNumber || ''} ${lesson.textName}`}>
+                          <div
+                            key={lesson.id}
+                            className={`lesson-dot ${userId ? 'clickable' : ''}`}
+                            title={`${lesson.textNumber || ''} ${lesson.textName} (クリックして詳細表示)`}
+                            onClick={() => userId && setDetailText(lesson)}
+                          >
                             {subjectEmojis[lesson.subject] || '📘'}
                           </div>
                         ))}
@@ -299,6 +310,15 @@ function WeeklyCalendar({ tasks, sapixTexts = [], onToggleTask, onDeleteTask, on
           userId={userId}
           onEdit={onEditTask}
           onClose={() => setDetailTask(null)}
+        />
+      )}
+
+      {/* テキスト詳細モーダル */}
+      {detailText && userId && (
+        <TextDetailModal
+          text={detailText}
+          userId={userId}
+          onClose={() => setDetailText(null)}
         />
       )}
     </div>
