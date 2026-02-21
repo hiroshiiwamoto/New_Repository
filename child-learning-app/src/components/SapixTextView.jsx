@@ -55,6 +55,10 @@ function reducer(state, action) {
       return { ...state, ...action.fields }
     case 'MERGE_PROBLEMS':
       return { ...state, problems: { ...state.problems, [action.taskId]: action.data } }
+    case 'PATCH_ADD_FORM':
+      return { ...state, addForm: { ...state.addForm, ...action.patch } }
+    case 'PATCH_EDIT_FORM':
+      return { ...state, editForm: { ...state.editForm, ...action.patch } }
     case 'RESET_ADD_FORM':
       return { ...state, addForm: { ...defaultFormState } }
     case 'RESET_EDIT_FORM':
@@ -101,6 +105,25 @@ function SapixTextView({ user }) {
   // 科目でフィルタリング
   const filteredTexts = state.texts.filter(t => t.subject === state.selectedSubject)
 
+  // ファイル名から SAPIX コードを抽出し、addForm にスケジュール情報をパッチする
+  const applySchedulePatch = (basePatch, fileName) => {
+    const code = extractSapixCode(fileName)
+    const schedule = code ? lookupSapixSchedule(code) : null
+    const grade = code ? gradeFromCode(code) : null
+    const patch = {
+      ...basePatch,
+      ...(schedule && { textName: schedule.name, unitIds: schedule.unitIds, subject: schedule.subject }),
+      ...(code && { textNumber: code }),
+      ...(grade && { grade }),
+    }
+    dispatch({ type: 'PATCH_ADD_FORM', patch })
+    if (schedule) {
+      toast.success(`${code} → ${schedule.name} を自動設定しました`)
+    } else {
+      toast.success(TOAST.UPLOAD_SUCCESS)
+    }
+  }
+
   // PDF アップロード
   const handlePDFUpload = async (file, target) => {
     if (!file) return
@@ -125,29 +148,10 @@ function SapixTextView({ user }) {
       const result = await uploadPDFToDrive(file, () => {})
       const viewUrl = `https://drive.google.com/file/d/${result.driveFileId}/view`
       if (target === 'add') {
-        // ファイル名から SAPIX テキストコードを抽出し、スケジュールと照合
-        const code = extractSapixCode(file.name)
-        const schedule = code ? lookupSapixSchedule(code) : null
-        const grade = code ? gradeFromCode(code) : null
-        dispatch({
-          type: 'SET_FIELD',
-          field: 'addForm',
-          value: {
-            ...state.addForm,
-            fileUrl: viewUrl,
-            fileName: file.name,
-            ...(schedule && { textName: schedule.name, unitIds: schedule.unitIds, subject: schedule.subject }),
-            ...(code && { textNumber: code }),
-            ...(grade && { grade }),
-          },
-        })
-        if (schedule) {
-          toast.success(`${code} → ${schedule.name} を自動設定しました`)
-        } else {
-          toast.success(TOAST.UPLOAD_SUCCESS)
-        }
+        const patch = { fileUrl: viewUrl, fileName: file.name }
+        applySchedulePatch(patch, file.name)
       } else {
-        dispatch({ type: 'SET_FIELD', field: 'editForm', value: { ...state.editForm, fileUrl: viewUrl, fileName: file.name } })
+        dispatch({ type: 'PATCH_EDIT_FORM', patch: { fileUrl: viewUrl, fileName: file.name } })
         toast.success(TOAST.UPLOAD_SUCCESS)
       }
     } catch (error) {
@@ -720,9 +724,9 @@ function SapixTextView({ user }) {
         <DriveFilePicker
           onSelect={(data) => {
             if (state.showDrivePicker === 'add') {
-              dispatch({ type: 'SET_FIELD', field: 'addForm', value: { ...state.addForm, fileUrl: data.url, fileName: data.name } })
+              applySchedulePatch({ fileUrl: data.url, fileName: data.name }, data.name)
             } else {
-              dispatch({ type: 'SET_FIELD', field: 'editForm', value: { ...state.editForm, fileUrl: data.url, fileName: data.name } })
+              dispatch({ type: 'PATCH_EDIT_FORM', patch: { fileUrl: data.url, fileName: data.name } })
             }
             dispatch({ type: 'SET_FIELD', field: 'showDrivePicker', value: null })
           }}
