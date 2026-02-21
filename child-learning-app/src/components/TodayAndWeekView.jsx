@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import './TodayAndWeekView.css'
 import { subjectEmojis, subjectColors } from '../utils/constants'
+import TaskDetailModal from './TaskDetailModal'
 
-function TodayAndWeekView({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
+function TodayAndWeekView({ tasks, onToggleTask, onDeleteTask, onEditTask, userId }) {
   const [expandedSection, setExpandedSection] = useState('today') // 'today' or 'week'
+  const [detailTask, setDetailTask] = useState(null)
 
   // 日付フォーマット関数
   function formatDate(date) {
@@ -23,6 +25,14 @@ function TodayAndWeekView({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
 
   const toggleSection = (section) => {
     setExpandedSection(expandedSection === section ? null : section)
+  }
+
+  const handleTaskClick = (task) => {
+    if (userId) {
+      setDetailTask(task)
+    } else if (onEditTask) {
+      onEditTask(task)
+    }
   }
 
   return (
@@ -72,7 +82,11 @@ function TodayAndWeekView({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
                         color: subjectColor
                       }}
                     >{task.subject}</span>
-                    <span className="task-title">{task.title}</span>
+                    <span
+                      className="task-title clickable"
+                      onClick={() => handleTaskClick(task)}
+                      title="クリックして詳細表示"
+                    >{task.title}</span>
                     {task.priority && (
                       <span className="task-priority-badge">{task.priority}</span>
                     )}
@@ -102,6 +116,15 @@ function TodayAndWeekView({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
         )}
       </div>
 
+      {/* タスク詳細モーダル */}
+      {detailTask && userId && (
+        <TaskDetailModal
+          task={detailTask}
+          userId={userId}
+          onEdit={onEditTask}
+          onClose={() => setDetailTask(null)}
+        />
+      )}
     </div>
   )
 }
