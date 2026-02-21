@@ -13,10 +13,16 @@ import {
 import ProblemClipList from './ProblemClipList'
 import './TaskItem.css' // task-detail-* スタイルを共有
 
-export default function TextDetailModal({ text, userId, onClose, onEvaluated }) {
+const EVAL_EMOJI = { blue: '🔵', yellow: '🟡', red: '🔴' }
+
+export default function TextDetailModal({ text, userId, onClose, onEvaluated, latestEval: latestEvalProp }) {
   const [problems, setProblems] = useState([])
   const [evaluating, setEvaluating] = useState(false)
+  const [localLatestEval, setLocalLatestEval] = useState(null)
   const subjectColor = subjectColors[text.subject] || '#3b82f6'
+
+  // 親から渡された最新評価 or ローカルで記録した評価（新しい方を優先）
+  const latestEval = localLatestEval || latestEvalProp
 
   const getEmbedUrl = (fileUrl) => {
     if (!fileUrl) return null
@@ -52,8 +58,9 @@ export default function TextDetailModal({ text, userId, onClose, onEvaluated }) 
         evaluationKey: evalKey,
         problemIds: problems.map(p => p.id),
       })
-      if (result.success && onEvaluated) {
-        onEvaluated(result.data)
+      if (result.success) {
+        setLocalLatestEval(result.data)
+        if (onEvaluated) onEvaluated(result.data)
       }
     } finally {
       setEvaluating(false)
@@ -116,17 +123,19 @@ export default function TextDetailModal({ text, userId, onClose, onEvaluated }) 
           {/* 評価ボタン */}
           {text.unitIds?.length > 0 && (
             <div className="task-detail-eval-row">
-              <span className="task-detail-eval-label">評価:</span>
+              <span className="task-detail-eval-label">
+                評価{latestEval ? ` (現在: ${EVAL_EMOJI[latestEval.evaluationKey] || '−'})` : ' (未評価)'}:
+              </span>
               {['blue', 'yellow', 'red'].map(key => (
                 <button
                   key={key}
-                  className="task-detail-eval-btn"
+                  className={`task-detail-eval-btn ${latestEval?.evaluationKey === key ? 'current' : ''}`}
                   style={{ '--eval-color': EVALUATION_COLORS[key] }}
                   onClick={() => handleEvaluate(key)}
                   disabled={evaluating}
                   title={EVALUATION_LABELS[key]}
                 >
-                  {key === 'blue' ? '🔵' : key === 'yellow' ? '🟡' : '🔴'}
+                  {EVAL_EMOJI[key]}
                 </button>
               ))}
               {evaluating && (

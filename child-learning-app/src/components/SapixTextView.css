@@ -461,6 +461,12 @@
   line-height: 1;
 }
 
+.sapix-eval-btn.current {
+  border-color: var(--eval-color, var(--color-primary));
+  background: #f0f9ff;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--eval-color, var(--color-primary)) 25%, transparent);
+}
+
 .sapix-eval-btn:hover:not(:disabled) {
   background: var(--color-gray-100);
   transform: scale(1.1);
