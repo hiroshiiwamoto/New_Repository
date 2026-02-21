@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from 'react'
-import { getAuth } from 'firebase/auth'
 import { getStaticMasterUnits } from '../utils/importMasterUnits'
 import {
   getLessonLogs,
@@ -19,7 +18,7 @@ import './MasterUnitDashboard.css'
 const SUBJECTS = ['算数', '国語', '理科', '社会']
 const SUBJECT_ICONS = { 算数: '🔢', 国語: '📖', 理科: '🔬', 社会: '🌏' }
 
-function MasterUnitDashboard({ sapixTexts = [] }) {
+function MasterUnitDashboard({ sapixTexts = [], userId }) {
   const [loading, setLoading] = useState(true)
   const [masterUnits, setMasterUnits] = useState([])
   // stats: { unitId: { currentScore, statusLevel, logCount } }
@@ -82,8 +81,6 @@ function MasterUnitDashboard({ sapixTexts = [] }) {
   const loadData = async () => {
     setLoading(true)
     try {
-      const auth = getAuth()
-      const userId = auth.currentUser?.uid
       if (!userId) return
 
       const [units, logsResult] = await Promise.all([
@@ -128,10 +125,7 @@ function MasterUnitDashboard({ sapixTexts = [] }) {
 
   // 練習記録
   const handleSavePractice = async () => {
-    if (!practiceEval) return
-    const auth = getAuth()
-    const userId = auth.currentUser?.uid
-    if (!userId) return
+    if (!practiceEval || !userId) return
 
     setSaving(true)
     try {
@@ -161,8 +155,6 @@ function MasterUnitDashboard({ sapixTexts = [] }) {
   const [resetting, setResetting] = useState(false)
   const handleResetUnit = async (unitId, unitName) => {
     if (!window.confirm(`「${unitName}」の学習記録をすべて削除しますか？\nこの操作は取り消せません。`)) return
-    const auth = getAuth()
-    const userId = auth.currentUser?.uid
     if (!userId) return
     setResetting(true)
     try {
@@ -492,10 +484,10 @@ function MasterUnitDashboard({ sapixTexts = [] }) {
       )}
 
       {/* テキスト詳細モーダル */}
-      {detailText && (
+      {detailText && userId && (
         <TextDetailModal
           text={detailText}
-          userId={getAuth().currentUser?.uid}
+          userId={userId}
           onClose={() => setDetailText(null)}
         />
       )}

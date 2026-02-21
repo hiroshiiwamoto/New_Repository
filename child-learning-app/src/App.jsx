@@ -361,6 +361,7 @@ function App() {
           <UnitAnalysisView
             tasks={tasks}
             sapixTexts={sapixTexts}
+            userId={user.uid}
           />
         ) : view === 'pastpaper' ? (
           <PastPaperView
