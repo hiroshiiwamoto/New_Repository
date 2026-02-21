@@ -1,10 +1,10 @@
 import './ScheduleView.css'
 import MasterUnitDashboard from './MasterUnitDashboard'
 
-function UnitAnalysisView({ sapixTexts = [] }) {
+function UnitAnalysisView({ sapixTexts = [], userId }) {
   return (
     <div className="unit-analysis-view">
-      <MasterUnitDashboard sapixTexts={sapixTexts} />
+      <MasterUnitDashboard sapixTexts={sapixTexts} userId={userId} />
     </div>
   )
 }

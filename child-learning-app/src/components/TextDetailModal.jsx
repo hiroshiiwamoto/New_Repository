@@ -5,7 +5,7 @@ import { subjectEmojis, subjectColors } from '../utils/constants'
 import { getStaticMasterUnits } from '../utils/importMasterUnits'
 import { getProblemsBySource } from '../utils/problems'
 import ProblemClipList from './ProblemClipList'
-import '../components/TaskItem.css' // task-detail-* スタイルを共有
+import './TaskItem.css' // task-detail-* スタイルを共有
 
 export default function TextDetailModal({ text, userId, onClose }) {
   const [problems, setProblems] = useState([])

@@ -48,7 +48,7 @@ const EMPTY_FORM = {
  * @param {string}   userId
  * @param {object[]} problems       - 問題一覧
  * @param {Function} onReload       - 問題リロード関数
- * @param {string}   sourceType     - 'textbook' | 'test' | 'pastPaper'
+ * @param {string}   sourceType     - 'textbook' | 'task' | 'test' | 'pastPaper'
  * @param {string}   sourceId       - テキストID / テストスコアID / タスクID
  * @param {string}   subject        - 科目（教材・過去問は親が確定）
  * @param {string[]} defaultUnitIds - デフォルトの単元IDs

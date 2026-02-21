@@ -523,6 +523,46 @@
   flex-shrink: 0;
 }
 
+.mud-log-delete {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--color-gray-400);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.15s;
+  opacity: 0;
+}
+
+.mud-drill-log-item:hover .mud-log-delete {
+  opacity: 1;
+}
+
+.mud-log-delete:hover:not(:disabled) {
+  color: var(--color-danger-dark);
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.mud-log-delete:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* タッチデバイスでは常時表示 */
+@media (hover: none) {
+  .mud-log-delete {
+    opacity: 1;
+  }
+}
+
 /* 直接・間接カウント表示 */
 .mud-unit-counts {
   display: flex;
