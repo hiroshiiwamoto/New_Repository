@@ -5,6 +5,7 @@ import {
   computeAllProficiencies,
   getProficiencyLevel,
   addLessonLogWithStats,
+  deleteLessonLog,
   resetUnitLessonData,
   EVALUATION_SCORES,
   EVALUATION_LABELS,
@@ -43,6 +44,22 @@ function MasterUnitDashboard({ sapixTexts = [], userId }) {
   useEffect(() => {
     loadData()
   }, [])
+
+  // allLogs が変わったら stats を再計算
+  useEffect(() => {
+    const profMap = computeAllProficiencies(allLogs)
+    const statsData = {}
+    for (const [unitId, data] of Object.entries(profMap)) {
+      statsData[unitId] = {
+        currentScore: data.score,
+        statusLevel: data.level,
+        logCount: data.logCount,
+        directCount: data.directCount || 0,
+        indirectCount: data.indirectCount || 0,
+      }
+    }
+    setStats(statsData)
+  }, [allLogs])
 
   // allLogs または drillUnit が変わったらドリルログを自動更新
   useEffect(() => {
@@ -95,21 +112,7 @@ function MasterUnitDashboard({ sapixTexts = [], userId }) {
       }
       const logs = logsResult.success ? logsResult.data : []
       console.log(`lessonLogs: ${logs.length}件取得`)
-      setAllLogs(logs)
-
-      // lessonLogs から直接習熟度を計算（masterUnitStats に依存しない）
-      const profMap = computeAllProficiencies(logs)
-      const statsData = {}
-      for (const [unitId, data] of Object.entries(profMap)) {
-        statsData[unitId] = {
-          currentScore: data.score,
-          statusLevel: data.level,
-          logCount: data.logCount,
-          directCount: data.directCount || 0,    // メイン単元として評価された回数
-          indirectCount: data.indirectCount || 0, // サブ単元として登場した回数
-        }
-      }
-      setStats(statsData)
+      setAllLogs(logs)  // stats は useEffect[allLogs] で自動再計算
     } catch (err) {
       console.error('データ取得エラー:', err)
     } finally {
@@ -148,6 +151,23 @@ function MasterUnitDashboard({ sapixTexts = [], userId }) {
       console.error('記録エラー:', err)
     } finally {
       setSaving(false)
+    }
+  }
+
+  // 個別ログ削除
+  const [deletingLogId, setDeletingLogId] = useState(null)
+  const handleDeleteLog = async (log) => {
+    if (!window.confirm(`この評価記録を削除しますか？\n${getSourceLabel(log)} (${formatLogDate(log.date || log.createdAt)})`)) return
+    if (!userId) return
+    setDeletingLogId(log.id)
+    try {
+      const result = await deleteLessonLog(userId, log.id, log.unitIds || [])
+      if (result.success) {
+        // ローカルstate から削除して即時反映
+        setAllLogs(prev => prev.filter(l => l.id !== log.id))
+      }
+    } finally {
+      setDeletingLogId(null)
     }
   }
 
@@ -463,6 +483,14 @@ function MasterUnitDashboard({ sapixTexts = [], userId }) {
                         <span className="mud-log-score">{log.performance}点</span>
                       </div>
                       <span className="mud-log-date">{formatLogDate(log.date || log.createdAt)}</span>
+                      <button
+                        className="mud-log-delete"
+                        onClick={() => handleDeleteLog(log)}
+                        disabled={deletingLogId === log.id}
+                        title="この評価を削除"
+                      >
+                        {deletingLogId === log.id ? '...' : '×'}
+                      </button>
                     </div>
                   ))}
                 </div>
