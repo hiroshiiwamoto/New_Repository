@@ -3,7 +3,7 @@ import './WeeklyCalendar.css'
 import { subjectEmojis, subjectColors, weekDayNames } from '../utils/constants'
 import { getWeekStart, formatDate, addDays } from '../utils/dateUtils'
 
-function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
+function WeeklyCalendar({ tasks, sapixTexts = [], onToggleTask, onDeleteTask, onEditTask }) {
   // サンプルデータが2025年2月なので、初期表示を2月に設定
   const getInitialDate = () => {
     if (tasks.length > 0) {
@@ -83,9 +83,12 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
 
   function getTasksForDate(date) {
     const dateStr = formatDate(date)
-    const filtered = tasks.filter(task => task.dueDate === dateStr)
+    return tasks.filter(task => task.dueDate === dateStr)
+  }
 
-    return filtered
+  function getLessonsForDate(date) {
+    const dateStr = formatDate(date)
+    return sapixTexts.filter(t => t.studyDate === dateStr)
   }
 
   const today = formatDate(new Date())
@@ -136,7 +139,9 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
           {days.map((day, index) => {
             const dateStr = formatDate(day)
             const dayTasks = getTasksForDate(day)
+            const dayLessons = getLessonsForDate(day)
             const isToday = dateStr === today
+            const isEmpty = dayTasks.length === 0 && dayLessons.length === 0
 
             return (
               <div key={index} className={`calendar-day ${isToday ? 'today' : ''}`}>
@@ -148,41 +153,42 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
                 </div>
 
                 <div className="day-tasks">
-                  {dayTasks.length === 0 ? (
-                    <div className="no-tasks">予定なし</div>
-                  ) : (
-                    dayTasks.map(task => {
-                      return (
-                        <div
-                          key={task.id}
-                          className={`calendar-task ${task.completed ? 'completed' : ''}`}
-                        >
-                          <div className="task-header">
-                            <input
-                              type="checkbox"
-                              checked={task.completed}
-                              onChange={() => onToggleTask(task.id)}
-                              className="task-checkbox-small"
-                            />
-                            <span className="task-emoji">{subjectEmojis[task.subject]}</span>
-                          </div>
-                          <div
-                            className="task-title-small clickable"
-                            onClick={() => onEditTask && onEditTask(task)}
-                            title="クリックして編集"
-                          >
-                            {task.title}
-                          </div>
-                          <button
-                            className="delete-btn-small"
-                            onClick={() => onDeleteTask(task.id)}
-                          >
-                            ×
-                          </button>
-                        </div>
-                      )
-                    })
-                  )}
+                  {dayLessons.map(lesson => (
+                    <div key={lesson.id} className="calendar-lesson">
+                      <span className="lesson-icon">{subjectEmojis[lesson.subject] || '📘'}</span>
+                      <span className="lesson-name">{lesson.textNumber ? `${lesson.textNumber} ` : ''}{lesson.textName}</span>
+                    </div>
+                  ))}
+                  {dayTasks.map(task => (
+                    <div
+                      key={task.id}
+                      className={`calendar-task ${task.completed ? 'completed' : ''}`}
+                    >
+                      <div className="task-header">
+                        <input
+                          type="checkbox"
+                          checked={task.completed}
+                          onChange={() => onToggleTask(task.id)}
+                          className="task-checkbox-small"
+                        />
+                        <span className="task-emoji">{subjectEmojis[task.subject]}</span>
+                      </div>
+                      <div
+                        className="task-title-small clickable"
+                        onClick={() => onEditTask && onEditTask(task)}
+                        title="クリックして編集"
+                      >
+                        {task.title}
+                      </div>
+                      <button
+                        className="delete-btn-small"
+                        onClick={() => onDeleteTask(task.id)}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  {isEmpty && <div className="no-tasks">予定なし</div>}
                 </div>
               </div>
             )
@@ -200,6 +206,7 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
             {getMonthDays().map((day, index) => {
               const dateStr = formatDate(day)
               const dayTasks = getTasksForDate(day)
+              const dayLessons = getLessonsForDate(day)
               const isToday = dateStr === today
               const isCurrentMonth = day.getMonth() === currentMonth.getMonth()
 
@@ -210,6 +217,15 @@ function WeeklyCalendar({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
                 >
                   <div className="month-day-date">{day.getDate()}</div>
                   <div className="month-day-tasks">
+                    {dayLessons.length > 0 && (
+                      <div className="lesson-indicators">
+                        {dayLessons.map(lesson => (
+                          <div key={lesson.id} className="lesson-dot" title={`${lesson.textNumber || ''} ${lesson.textName}`}>
+                            {subjectEmojis[lesson.subject] || '📘'}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     {dayTasks.length > 0 && (
                       <div className="task-indicators">
                         {dayTasks.slice(0, 3).map(task => (
