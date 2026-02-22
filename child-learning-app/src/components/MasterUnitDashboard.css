@@ -135,8 +135,9 @@
 }
 
 .mud-category-section {
-  background: var(--color-white);
-  border: 1px solid var(--color-gray-200);
+  background: color-mix(in srgb, var(--subject-color, #94a3b8) 4%, white);
+  border: 1px solid color-mix(in srgb, var(--subject-color, #94a3b8) 25%, var(--color-gray-200));
+  border-left: 4px solid var(--subject-color, var(--color-gray-300));
   border-radius: 10px;
   padding: 16px;
 }
@@ -163,10 +164,9 @@
   align-items: center;
   gap: 4px;
   padding: 10px 6px;
-  border: 2px solid color-mix(in srgb, var(--subject-color, #94a3b8) 30%, var(--color-gray-200));
-  border-left: 4px solid var(--subject-color, var(--color-gray-300));
+  border: 2px solid var(--prof-color, var(--color-gray-300));
   border-radius: 8px;
-  background: color-mix(in srgb, var(--subject-color, #94a3b8) 5%, white);
+  background: var(--color-white);
   cursor: pointer;
   transition: all 0.2s;
   text-align: center;
@@ -175,9 +175,7 @@
 
 .mud-unit-cell:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--subject-color, #94a3b8) 20%, transparent);
-  border-color: color-mix(in srgb, var(--subject-color, #94a3b8) 50%, var(--color-gray-200));
-  border-left-color: var(--subject-color, var(--color-gray-300));
+  box-shadow: var(--shadow-lg);
 }
 
 .mud-unit-indicator {
