@@ -332,6 +332,7 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId }) {
   // ============================================================
 
   const handleMarkCompleted = async () => {
+    if (!window.confirm('受験済みにすると予定には戻せません。\nよろしいですか？')) return
     const result = await updateTestScore(user.uid, state.selectedScore.id, {
       status: 'completed',
     })
