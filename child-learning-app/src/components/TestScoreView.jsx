@@ -5,6 +5,7 @@ import {
   getAllTestScores,
   addTestScore,
   updateTestScore,
+  deleteTestScore,
   getProblemsForTestScore,
   testTypes,
 } from '../utils/testScores'
@@ -12,8 +13,9 @@ import { useFirestoreQuery } from '../hooks/useFirestoreQuery'
 import {
   updateProblem,
   deleteProblem,
+  deleteProblemsBySource,
 } from '../utils/problems'
-import { addLessonLogWithStats, EVALUATION_SCORES } from '../utils/lessonLogs'
+import { addLessonLogWithStats, deleteLessonLogsBySource, EVALUATION_SCORES } from '../utils/lessonLogs'
 import { MAX_FILE_SIZE, SUBJECTS } from '../utils/constants'
 import { toast } from '../utils/toast'
 import { LABELS, TOAST } from '../utils/messages'
@@ -184,6 +186,20 @@ function TestScoreView({ user }) {
     if (!user || !score) return
     const merged = await getProblemsForTestScore(user.uid, score)
     dispatch({ type: 'SET_FIELD', field: 'problemsCache', value: merged })
+  }
+
+  // テスト削除
+  const handleDeleteTest = async (score) => {
+    if (!window.confirm(`「${score.testName}」を削除しますか？\n関連する問題クリップと学習記録もすべて削除されます。`)) return
+    await deleteProblemsBySource(user.uid, 'test', score.id)
+    await deleteLessonLogsBySource(user.uid, 'test', score.id)
+    const result = await deleteTestScore(user.uid, score.id)
+    if (result.success) {
+      toast.success('テストを削除しました')
+      await reloadScores()
+    } else {
+      toast.error('削除に失敗しました: ' + result.error)
+    }
   }
 
   // ============================================================
@@ -431,23 +447,29 @@ function TestScoreView({ user }) {
         ) : (
           <div className="test-select-list">
             {sortedScores.map(score => (
-              <button
-                key={score.id}
-                className="test-select-item"
-                onClick={() => dispatch({ type: 'SET_FIELD', field: 'selectedScore', value: score })}
-              >
-                <div className="test-select-info">
-                  <span className="test-select-name">{score.testName}</span>
-                  <span className="test-select-date">{score.testDate}</span>
-                  <span className="test-select-grade">{score.grade}</span>
-                </div>
-                <div className="test-select-badges">
-                  {score.fourSubjects?.deviation && (
-                    <span className="badge-deviation">偏差値 {score.fourSubjects.deviation}</span>
-                  )}
-                </div>
-                <span className="test-select-arrow">›</span>
-              </button>
+              <div key={score.id} className="test-select-item-row">
+                <button
+                  className="test-select-item"
+                  onClick={() => dispatch({ type: 'SET_FIELD', field: 'selectedScore', value: score })}
+                >
+                  <div className="test-select-info">
+                    <span className="test-select-name">{score.testName}</span>
+                    <span className="test-select-date">{score.testDate}</span>
+                    <span className="test-select-grade">{score.grade}</span>
+                  </div>
+                  <div className="test-select-badges">
+                    {score.fourSubjects?.deviation && (
+                      <span className="badge-deviation">偏差値 {score.fourSubjects.deviation}</span>
+                    )}
+                  </div>
+                  <span className="test-select-arrow">›</span>
+                </button>
+                <button
+                  className="delete-pastpaper-btn"
+                  onClick={() => handleDeleteTest(score)}
+                  title="このテストを削除"
+                >🗑️</button>
+              </div>
             ))}
           </div>
         )}

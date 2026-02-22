@@ -160,6 +160,47 @@ export async function deleteLessonLog(userId, logId, unitIds = []) {
 }
 
 /**
+ * sourceType + sourceId に紐づく lessonLog をすべて削除し、masterUnitStats を再計算
+ * （テキスト・テスト削除時に呼ぶ）
+ */
+export async function deleteLessonLogsBySource(userId, sourceType, sourceId) {
+  try {
+    const q = query(
+      collection(db, 'users', userId, 'lessonLogs'),
+      where('sourceType', '==', sourceType),
+      where('sourceId', '==', sourceId)
+    )
+    const snapshot = await getDocs(q)
+    if (snapshot.empty) return { success: true, deletedCount: 0 }
+
+    // 影響を受ける unitIds を収集（masterUnitStats 再計算用）
+    const affectedUnitIds = new Set()
+    for (const d of snapshot.docs) {
+      for (const id of (d.data().unitIds || [])) {
+        affectedUnitIds.add(id)
+      }
+    }
+
+    // Firestore batch は最大500件なので分割
+    for (let i = 0; i < snapshot.docs.length; i += 500) {
+      const batch = writeBatch(db)
+      snapshot.docs.slice(i, i + 500).forEach(d => batch.delete(d.ref))
+      await batch.commit()
+    }
+
+    // 影響を受けた全 unitIds の masterUnitStats を再計算
+    await Promise.all(
+      [...affectedUnitIds].map(id => updateMasterUnitStats(userId, id))
+    )
+
+    return { success: true, deletedCount: snapshot.docs.length }
+  } catch (error) {
+    console.error('lessonLog (ソース別) 削除エラー:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+/**
  * lessonLogs と masterUnitStats を全削除（弱点マップのリセット）
  */
 export async function resetAllLessonData(userId) {
