@@ -313,7 +313,7 @@ function App() {
             className={view === 'schedule' ? 'active' : ''}
             onClick={() => setView('schedule')}
           >
-            📅 タスク
+            📅 スケジュール
           </button>
           <button
             className={view === 'dashboard' ? 'active' : ''}
