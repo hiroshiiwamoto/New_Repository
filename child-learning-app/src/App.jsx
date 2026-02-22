@@ -97,13 +97,13 @@ function App() {
   }, [user, migrated])
 
   // SAPIXテキストを読み込み（カレンダー学習日表示用）
-  useEffect(() => {
+  const reloadSapixTexts = async () => {
     if (!user) return
-    const load = async () => {
-      const result = await getSapixTexts(user.uid)
-      if (result.success) setSapixTexts(result.data)
-    }
-    load()
+    const result = await getSapixTexts(user.uid)
+    if (result.success) setSapixTexts(result.data)
+  }
+  useEffect(() => {
+    reloadSapixTexts()
   }, [user])
 
   const addTask = async (task) => {
@@ -383,6 +383,7 @@ function App() {
         ) : view === 'sapixtext' ? (
           <SapixTextView
             user={user}
+            onTextsChanged={reloadSapixTexts}
           />
         ) : null}
           </>
