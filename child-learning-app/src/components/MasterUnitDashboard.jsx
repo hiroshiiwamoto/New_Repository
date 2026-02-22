@@ -375,6 +375,7 @@ function MasterUnitDashboard({ sapixTexts = [], userId }) {
                     className="mud-unit-cell"
                     style={{
                       '--prof-color': level.color,
+                      '--prof-bg': level.bgColor,
                     }}
                     onClick={() => handleDrillDown(unit)}
                     title={`${unit.name}\n${unitStat?.directCount > 0 ? `習熟度: ${score}点 (${level.label}) / 直接${unitStat.directCount}回` : '未学習'}${textCount > 0 ? `\nテキスト: ${textCount}件` : ''}`}
