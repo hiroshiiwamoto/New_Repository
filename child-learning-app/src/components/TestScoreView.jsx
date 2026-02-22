@@ -264,7 +264,11 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId }) {
   useEffect(() => {
     if (!state.selectedScore) return
     const updated = state.scores.find(s => s.id === state.selectedScore.id)
-    if (updated) dispatch({ type: 'SET_FIELD', field: 'selectedScore', value: updated })
+    if (!updated) return
+    // 内容が変わった場合のみ更新（不要な再レンダーを防止）
+    if (JSON.stringify(updated) !== JSON.stringify(state.selectedScore)) {
+      dispatch({ type: 'SET_FIELD', field: 'selectedScore', value: updated })
+    }
   }, [state.scores])
 
   // initialTestId が渡されたら自動的にそのテストを選択
@@ -277,9 +281,10 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId }) {
     if (onConsumeInitialTestId) onConsumeInitialTestId()
   }, [initialTestId, state.scores])
 
-  // scheduled テスト選択時に editForm を自動初期化
+  // scheduled テスト選択時に editForm を自動初期化（既にある場合はスキップ）
   useEffect(() => {
     if (!state.selectedScore || state.selectedScore.status !== 'scheduled') return
+    if (state.editForm) return
     dispatch({
       type: 'SET_FIELDS',
       fields: {
