@@ -604,6 +604,20 @@
 
 .test-dot.clickable {
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.test-dot.clickable:hover {
+  transform: scale(1.2);
+}
+
+.lesson-dot.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.lesson-dot.clickable:hover {
+  transform: scale(1.2);
 }
 
 .test-icon {
@@ -636,7 +650,7 @@
 }
 
 .test-dot {
-  font-size: 0.7rem;
+  font-size: 1.2rem;
   position: relative;
 }
 
