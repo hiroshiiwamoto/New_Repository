@@ -151,26 +151,25 @@ body {
 
 .mud-subject-btn {
   padding: 8px 18px;
-  border: none;
-  border-bottom: 3px solid transparent;
+  border: 2px solid transparent;
   background: none;
   font-size: 14px;
   font-weight: 600;
   color: var(--color-gray-500);
   cursor: pointer;
-  margin-bottom: -2px;
-  border-radius: 4px 4px 0 0;
+  border-radius: 8px;
+  transition: all 0.15s;
 }
 
 .mud-subject-btn:hover {
   color: var(--subject-color, var(--color-gray-700));
-  background: var(--color-gray-100);
+  background: color-mix(in srgb, var(--subject-color, #94a3b8) 8%, white);
 }
 
 .mud-subject-btn.active {
-  color: var(--subject-color, #1d4ed8);
-  border-bottom-color: var(--subject-color, var(--color-primary-dark));
-  background: color-mix(in srgb, var(--subject-color, #3b82f6) 10%, white);
+  color: white;
+  background: var(--subject-color, #1d4ed8);
+  border-color: var(--subject-color, #1d4ed8);
 }
 
 /* Header row right-aligned actions (reset button, mode buttons) */

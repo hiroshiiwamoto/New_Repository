@@ -361,7 +361,7 @@ function MasterUnitDashboard({ sapixTexts = [], userId }) {
       {/* 単元グリッド */}
       <div className="mud-categories">
         {Object.entries(groupedUnits).map(([cat, units]) => (
-          <div key={cat} className="mud-category-section">
+          <div key={cat} className="mud-category-section" style={{ '--subject-color': subjectColors[selectedSubject] }}>
             <h3 className="mud-cat-title">{cat}</h3>
             <div className="mud-unit-grid">
               {units.map(unit => {
@@ -375,8 +375,7 @@ function MasterUnitDashboard({ sapixTexts = [], userId }) {
                     className="mud-unit-cell"
                     style={{
                       '--prof-color': level.color,
-                      background: level.bgColor,
-                      borderColor: level.color,
+                      '--subject-color': subjectColors[selectedSubject],
                     }}
                     onClick={() => handleDrillDown(unit)}
                     title={`${unit.name}\n${unitStat?.directCount > 0 ? `習熟度: ${score}点 (${level.label}) / 直接${unitStat.directCount}回` : '未学習'}${textCount > 0 ? `\nテキスト: ${textCount}件` : ''}`}
