@@ -1,7 +1,7 @@
 // SAPIXテキスト管理（Firestore）
 
 import { createFirestoreService } from './firestoreCrud'
-import { collection, doc, setDoc } from 'firebase/firestore'
+import { collection, doc, setDoc, onSnapshot, query, orderBy } from 'firebase/firestore'
 import { db } from '../firebase'
 import { nowISO } from './dateUtils'
 
@@ -39,3 +39,22 @@ export const updateSapixText = (userId, id, updates) =>
 // テキストを削除
 export const deleteSapixText = (userId, id) =>
   service.remove(userId, id)
+
+// テキストのリアルタイム購読
+export const subscribeSapixTexts = (userId, callback) => {
+  const q = query(
+    service.getCollectionRef(userId),
+    orderBy('createdAt', 'desc')
+  )
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const texts = snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
+      callback(texts)
+    },
+    (error) => {
+      console.error('Error subscribing sapixTexts:', error)
+      callback([])
+    }
+  )
+}

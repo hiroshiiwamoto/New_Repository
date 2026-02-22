@@ -68,7 +68,7 @@ function reducer(state, action) {
   }
 }
 
-function SapixTextView({ user, onTextsChanged }) {
+function SapixTextView({ user }) {
   const [state, dispatch] = useReducer(reducer, initialState)
 
   // 単元IDから単元名へのマップ
@@ -258,7 +258,6 @@ function SapixTextView({ user, onTextsChanged }) {
       dispatch({ type: 'RESET_ADD_FORM' })
       dispatch({ type: 'SET_FIELD', field: 'showAddForm', value: false })
       await loadTexts()
-      onTextsChanged?.()
     } else {
       toast.error('追加に失敗しました: ' + result.error)
     }
@@ -303,7 +302,6 @@ function SapixTextView({ user, onTextsChanged }) {
       toast.success('更新しました')
       dispatch({ type: 'SET_FIELD', field: 'editingId', value: null })
       await loadTexts()
-      onTextsChanged?.()
     } else {
       toast.error('更新に失敗しました: ' + result.error)
     }
@@ -319,7 +317,6 @@ function SapixTextView({ user, onTextsChanged }) {
       toast.success('削除しました')
       if (state.viewingPDF?.id === text.id) dispatch({ type: 'SET_FIELD', field: 'viewingPDF', value: null })
       await loadTexts()
-      onTextsChanged?.()
     } else {
       toast.error('削除に失敗しました: ' + result.error)
     }
