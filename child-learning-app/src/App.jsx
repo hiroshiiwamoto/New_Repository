@@ -24,7 +24,7 @@ import {
   updateCustomUnit as updateCustomUnitInFirestore,
   deleteCustomUnit as deleteCustomUnitFromFirestore,
 } from './utils/customUnits'
-import { getSapixTexts } from './utils/sapixTexts'
+import { subscribeSapixTexts } from './utils/sapixTexts'
 import { toast } from './utils/toast'
 
 function App() {
@@ -96,14 +96,11 @@ function App() {
     return () => unsubscribe()
   }, [user, migrated])
 
-  // SAPIXテキストを読み込み（カレンダー学習日表示用）
-  const reloadSapixTexts = async () => {
-    if (!user) return
-    const result = await getSapixTexts(user.uid)
-    if (result.success) setSapixTexts(result.data)
-  }
+  // SAPIXテキストをリアルタイム購読（カレンダー学習日表示用）
   useEffect(() => {
-    reloadSapixTexts()
+    if (!user) return
+    const unsubscribe = subscribeSapixTexts(user.uid, setSapixTexts)
+    return () => unsubscribe()
   }, [user])
 
   const addTask = async (task) => {
@@ -383,7 +380,6 @@ function App() {
         ) : view === 'sapixtext' ? (
           <SapixTextView
             user={user}
-            onTextsChanged={reloadSapixTexts}
           />
         ) : null}
           </>
