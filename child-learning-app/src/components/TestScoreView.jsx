@@ -240,7 +240,7 @@ function SapixRangeDisplay({ sapixRange, collapsed }) {
 // メインコンポーネント
 // ════════════════════════════════════════════════════════════════
 
-function TestScoreView({ user }) {
+function TestScoreView({ user, initialTestId, onConsumeInitialTestId }) {
   const [state, dispatch] = useReducer(reducer, initialState)
   const { data: scores, reload: reloadScores } = useFirestoreQuery(
     () => user ? getAllTestScores(user.uid) : null,
@@ -266,6 +266,16 @@ function TestScoreView({ user }) {
     const updated = state.scores.find(s => s.id === state.selectedScore.id)
     if (updated) dispatch({ type: 'SET_FIELD', field: 'selectedScore', value: updated })
   }, [state.scores])
+
+  // initialTestId が渡されたら自動的にそのテストを選択
+  useEffect(() => {
+    if (!initialTestId || !state.scores.length) return
+    const target = state.scores.find(s => s.id === initialTestId)
+    if (target) {
+      dispatch({ type: 'SET_FIELD', field: 'selectedScore', value: target })
+    }
+    if (onConsumeInitialTestId) onConsumeInitialTestId()
+  }, [initialTestId, state.scores])
 
   // ============================================================
   // テスト追加（日程登録）

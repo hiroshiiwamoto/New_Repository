@@ -38,6 +38,7 @@ function App() {
   const [sapixTexts, setSapixTexts] = useState([]) // SAPIXテキスト（カレンダー表示用）
   const [testScores, setTestScores] = useState([]) // テスト日程（カレンダー表示用）
   const taskFormRef = useRef(null)
+  const [pendingTestId, setPendingTestId] = useState(null)
   const [showTaskForm, setShowTaskForm] = useState(false)
   const [migrated, setMigrated] = useState(false)
 
@@ -204,6 +205,11 @@ function App() {
     setView(previousView)
   }
 
+  const handleTestClick = (testId) => {
+    setPendingTestId(testId)
+    setView('testscore')
+  }
+
   const addCustomUnit = async (unitData) => {
     if (!user) {
       toast.error('カスタム単元を追加するにはログインが必要です')
@@ -362,6 +368,7 @@ function App() {
             onDeleteTask={deleteTask}
             onBulkDeleteTasks={bulkDeleteTasks}
             onEditTask={handleEditTask}
+            onTestClick={handleTestClick}
             userId={user.uid}
           />
         ) : view === 'dashboard' ? (
@@ -386,6 +393,8 @@ function App() {
         ) : view === 'testscore' ? (
           <TestScoreView
             user={user}
+            initialTestId={pendingTestId}
+            onConsumeInitialTestId={() => setPendingTestId(null)}
           />
         ) : view === 'sapixtext' ? (
           <SapixTextView

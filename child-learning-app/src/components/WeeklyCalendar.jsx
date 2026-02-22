@@ -5,7 +5,7 @@ import { getWeekStart, formatDate, addDays } from '../utils/dateUtils'
 import TaskDetailModal from './TaskDetailModal'
 import TextDetailModal from './TextDetailModal'
 
-function WeeklyCalendar({ tasks, sapixTexts = [], testScores = [], onToggleTask, onDeleteTask, onEditTask, userId }) {
+function WeeklyCalendar({ tasks, sapixTexts = [], testScores = [], onToggleTask, onDeleteTask, onEditTask, onTestClick, userId }) {
   // サンプルデータが2025年2月なので、初期表示を2月に設定
   const getInitialDate = () => {
     if (tasks.length > 0) {
@@ -174,7 +174,8 @@ function WeeklyCalendar({ tasks, sapixTexts = [], testScores = [], onToggleTask,
                   {dayTests.map(test => (
                     <div
                       key={test.id}
-                      className={`calendar-test ${test.status === 'completed' ? 'test-completed' : ''}`}
+                      className={`calendar-test ${test.status === 'completed' ? 'test-completed' : ''} ${onTestClick ? 'clickable-row' : ''}`}
+                      onClick={() => onTestClick && onTestClick(test.id)}
                     >
                       <span className="test-icon">📝</span>
                       <span className="test-name">{test.testName}</span>
@@ -254,8 +255,9 @@ function WeeklyCalendar({ tasks, sapixTexts = [], testScores = [], onToggleTask,
                         {dayTests.map(test => (
                           <div
                             key={test.id}
-                            className={`test-dot ${test.status === 'completed' ? 'completed' : ''}`}
+                            className={`test-dot ${test.status === 'completed' ? 'completed' : ''} ${onTestClick ? 'clickable' : ''}`}
                             title={test.testName}
+                            onClick={() => onTestClick && onTestClick(test.id)}
                           >
                             📝
                           </div>

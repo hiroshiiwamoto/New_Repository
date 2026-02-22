@@ -3,7 +3,7 @@ import './ScheduleView.css'
 import WeeklyCalendar from './WeeklyCalendar'
 import TaskList from './TaskList'
 
-function ScheduleView({ tasks, sapixTexts = [], testScores = [], onToggleTask, onDeleteTask, onBulkDeleteTasks, onEditTask, userId }) {
+function ScheduleView({ tasks, sapixTexts = [], testScores = [], onToggleTask, onDeleteTask, onBulkDeleteTasks, onEditTask, onTestClick, userId }) {
   const [subView, setSubView] = useState('calendar') // 'calendar' or 'tasks'
 
   return (
@@ -31,6 +31,7 @@ function ScheduleView({ tasks, sapixTexts = [], testScores = [], onToggleTask, o
           onToggleTask={onToggleTask}
           onDeleteTask={onDeleteTask}
           onEditTask={onEditTask}
+          onTestClick={onTestClick}
           userId={userId}
         />
       ) : (
