@@ -11,10 +11,10 @@
 
 /* テキストカード */
 .sapix-text-card {
-  background: white;
+  background: color-mix(in srgb, var(--subject-color, #94a3b8) 4%, white);
   border-radius: 14px;
   padding: 14px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  border: 1px solid color-mix(in srgb, var(--subject-color, #94a3b8) 25%, var(--color-gray-200));
   box-shadow: var(--shadow-sm);
   transition: all 0.2s;
 }
@@ -43,7 +43,7 @@
 .sapix-text-name {
   font-weight: 700;
   font-size: 0.95rem;
-  color: var(--color-gray-800);
+  color: var(--subject-color, var(--color-gray-800));
 }
 
 .sapix-text-number {
