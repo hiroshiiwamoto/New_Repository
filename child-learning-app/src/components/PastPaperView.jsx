@@ -497,12 +497,9 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                 <button
                   key={subject}
                   type="button"
-                  className={`subject-btn subject-btn-common ${state.addForm.subject === subject ? 'active' : ''}`}
+                  className={`mud-subject-btn subject-btn-common ${state.addForm.subject === subject ? 'active' : ''}`}
+                  style={{ '--subject-color': subjectColors[subject] }}
                   onClick={() => dispatch({ type: 'SET_FIELD', field: 'addForm', value: { ...state.addForm, subject, unitIds: [] } })}
-                  style={{
-                    borderColor: state.addForm.subject === subject ? subjectColors[subject] : '#e2e8f0',
-                    background: state.addForm.subject === subject ? `${subjectColors[subject]}15` : 'white',
-                  }}
                 >
                   <span className="subject-emoji">{subjectEmojis[subject]}</span>
                   <span>{subject}</span>
@@ -676,12 +673,9 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
                                 <button
                                   key={subject}
                                   type="button"
-                                  className={`subject-btn subject-btn-common ${state.editForm.subject === subject ? 'active' : ''}`}
+                                  className={`mud-subject-btn subject-btn-common ${state.editForm.subject === subject ? 'active' : ''}`}
+                                  style={{ '--subject-color': subjectColors[subject] }}
                                   onClick={() => dispatch({ type: 'SET_FIELD', field: 'editForm', value: { ...state.editForm, subject, unitIds: [] } })}
-                                  style={{
-                                    borderColor: state.editForm.subject === subject ? subjectColors[subject] : '#e2e8f0',
-                                    background: state.editForm.subject === subject ? `${subjectColors[subject]}15` : 'white',
-                                  }}
                                 >
                                   <span className="subject-emoji">{subjectEmojis[subject]}</span>
                                   <span>{subject}</span>
