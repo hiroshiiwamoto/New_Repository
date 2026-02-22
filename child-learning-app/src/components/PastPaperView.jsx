@@ -444,6 +444,7 @@ function PastPaperView({ tasks, user, customUnits = [], onAddTask, onUpdateTask,
             <button
               key={subject}
               className={`mud-subject-btn ${state.selectedSubject === subject ? 'active' : ''}`}
+              style={{ '--subject-color': subjectColors[subject] }}
               onClick={() => dispatch({ type: 'SET_FIELD', field: 'selectedSubject', value: subject })}
             >
               {subjectEmojis[subject]} {subject}
