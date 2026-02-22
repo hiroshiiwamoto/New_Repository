@@ -137,7 +137,6 @@
 .mud-category-section {
   background: color-mix(in srgb, var(--subject-color, #94a3b8) 4%, white);
   border: 1px solid color-mix(in srgb, var(--subject-color, #94a3b8) 25%, var(--color-gray-200));
-  border-left: 4px solid var(--subject-color, var(--color-gray-300));
   border-radius: 10px;
   padding: 16px;
 }
