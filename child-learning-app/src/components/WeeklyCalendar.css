@@ -508,8 +508,8 @@
   gap: 4px;
   padding: 4px 8px;
   border-radius: 8px;
-  background: color-mix(in srgb, var(--subject-color, #3b82f6) 10%, white);
-  border-left: 3px solid var(--subject-color, #3b82f6);
+  background: color-mix(in srgb, var(--subject-color, #3b82f6) 4%, white);
+  border: 1px solid color-mix(in srgb, var(--subject-color, #3b82f6) 25%, var(--color-gray-200));
   margin-bottom: 4px;
   font-size: 0.8rem;
 }
