@@ -9,7 +9,7 @@ import { toast } from '../utils/toast'
 import { LABELS, TOAST } from '../utils/messages'
 import DriveFilePicker from './DriveFilePicker'
 import UnitTagPicker from './UnitTagPicker'
-import { addLessonLogWithStats, getLessonLogs, EVALUATION_SCORES, EVALUATION_LABELS, EVALUATION_COLORS } from '../utils/lessonLogs'
+import { addLessonLogWithStats, getLessonLogs, deleteLessonLogsBySource, EVALUATION_SCORES, EVALUATION_LABELS, EVALUATION_COLORS } from '../utils/lessonLogs'
 import { getStaticMasterUnits } from '../utils/importMasterUnits'
 import { extractSapixCode, lookupSapixSchedule, gradeFromCode } from '../utils/sapixSchedule'
 import EmptyState from './EmptyState'
@@ -311,6 +311,7 @@ function SapixTextView({ user }) {
   const handleDelete = async (text) => {
     if (!window.confirm(`「${text.textName}」を削除しますか？`)) return
     await deleteProblemsBySource(user.uid, 'textbook', text.id)
+    await deleteLessonLogsBySource(user.uid, 'sapixTask', text.id)
     const result = await deleteSapixText(user.uid, text.id)
     if (result.success) {
       toast.success('削除しました')

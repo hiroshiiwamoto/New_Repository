@@ -1025,11 +1025,18 @@
   gap: 8px;
 }
 
+.test-select-item-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .test-select-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   background: white;
   border: 1px solid rgba(0,0,0,0.07);
   border-radius: 14px;
