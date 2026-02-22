@@ -71,6 +71,8 @@ const initialState = {
   addForm: { ...EMPTY_ADD_FORM },
   addUploading: null,
   addDrivePickerSubject: null,
+  isEditing: false,
+  editForm: null,
 }
 
 function reducer(state, action) {
@@ -88,6 +90,19 @@ function reducer(state, action) {
           ...state.addForm,
           sapixRange: {
             ...state.addForm.sapixRange,
+            [action.subject]: action.codes,
+          },
+        },
+      }
+    case 'MERGE_EDIT_FORM':
+      return { ...state, editForm: { ...state.editForm, ...action.fields } }
+    case 'SET_EDIT_FORM_SAPIX_RANGE':
+      return {
+        ...state,
+        editForm: {
+          ...state.editForm,
+          sapixRange: {
+            ...(state.editForm?.sapixRange || {}),
             [action.subject]: action.codes,
           },
         },
@@ -295,6 +310,51 @@ function TestScoreView({ user }) {
     } else {
       toast.error('更新に失敗しました: ' + result.error)
     }
+  }
+
+  // ============================================================
+  // テスト日程の編集
+  // ============================================================
+
+  const handleStartEdit = () => {
+    dispatch({
+      type: 'SET_FIELDS',
+      fields: {
+        isEditing: true,
+        editForm: {
+          testName: state.selectedScore.testName || '',
+          testDate: state.selectedScore.testDate || '',
+          grade: state.selectedScore.grade || '4年生',
+          sapixRange: state.selectedScore.sapixRange || {},
+        },
+      },
+    })
+  }
+
+  const handleSaveEdit = async () => {
+    if (!state.editForm.testName.trim()) {
+      toast.error('テスト名を入力してください')
+      return
+    }
+    const coveredUnitIds = computeCoveredUnitIds(state.editForm.sapixRange)
+    const result = await updateTestScore(user.uid, state.selectedScore.id, {
+      testName: state.editForm.testName.trim(),
+      testDate: state.editForm.testDate,
+      grade: state.editForm.grade,
+      sapixRange: state.editForm.sapixRange || {},
+      coveredUnitIds,
+    })
+    if (result.success) {
+      toast.success('テスト日程を更新しました')
+      dispatch({ type: 'SET_FIELDS', fields: { isEditing: false, editForm: null } })
+      await reloadScores()
+    } else {
+      toast.error('更新に失敗しました: ' + result.error)
+    }
+  }
+
+  const handleCancelEdit = () => {
+    dispatch({ type: 'SET_FIELDS', fields: { isEditing: false, editForm: null } })
   }
 
   // ============================================================
@@ -716,7 +776,9 @@ function TestScoreView({ user }) {
     return (
       <div className="testscore-view">
         <div className="detail-header">
-          <button className="back-btn" onClick={() => dispatch({ type: 'SET_FIELD', field: 'selectedScore', value: null })}>
+          <button className="back-btn" onClick={() => {
+            dispatch({ type: 'SET_FIELDS', fields: { selectedScore: null, isEditing: false, editForm: null } })
+          }}>
             ← テスト一覧
           </button>
           <div className="detail-title-area">
@@ -724,15 +786,82 @@ function TestScoreView({ user }) {
             <span className="detail-test-date">{state.selectedScore.testDate}</span>
             <span className="badge-scheduled">予定</span>
           </div>
+          {!state.isEditing && (
+            <button className="btn-edit-schedule" onClick={handleStartEdit}>
+              編集
+            </button>
+          )}
         </div>
 
-        {/* テスト範囲 */}
-        <SapixRangeDisplay sapixRange={state.selectedScore.sapixRange} collapsed={false} />
+        {state.isEditing && state.editForm ? (
+          /* ── 編集フォーム ── */
+          <div className="edit-schedule-form">
+            <div className="add-form-field form-field-sm">
+              <label>テスト名:</label>
+              <input
+                type="text"
+                list="test-type-list-edit"
+                value={state.editForm.testName}
+                onChange={(e) => dispatch({ type: 'MERGE_EDIT_FORM', fields: { testName: e.target.value } })}
+              />
+              <datalist id="test-type-list-edit">
+                {testTypes.map(t => <option key={t} value={t} />)}
+              </datalist>
+            </div>
 
-        {/* 受験済みにするボタン */}
-        <button className="btn-mark-completed" onClick={handleMarkCompleted}>
-          テストを受験済みにする
-        </button>
+            <div className="add-form-grid-two-cols">
+              <div className="add-form-field">
+                <label>テスト日:</label>
+                <input
+                  type="date"
+                  value={state.editForm.testDate}
+                  onChange={(e) => dispatch({ type: 'MERGE_EDIT_FORM', fields: { testDate: e.target.value } })}
+                  className="form-input-common"
+                />
+              </div>
+              <div className="add-form-field">
+                <label>学年:</label>
+                <select
+                  value={state.editForm.grade}
+                  onChange={(e) => dispatch({ type: 'MERGE_EDIT_FORM', fields: { grade: e.target.value } })}
+                  className="form-input-common"
+                >
+                  {grades.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+              </div>
+            </div>
+
+            <div className="sapix-range-section">
+              <label className="section-label">テスト範囲:</label>
+              {SUBJECTS.map(subject => (
+                <SapixCodeInput
+                  key={subject}
+                  subject={subject}
+                  codes={(state.editForm.sapixRange || {})[subject] || []}
+                  onChange={(codes) => dispatch({ type: 'SET_EDIT_FORM_SAPIX_RANGE', subject, codes })}
+                />
+              ))}
+            </div>
+
+            <div className="add-form-actions">
+              <button className="btn-secondary" onClick={handleCancelEdit}>
+                {LABELS.CANCEL}
+              </button>
+              <button className="btn-primary" onClick={handleSaveEdit}>
+                保存
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* ── 表示モード ── */
+          <>
+            <SapixRangeDisplay sapixRange={state.selectedScore.sapixRange} collapsed={false} />
+
+            <button className="btn-mark-completed" onClick={handleMarkCompleted}>
+              テストを受験済みにする
+            </button>
+          </>
+        )}
       </div>
     )
   }

@@ -565,3 +565,86 @@
   background: #3b82f6;
   border-radius: 1px;
 }
+
+/* ── テスト日程（カレンダー内）──────────────────── */
+.calendar-test {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  margin-bottom: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.calendar-test.test-completed {
+  background: #f0fdf4;
+  border-color: #86efac;
+  color: #166534;
+}
+
+.test-icon {
+  font-size: 0.85rem;
+}
+
+.test-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.test-badge {
+  font-size: 0.65rem;
+  background: #f59e0b;
+  color: white;
+  padding: 1px 6px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+/* 月間ビュー用テストインジケータ */
+.test-indicators {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+  margin-bottom: 2px;
+}
+
+.test-dot {
+  font-size: 0.7rem;
+  position: relative;
+}
+
+.test-dot::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 2px;
+  background: #f59e0b;
+  border-radius: 1px;
+}
+
+.test-dot.completed::after {
+  background: #22c55e;
+}
+
+/* モバイル対応 */
+@media (max-width: 768px) {
+  .calendar-test {
+    padding: 3px 6px;
+    font-size: 0.7rem;
+  }
+
+  .test-name {
+    font-size: 0.65rem;
+  }
+}

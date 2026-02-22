@@ -5,7 +5,7 @@ import { getWeekStart, formatDate, addDays } from '../utils/dateUtils'
 import TaskDetailModal from './TaskDetailModal'
 import TextDetailModal from './TextDetailModal'
 
-function WeeklyCalendar({ tasks, sapixTexts = [], onToggleTask, onDeleteTask, onEditTask, userId }) {
+function WeeklyCalendar({ tasks, sapixTexts = [], testScores = [], onToggleTask, onDeleteTask, onEditTask, userId }) {
   // サンプルデータが2025年2月なので、初期表示を2月に設定
   const getInitialDate = () => {
     if (tasks.length > 0) {
@@ -103,6 +103,11 @@ function WeeklyCalendar({ tasks, sapixTexts = [], onToggleTask, onDeleteTask, on
     return sapixTexts.filter(t => t.studyDate === dateStr)
   }
 
+  function getTestsForDate(date) {
+    const dateStr = formatDate(date)
+    return testScores.filter(t => t.testDate === dateStr)
+  }
+
   const today = formatDate(new Date())
 
   return (
@@ -152,8 +157,9 @@ function WeeklyCalendar({ tasks, sapixTexts = [], onToggleTask, onDeleteTask, on
             const dateStr = formatDate(day)
             const dayTasks = getTasksForDate(day)
             const dayLessons = getLessonsForDate(day)
+            const dayTests = getTestsForDate(day)
             const isToday = dateStr === today
-            const isEmpty = dayTasks.length === 0 && dayLessons.length === 0
+            const isEmpty = dayTasks.length === 0 && dayLessons.length === 0 && dayTests.length === 0
 
             return (
               <div key={index} className={`calendar-day ${isToday ? 'today' : ''}`}>
@@ -165,6 +171,16 @@ function WeeklyCalendar({ tasks, sapixTexts = [], onToggleTask, onDeleteTask, on
                 </div>
 
                 <div className="day-tasks">
+                  {dayTests.map(test => (
+                    <div
+                      key={test.id}
+                      className={`calendar-test ${test.status === 'completed' ? 'test-completed' : ''}`}
+                    >
+                      <span className="test-icon">📝</span>
+                      <span className="test-name">{test.testName}</span>
+                      {test.status === 'scheduled' && <span className="test-badge">予定</span>}
+                    </div>
+                  ))}
                   {dayLessons.map(lesson => (
                     <div
                       key={lesson.id}
@@ -222,6 +238,7 @@ function WeeklyCalendar({ tasks, sapixTexts = [], onToggleTask, onDeleteTask, on
               const dateStr = formatDate(day)
               const dayTasks = getTasksForDate(day)
               const dayLessons = getLessonsForDate(day)
+              const dayTests = getTestsForDate(day)
               const isToday = dateStr === today
               const isCurrentMonth = day.getMonth() === currentMonth.getMonth()
 
@@ -232,6 +249,19 @@ function WeeklyCalendar({ tasks, sapixTexts = [], onToggleTask, onDeleteTask, on
                 >
                   <div className="month-day-date">{day.getDate()}</div>
                   <div className="month-day-tasks">
+                    {dayTests.length > 0 && (
+                      <div className="test-indicators">
+                        {dayTests.map(test => (
+                          <div
+                            key={test.id}
+                            className={`test-dot ${test.status === 'completed' ? 'completed' : ''}`}
+                            title={test.testName}
+                          >
+                            📝
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     {dayLessons.length > 0 && (
                       <div className="lesson-indicators">
                         {dayLessons.map(lesson => (
