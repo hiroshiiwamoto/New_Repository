@@ -74,7 +74,7 @@ export default function TextDetailModal({ text, userId, onClose, onEvaluated, la
 
   return createPortal(
     <div className="task-detail-overlay" onClick={onClose}>
-      <div className="task-detail-modal" onClick={e => e.stopPropagation()}>
+      <div className="task-detail-modal" style={{ '--subject-color': subjectColor }} onClick={e => e.stopPropagation()}>
         {/* ヘッダー */}
         <div className="task-detail-header" style={{ borderBottomColor: subjectColor }}>
           <div className="task-detail-header-left">

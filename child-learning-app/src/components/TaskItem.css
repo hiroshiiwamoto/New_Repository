@@ -520,13 +520,13 @@
 
 .task-detail-unit-badge {
   display: inline-block;
-  padding: 2px 8px;
+  padding: 3px 10px;
   border-radius: 6px;
-  font-size: 0.72rem;
-  font-weight: 500;
-  background: var(--color-primary-light, #eff6ff);
-  color: var(--color-primary, #3b82f6);
-  border: 1px solid var(--color-primary-border, #bfdbfe);
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--subject-color, #3b82f6) 10%, white);
+  color: color-mix(in srgb, var(--subject-color, #3b82f6) 85%, black);
+  border: 1px solid color-mix(in srgb, var(--subject-color, #3b82f6) 30%, var(--color-gray-200));
 }
 
 /* PDF セクション */
