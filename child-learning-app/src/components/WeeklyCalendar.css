@@ -241,6 +241,7 @@
   position: relative;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid rgba(0, 0, 0, 0.08);
+  border-left: 3px solid var(--subject-color, #3b82f6);
   box-shadow: var(--shadow-sm);
 }
 
@@ -507,8 +508,8 @@
   gap: 4px;
   padding: 4px 8px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #eff6ff, #dbeafe);
-  border-left: 3px solid #3b82f6;
+  background: color-mix(in srgb, var(--subject-color, #3b82f6) 10%, white);
+  border-left: 3px solid var(--subject-color, #3b82f6);
   margin-bottom: 4px;
   font-size: 0.8rem;
 }
@@ -519,8 +520,8 @@
 }
 
 .calendar-lesson.clickable-row:hover {
-  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.2);
+  background: color-mix(in srgb, var(--subject-color, #3b82f6) 18%, white);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--subject-color, #3b82f6) 20%, transparent);
 }
 
 .lesson-dot.clickable {
@@ -533,7 +534,7 @@
 }
 
 .lesson-name {
-  color: #1e40af;
+  color: color-mix(in srgb, var(--subject-color, #3b82f6) 80%, black);
   font-weight: 600;
   font-size: 0.75rem;
   line-height: 1.3;

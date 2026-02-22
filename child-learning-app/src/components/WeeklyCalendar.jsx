@@ -169,6 +169,7 @@ function WeeklyCalendar({ tasks, sapixTexts = [], onToggleTask, onDeleteTask, on
                     <div
                       key={lesson.id}
                       className={`calendar-lesson ${userId ? 'clickable-row' : ''}`}
+                      style={{ '--subject-color': subjectColors[lesson.subject] || '#3b82f6' }}
                       onClick={() => userId && setDetailText(lesson)}
                     >
                       <span className="lesson-icon">{subjectEmojis[lesson.subject] || '📘'}</span>
@@ -179,6 +180,7 @@ function WeeklyCalendar({ tasks, sapixTexts = [], onToggleTask, onDeleteTask, on
                     <div
                       key={task.id}
                       className={`calendar-task ${task.completed ? 'completed' : ''} ${userId ? 'clickable-row' : ''}`}
+                      style={{ '--subject-color': subjectColors[task.subject] || '#3b82f6' }}
                       onClick={() => handleTaskClick(task)}
                     >
                       <div className="task-header" onClick={e => e.stopPropagation()}>
