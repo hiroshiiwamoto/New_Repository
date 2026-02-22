@@ -587,6 +587,25 @@
   color: #166534;
 }
 
+.calendar-test.clickable-row {
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.calendar-test.clickable-row:hover {
+  background: #fde68a;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.25);
+}
+
+.calendar-test.test-completed.clickable-row:hover {
+  background: #dcfce7;
+  box-shadow: 0 2px 6px rgba(34, 197, 94, 0.25);
+}
+
+.test-dot.clickable {
+  cursor: pointer;
+}
+
 .test-icon {
   font-size: 0.85rem;
 }
