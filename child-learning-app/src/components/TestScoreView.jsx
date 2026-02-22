@@ -62,7 +62,6 @@ function summarizeSapixRange(sapixRange) {
 }
 
 const initialState = {
-  scores: [],
   selectedScore: null,
   uploadingSubject: null,
   drivePickerSubject: null,
@@ -250,9 +249,8 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId }) {
   const subjectFileInputRefs = useRef({})
   const addFileInputRefs = useRef({})
 
-  useEffect(() => {
-    if (scores) dispatch({ type: 'SET_FIELD', field: 'scores', value: scores })
-  }, [scores])
+  // scores を直接利用（state にコピーしない → 不要な再レンダーを防止）
+  const scoresList = scores || []
 
   useEffect(() => {
     if (!user || !state.selectedScore) return
@@ -261,25 +259,26 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId }) {
     })
   }, [user, state.selectedScore?.id])
 
+  // scores が再取得されたら selectedScore を最新に同期
   useEffect(() => {
-    if (!state.selectedScore) return
-    const updated = state.scores.find(s => s.id === state.selectedScore.id)
+    if (!state.selectedScore || !scoresList.length) return
+    const updated = scoresList.find(s => s.id === state.selectedScore.id)
     if (!updated) return
     // 内容が変わった場合のみ更新（不要な再レンダーを防止）
     if (JSON.stringify(updated) !== JSON.stringify(state.selectedScore)) {
       dispatch({ type: 'SET_FIELD', field: 'selectedScore', value: updated })
     }
-  }, [state.scores])
+  }, [scoresList])
 
   // initialTestId が渡されたら自動的にそのテストを選択
   useEffect(() => {
-    if (!initialTestId || !state.scores.length) return
-    const target = state.scores.find(s => s.id === initialTestId)
+    if (!initialTestId || !scoresList.length) return
+    const target = scoresList.find(s => s.id === initialTestId)
     if (target) {
       dispatch({ type: 'SET_FIELD', field: 'selectedScore', value: target })
     }
     if (onConsumeInitialTestId) onConsumeInitialTestId()
-  }, [initialTestId, state.scores])
+  }, [initialTestId, scoresList])
 
   // scheduled テスト選択時に editForm を自動初期化（既にある場合はスキップ）
   useEffect(() => {
@@ -545,11 +544,11 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId }) {
 
   if (!state.selectedScore) {
     const today = getTodayString()
-    const scheduled = state.scores
+    const scheduled = scoresList
       .filter(s => s.status === 'scheduled')
       .sort((a, b) => new Date(a.testDate) - new Date(b.testDate))
 
-    const completed = state.scores
+    const completed = scoresList
       .filter(s => s.status !== 'scheduled')
       .sort((a, b) => new Date(b.testDate) - new Date(a.testDate))
 
@@ -765,7 +764,7 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId }) {
           />
         )}
 
-        {state.scores.length === 0 && !state.showAddForm ? (
+        {scoresList.length === 0 && !state.showAddForm ? (
           <EmptyState
             icon="📋"
             message="テストデータがありません"
