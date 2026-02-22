@@ -513,7 +513,7 @@ function SapixTextView({ user }) {
           />
         ) : (
           filteredTexts.map(text => (
-            <div key={text.id} className="sapix-text-card">
+            <div key={text.id} className="sapix-text-card" style={{ borderLeft: `4px solid ${subjectColors[text.subject]}` }}>
               {state.editingId === text.id ? (
                 /* 編集モード */
                 <div className="edit-form-container">
