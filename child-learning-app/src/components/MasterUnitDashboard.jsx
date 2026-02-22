@@ -11,7 +11,7 @@ import {
   EVALUATION_LABELS,
   EVALUATION_COLORS,
 } from '../utils/lessonLogs'
-import { subjectEmojis } from '../utils/constants'
+import { subjectEmojis, subjectColors } from '../utils/constants'
 import TextDetailModal from './TextDetailModal'
 import Loading from './Loading'
 import './MasterUnitDashboard.css'
@@ -308,6 +308,7 @@ function MasterUnitDashboard({ sapixTexts = [], userId }) {
             <button
               key={subj}
               className={`mud-subject-btn ${selectedSubject === subj ? 'active' : ''}`}
+              style={{ '--subject-color': subjectColors[subj] }}
               onClick={() => { setSelectedSubject(subj); setSelectedCategory('all') }}
             >
               {SUBJECT_ICONS[subj]} {subj}

@@ -163,14 +163,14 @@ body {
 }
 
 .mud-subject-btn:hover {
-  color: var(--color-gray-700);
+  color: var(--subject-color, var(--color-gray-700));
   background: var(--color-gray-100);
 }
 
 .mud-subject-btn.active {
-  color: #1d4ed8;
-  border-bottom-color: var(--color-primary-dark);
-  background: var(--color-primary-bg-light);
+  color: var(--subject-color, #1d4ed8);
+  border-bottom-color: var(--subject-color, var(--color-primary-dark));
+  background: color-mix(in srgb, var(--subject-color, #3b82f6) 10%, white);
 }
 
 /* Header row right-aligned actions (reset button, mode buttons) */
