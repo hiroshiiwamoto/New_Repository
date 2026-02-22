@@ -277,6 +277,23 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId }) {
     if (onConsumeInitialTestId) onConsumeInitialTestId()
   }, [initialTestId, state.scores])
 
+  // scheduled テスト選択時に editForm を自動初期化
+  useEffect(() => {
+    if (!state.selectedScore || state.selectedScore.status !== 'scheduled') return
+    dispatch({
+      type: 'SET_FIELDS',
+      fields: {
+        isEditing: true,
+        editForm: {
+          testName: state.selectedScore.testName || '',
+          testDate: state.selectedScore.testDate || '',
+          grade: state.selectedScore.grade || '4年生',
+          sapixRange: state.selectedScore.sapixRange || {},
+        },
+      },
+    })
+  }, [state.selectedScore?.id])
+
   // ============================================================
   // テスト追加（日程登録）
   // ============================================================
@@ -792,19 +809,11 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId }) {
             ← テスト一覧
           </button>
           <div className="detail-title-area">
-            <h2 className="detail-test-name">{state.selectedScore.testName}</h2>
-            <span className="detail-test-date">{state.selectedScore.testDate}</span>
             <span className="badge-scheduled">予定</span>
           </div>
-          {!state.isEditing && (
-            <button className="btn-edit-schedule" onClick={handleStartEdit}>
-              編集
-            </button>
-          )}
         </div>
 
-        {state.isEditing && state.editForm ? (
-          /* ── 編集フォーム ── */
+        {state.editForm && (
           <div className="edit-schedule-form">
             <div className="add-form-field form-field-sm">
               <label>テスト名:</label>
@@ -922,7 +931,13 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId }) {
             )}
 
             <div className="add-form-actions">
-              <button className="btn-secondary" onClick={handleCancelEdit}>
+              <button className="btn-mark-completed" onClick={handleMarkCompleted}>
+                受験済みにする
+              </button>
+              <div style={{ flex: 1 }} />
+              <button className="btn-secondary" onClick={() => {
+                dispatch({ type: 'SET_FIELDS', fields: { selectedScore: null, isEditing: false, editForm: null } })
+              }}>
                 {LABELS.CANCEL}
               </button>
               <button className="btn-primary" onClick={handleSaveEdit}>
@@ -930,15 +945,6 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId }) {
               </button>
             </div>
           </div>
-        ) : (
-          /* ── 表示モード ── */
-          <>
-            <SapixRangeDisplay sapixRange={state.selectedScore.sapixRange} collapsed={false} />
-
-            <button className="btn-mark-completed" onClick={handleMarkCompleted}>
-              テストを受験済みにする
-            </button>
-          </>
         )}
       </div>
     )
