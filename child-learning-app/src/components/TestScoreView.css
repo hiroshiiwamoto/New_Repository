@@ -1886,3 +1886,32 @@
 .mode-toggle-link:hover {
   text-decoration: underline;
 }
+
+/* ── 編集ボタン（scheduled 詳細）──────────────────────────── */
+
+.btn-edit-schedule {
+  padding: 6px 16px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  color: #1d4ed8;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.btn-edit-schedule:hover {
+  background: #dbeafe;
+}
+
+/* ── 編集フォーム ──────────────────────────────────────────── */
+
+.edit-schedule-form {
+  background: #fafbff;
+  border: 1px solid #e0e7ff;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}

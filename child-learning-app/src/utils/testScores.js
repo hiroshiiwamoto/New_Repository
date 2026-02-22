@@ -10,7 +10,8 @@ import {
   updateDoc,
   deleteDoc,
   query,
-  orderBy
+  orderBy,
+  onSnapshot,
 } from 'firebase/firestore'
 import { db } from '../firebase'
 
@@ -218,3 +219,27 @@ export const testTypes = [
   '復習テスト',
   'その他オープン',
 ]
+
+/**
+ * テスト成績をリアルタイム購読
+ * @param {string} userId
+ * @param {Function} callback - (scores: Array) => void
+ * @returns {Function} unsubscribe
+ */
+export function subscribeTestScores(userId, callback) {
+  const q = query(
+    collection(db, 'users', userId, 'testScores'),
+    orderBy('testDate', 'desc')
+  )
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const scores = snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
+      callback(scores)
+    },
+    (error) => {
+      console.error('Error subscribing testScores:', error)
+      callback([])
+    }
+  )
+}

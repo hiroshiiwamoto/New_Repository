@@ -25,6 +25,7 @@ import {
   deleteCustomUnit as deleteCustomUnitFromFirestore,
 } from './utils/customUnits'
 import { subscribeSapixTexts } from './utils/sapixTexts'
+import { subscribeTestScores } from './utils/testScores'
 import { toast } from './utils/toast'
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
   const [editingTask, setEditingTask] = useState(null)
   const [customUnits, setCustomUnits] = useState([]) // カスタム単元
   const [sapixTexts, setSapixTexts] = useState([]) // SAPIXテキスト（カレンダー表示用）
+  const [testScores, setTestScores] = useState([]) // テスト日程（カレンダー表示用）
   const taskFormRef = useRef(null)
   const [showTaskForm, setShowTaskForm] = useState(false)
   const [migrated, setMigrated] = useState(false)
@@ -100,6 +102,13 @@ function App() {
   useEffect(() => {
     if (!user) return
     const unsubscribe = subscribeSapixTexts(user.uid, setSapixTexts)
+    return () => unsubscribe()
+  }, [user])
+
+  // テスト日程をリアルタイム購読（カレンダー表示用）
+  useEffect(() => {
+    if (!user) return
+    const unsubscribe = subscribeTestScores(user.uid, setTestScores)
     return () => unsubscribe()
   }, [user])
 
@@ -348,6 +357,7 @@ function App() {
           <ScheduleView
             tasks={tasks}
             sapixTexts={sapixTexts}
+            testScores={testScores}
             onToggleTask={toggleTask}
             onDeleteTask={deleteTask}
             onBulkDeleteTasks={bulkDeleteTasks}
