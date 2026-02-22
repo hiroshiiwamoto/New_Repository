@@ -27,7 +27,6 @@ const defaultFormState = {
   unitIds: [],
   fileUrl: '',
   fileName: '',
-  scannedText: '',
   studyDate: '',
 }
 
@@ -40,7 +39,6 @@ const initialState = {
   fullscreenPDF: null,
   uploading: false,
   showDrivePicker: null, // 'add' | 'edit' | null
-  expandedText: null, // スキャンテキスト展開中のID
   evaluating: null, // 評価処理中の id
   problems: {}, // textId -> problems[]
   addForm: { ...defaultFormState },
@@ -250,7 +248,6 @@ function SapixTextView({ user }) {
       unitIds: state.addForm.unitIds,
       fileUrl: state.addForm.fileUrl,
       fileName: state.addForm.fileName,
-      scannedText: state.addForm.scannedText,
       studyDate: state.addForm.studyDate,
     })
     if (result.success) {
@@ -275,7 +272,6 @@ function SapixTextView({ user }) {
         unitIds: text.unitIds || [],
         fileUrl: text.fileUrl || '',
         fileName: text.fileName || '',
-        scannedText: text.scannedText || '',
         studyDate: text.studyDate || '',
       },
     }})
@@ -295,7 +291,6 @@ function SapixTextView({ user }) {
       unitIds: state.editForm.unitIds,
       fileUrl: state.editForm.fileUrl,
       fileName: state.editForm.fileName,
-      scannedText: state.editForm.scannedText,
       studyDate: state.editForm.studyDate,
     })
     if (result.success) {
@@ -496,18 +491,6 @@ function SapixTextView({ user }) {
           {renderFileUpload(state.addForm, 'addForm', 'add')}
           {renderUnitSelector(state.addForm, 'addForm')}
 
-          {/* スキャンテキスト */}
-          <div className="sapix-form-section">
-            <label className="sapix-section-label">スキャンテキスト（任意）:</label>
-            <textarea
-              className="sapix-scanned-text-input"
-              placeholder="OCRでスキャンしたテキストをここに貼り付け..."
-              value={state.addForm.scannedText}
-              onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'addForm', value: { ...state.addForm, scannedText: e.target.value } })}
-              rows="5"
-            />
-          </div>
-
           <div className="add-form-actions">
             <button
               className="btn-secondary"
@@ -578,15 +561,6 @@ function SapixTextView({ user }) {
                   </div>
                   {renderFileUpload(state.editForm, 'editForm', 'edit')}
                   {renderUnitSelector(state.editForm, 'editForm')}
-                  <div className="sapix-form-section">
-                    <label className="sapix-section-label">スキャンテキスト:</label>
-                    <textarea
-                      className="sapix-scanned-text-input"
-                      value={state.editForm.scannedText}
-                      onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'editForm', value: { ...state.editForm, scannedText: e.target.value } })}
-                      rows="5"
-                    />
-                  </div>
                   {/* 評価ボタン（編集中でもテキストを評価可能） */}
                   {text.unitIds?.length > 0 && (
                     <div className="sapix-eval-row">
@@ -642,14 +616,6 @@ function SapixTextView({ user }) {
                           onClick={() => handleViewPDF(text)}
                         >
                           {state.viewingPDF?.id === text.id ? '✕ 閉じる' : '📄 PDF表示'}
-                        </button>
-                      )}
-                      {text.scannedText && (
-                        <button
-                          className={`sapix-scan-toggle ${state.expandedText === text.id ? 'active' : ''}`}
-                          onClick={() => dispatch({ type: 'SET_FIELD', field: 'expandedText', value: state.expandedText === text.id ? null : text.id })}
-                        >
-                          {state.expandedText === text.id ? '✕ テキスト閉じる' : '📝 テキスト表示'}
                         </button>
                       )}
                       <button className="edit-pastpaper-btn" onClick={() => handleStartEdit(text)} title="編集">✏️</button>
@@ -733,16 +699,6 @@ function SapixTextView({ user }) {
                   />
                   {/* ─────────────────────────────────────────────── */}
 
-                  {/* スキャンテキスト表示 */}
-                  {state.expandedText === text.id && text.scannedText && (
-                    <div className="sapix-scanned-text-display">
-                      <div className="sapix-scanned-text-header">
-                        <span>📝 スキャンテキスト</span>
-                        <button onClick={() => dispatch({ type: 'SET_FIELD', field: 'expandedText', value: null })}>&times;</button>
-                      </div>
-                      <pre className="sapix-scanned-text-content">{text.scannedText}</pre>
-                    </div>
-                  )}
                 </>
               )}
             </div>
