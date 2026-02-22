@@ -853,6 +853,74 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId }) {
               ))}
             </div>
 
+            {/* 科目別PDF */}
+            <div className="subject-pdf-bar">
+              <span className="subject-pdf-bar-label">科目別PDF（問題用紙）</span>
+              <div className="subject-pdf-slots">
+                {SUBJECTS.map(subject => {
+                  const pdf = getPdfForSubject(subject)
+                  const isUploading = state.uploadingSubject === subject
+                  return (
+                    <div key={subject} className="subject-pdf-slot">
+                      <input
+                        type="file"
+                        accept="application/pdf"
+                        className="hidden-input"
+                        ref={el => { subjectFileInputRefs.current[subject] = el }}
+                        onChange={e => handleUploadSubjectPdf(subject, e.target.files[0])}
+                      />
+                      <span className="subject-pdf-slot-name">{subject}</span>
+                      {pdf ? (
+                        <div className="subject-pdf-slot-linked">
+                          <a
+                            href={pdf.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="subject-pdf-slot-filename"
+                            title={pdf.fileName}
+                          >
+                            {pdf.fileName}
+                          </a>
+                          <button
+                            className="pdf-attach-change"
+                            onClick={() => subjectFileInputRefs.current[subject]?.click()}
+                            disabled={isUploading}
+                          >
+                            {isUploading ? '...' : '変更'}
+                          </button>
+                          <button className="pdf-attach-remove" onClick={() => handleDetachPdf(subject)}>✕</button>
+                        </div>
+                      ) : (
+                        <div className="subject-pdf-slot-buttons">
+                          <button
+                            className="pdf-attach-add"
+                            onClick={() => subjectFileInputRefs.current[subject]?.click()}
+                            disabled={isUploading}
+                          >
+                            {isUploading ? LABELS.UPLOADING : LABELS.UPLOAD_NEW}
+                          </button>
+                          <button
+                            className="pdf-attach-drive"
+                            onClick={() => dispatch({ type: 'SET_FIELD', field: 'drivePickerSubject', value: subject })}
+                            disabled={isUploading}
+                          >
+                            {LABELS.DRIVE_SELECT}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {state.drivePickerSubject && (
+              <DriveFilePicker
+                onSelect={handleDrivePickerSelect}
+                onClose={() => dispatch({ type: 'SET_FIELD', field: 'drivePickerSubject', value: null })}
+              />
+            )}
+
             <div className="add-form-actions">
               <button className="btn-secondary" onClick={handleCancelEdit}>
                 {LABELS.CANCEL}
