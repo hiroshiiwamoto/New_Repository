@@ -111,6 +111,27 @@
   box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
 }
 
+/* Settings gear button */
+.settings-gear-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: var(--color-gray-100);
+  border-radius: 8px;
+  color: var(--color-gray-500);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  flex-shrink: 0;
+}
+
+.settings-gear-btn:hover {
+  background: var(--color-gray-200);
+  color: var(--color-gray-800);
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .auth-card {
@@ -189,5 +210,15 @@
     padding: 4px 8px;
     font-size: 0.7rem;
     border-radius: 4px;
+  }
+
+  .settings-gear-btn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .settings-gear-btn svg {
+    width: 16px;
+    height: 16px;
   }
 }
