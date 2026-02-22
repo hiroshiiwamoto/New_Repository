@@ -123,3 +123,32 @@ export function gradeFromCode(code) {
   const gradeMap = { '3': '3年生', '4': '4年生', '5': '5年生', '6': '6年生' }
   return gradeMap[gradeChar] || null
 }
+
+/**
+ * 教科でフィルタした SAPIX テキストコード一覧を返す（autocomplete用）
+ * @param {string} subject - 例: '算数'
+ * @returns {string[]}
+ */
+export function getSapixCodesBySubject(subject) {
+  return Object.entries(SAPIX_SCHEDULE)
+    .filter(([, info]) => info.subject === subject)
+    .map(([code]) => code)
+}
+
+/**
+ * sapixRange オブジェクトからカバーされるマスター単元IDを計算する
+ * @param {Object} sapixRange - { 算数: ['41B-01', ...], 社会: ['440-01', ...], ... }
+ * @returns {string[]} - ユニークな unitId の配列
+ */
+export function computeCoveredUnitIds(sapixRange) {
+  const unitIdSet = new Set()
+  for (const codes of Object.values(sapixRange || {})) {
+    for (const code of codes) {
+      const info = SAPIX_SCHEDULE[code]
+      if (info && info.unitIds) {
+        info.unitIds.forEach(id => unitIdSet.add(id))
+      }
+    }
+  }
+  return [...unitIdSet]
+}

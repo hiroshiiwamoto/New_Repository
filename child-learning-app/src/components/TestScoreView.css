@@ -1663,3 +1663,226 @@
   color: #6b7280;
   white-space: nowrap;
 }
+
+/* ════════════════════════════════════════════════════════════════
+   テスト日程管理 - セクション・バッジ・範囲入力
+   ════════════════════════════════════════════════════════════════ */
+
+/* セクションヘッダー（今後のテスト / テスト結果） */
+.test-section-header {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-gray-500, #64748b);
+  margin: 20px 0 8px 4px;
+  letter-spacing: 0.02em;
+}
+
+/* 予定バッジ */
+.badge-scheduled {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* カウントダウンバッジ */
+.badge-countdown {
+  background: #f0fdf4;
+  color: #166534;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* 期限切れバッジ */
+.badge-overdue {
+  background: #fef2f2;
+  color: #991b1b;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* SAPIX 範囲要約バッジ（リスト内） */
+.badge-range {
+  background: #f0f7ff;
+  color: #1d4ed8;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── SAPIX 範囲入力セクション ──────────────────────────────── */
+
+.sapix-range-section {
+  margin-top: 16px;
+}
+
+.sapix-range-subject-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.sapix-range-subject-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #475569;
+  min-width: 36px;
+  padding-top: 5px;
+  flex-shrink: 0;
+}
+
+.sapix-code-chips-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.sapix-code-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #1e40af;
+}
+
+.sapix-code-chip .chip-name {
+  color: #6b7280;
+  font-weight: 400;
+  font-size: 0.72rem;
+}
+
+.sapix-code-chip .chip-remove {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0 2px;
+  line-height: 1;
+}
+
+.sapix-code-chip .chip-remove:hover {
+  color: #dc2626;
+}
+
+.sapix-code-chip-readonly {
+  cursor: default;
+}
+
+.sapix-code-input {
+  width: 100px;
+  padding: 4px 8px;
+  border: 1px dashed #94a3b8;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  outline: none;
+}
+
+.sapix-code-input:focus {
+  border-color: #3b82f6;
+  border-style: solid;
+}
+
+/* ── SAPIX 範囲表示（読み取り専用、詳細ビュー用）───────────── */
+
+.sapix-range-display {
+  padding: 12px 16px;
+  background: #fafbff;
+  border: 1px solid #e0e7ff;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.sapix-range-display-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.sapix-range-display-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #6366f1;
+}
+
+.sapix-range-display-body {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sapix-range-display-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+/* ── 受験済みにするボタン ──────────────────────────────────── */
+
+.btn-mark-completed {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin: 16px 0;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+  transition: all 0.2s;
+}
+
+.btn-mark-completed:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
+}
+
+/* ── モード切り替えリンク ──────────────────────────────────── */
+
+.mode-toggle-link {
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin-top: 8px;
+  padding: 6px;
+  background: none;
+  border: none;
+  color: #6366f1;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.mode-toggle-link:hover {
+  text-decoration: underline;
+}

@@ -84,6 +84,15 @@ export async function addTestScore(userId, scoreData) {
       // 科目別PDF（問題用紙）
       subjectPdfs: scoreData.subjectPdfs || {},
 
+      // ライフサイクル状態（'scheduled' | 'completed'）
+      status: scoreData.status || 'completed',
+
+      // テスト範囲（SAPIX カリキュラムコード）
+      sapixRange: scoreData.sapixRange || {},
+
+      // カバーされるマスター単元ID（sapixRange から自動計算）
+      coveredUnitIds: scoreData.coveredUnitIds || [],
+
       createdAt: nowISO(),
     }
 
