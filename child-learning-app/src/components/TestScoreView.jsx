@@ -72,6 +72,8 @@ const initialState = {
   addDrivePickerSubject: null,
   isEditing: false,
   editForm: null,
+  pendingDeleteId: null,
+  confirmMarkCompleted: false,
 }
 
 function reducer(state, action) {
@@ -331,8 +333,14 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId }) {
   // 受験済みにする
   // ============================================================
 
-  const handleMarkCompleted = async () => {
-    if (!window.confirm('受験済みにすると予定には戻せません。\nよろしいですか？')) return
+  const handleMarkCompletedRequest = () => {
+    dispatch({ type: 'SET_FIELD', field: 'confirmMarkCompleted', value: true })
+  }
+  const handleMarkCompletedCancel = () => {
+    dispatch({ type: 'SET_FIELD', field: 'confirmMarkCompleted', value: false })
+  }
+  const handleMarkCompletedConfirm = async () => {
+    dispatch({ type: 'SET_FIELD', field: 'confirmMarkCompleted', value: false })
     const result = await updateTestScore(user.uid, state.selectedScore.id, {
       status: 'completed',
     })
@@ -445,9 +453,15 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId }) {
     dispatch({ type: 'SET_FIELD', field: 'problemsCache', value: merged })
   }
 
-  // テスト削除
-  const handleDeleteTest = async (score) => {
-    if (!window.confirm(`「${score.testName}」を削除しますか？\n関連する問題クリップと学習記録もすべて削除されます。`)) return
+  // テスト削除（2段階確認: iOS Safari の window.confirm ブロック問題を回避）
+  const handleDeleteRequest = (scoreId) => {
+    dispatch({ type: 'SET_FIELD', field: 'pendingDeleteId', value: scoreId })
+  }
+  const handleDeleteCancel = () => {
+    dispatch({ type: 'SET_FIELD', field: 'pendingDeleteId', value: null })
+  }
+  const handleDeleteConfirm = async (score) => {
+    dispatch({ type: 'SET_FIELD', field: 'pendingDeleteId', value: null })
     await deleteProblemsBySource(user.uid, 'test', score.id)
     await deleteLessonLogsBySource(user.uid, 'test', score.id)
     const result = await deleteTestScore(user.uid, score.id)
@@ -590,11 +604,18 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId }) {
           </div>
           <span className="test-select-arrow">›</span>
         </button>
-        <button
-          className="delete-pastpaper-btn"
-          onClick={() => handleDeleteTest(score)}
-          title="このテストを削除"
-        >🗑️</button>
+        {state.pendingDeleteId === score.id ? (
+          <span className="delete-confirm-inline">
+            <button className="delete-confirm-yes" onClick={() => handleDeleteConfirm(score)}>削除</button>
+            <button className="delete-confirm-no" onClick={handleDeleteCancel}>戻す</button>
+          </span>
+        ) : (
+          <button
+            className="delete-pastpaper-btn"
+            onClick={() => handleDeleteRequest(score.id)}
+            title="このテストを削除"
+          >🗑️</button>
+        )}
       </div>
     )
 
@@ -936,9 +957,17 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId }) {
             )}
 
             <div className="add-form-actions">
-              <button className="btn-mark-completed" onClick={handleMarkCompleted}>
-                受験済みにする
-              </button>
+              {state.confirmMarkCompleted ? (
+                <span className="confirm-mark-completed-inline">
+                  <span className="confirm-mark-label">元に戻せません。本当に受験済みにしますか？</span>
+                  <button className="delete-confirm-yes" onClick={handleMarkCompletedConfirm}>確定</button>
+                  <button className="delete-confirm-no" onClick={handleMarkCompletedCancel}>戻す</button>
+                </span>
+              ) : (
+                <button className="btn-mark-completed" onClick={handleMarkCompletedRequest}>
+                  受験済みにする
+                </button>
+              )}
               <div style={{ flex: 1 }} />
               <button className="btn-secondary" onClick={() => {
                 dispatch({ type: 'SET_FIELDS', fields: { selectedScore: null, isEditing: false, editForm: null } })
