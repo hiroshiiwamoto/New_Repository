@@ -25,6 +25,7 @@ function GradesView({ user }) {
   const [showForm, setShowForm] = useState(false)
   const [editingScore, setEditingScore] = useState(null)
   const [scoreForm, setScoreForm] = useState(getEmptyForm())
+  const [pendingDeleteId, setPendingDeleteId] = useState(null)
 
   function getEmptyForm() {
     return {
@@ -42,7 +43,7 @@ function GradesView({ user }) {
     }
   }
 
-  const filteredScores = (scores || []).filter(s => s.grade === selectedGrade)
+  const filteredScores = (scores || []).filter(s => s.grade === selectedGrade && s.status !== 'scheduled')
 
   const chartData = useMemo(() => {
     return [...filteredScores]
@@ -92,8 +93,10 @@ function GradesView({ user }) {
     }
   }
 
-  const handleDelete = async (score) => {
-    if (!window.confirm(`「${score.testName} (${score.testDate})」を削除しますか？`)) return
+  const handleDeleteRequest = (scoreId) => setPendingDeleteId(scoreId)
+  const handleDeleteCancel = () => setPendingDeleteId(null)
+  const handleDeleteConfirm = async (score) => {
+    setPendingDeleteId(null)
     const result = await deleteTestScore(user.uid, score.id)
     if (result.success) {
       await reloadScores()
@@ -114,15 +117,16 @@ function GradesView({ user }) {
             <div className="form-row">
               <div className="form-field">
                 <label>テスト名 *</label>
-                <select
+                <input
+                  type="text"
+                  list="grade-test-type-list"
+                  placeholder="例: 組分けテスト"
                   value={scoreForm.testName}
                   onChange={(e) => setScoreForm({ ...scoreForm, testName: e.target.value })}
-                >
-                  <option value="">選択してください</option>
-                  {testTypes.map(type => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
-                </select>
+                />
+                <datalist id="grade-test-type-list">
+                  {testTypes.map(t => <option key={t} value={t} />)}
+                </datalist>
               </div>
               <div className="form-field">
                 <label>実施日 *</label>
@@ -359,7 +363,10 @@ function GradesView({ user }) {
                 key={score.id}
                 score={score}
                 onEdit={handleEditScore}
-                onDelete={handleDelete}
+                onDelete={handleDeleteConfirm}
+                onDeleteRequest={handleDeleteRequest}
+                onDeleteCancel={handleDeleteCancel}
+                isPendingDelete={pendingDeleteId === score.id}
               />
             ))}
           </div>

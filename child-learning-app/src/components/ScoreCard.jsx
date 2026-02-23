@@ -1,6 +1,6 @@
 import './TestScoreView.css'
 
-function ScoreCard({ score, onEdit, onDelete }) {
+function ScoreCard({ score, onEdit, onDelete, onDeleteRequest, onDeleteCancel, isPendingDelete }) {
   // 得点率を計算
   const getPercentage = (score, maxScore) => {
     if (!score || !maxScore || maxScore === 0) return null
@@ -28,13 +28,20 @@ function ScoreCard({ score, onEdit, onDelete }) {
           >
             ✏️
           </button>
-          <button
-            className="delete-btn"
-            onClick={() => onDelete(score)}
-            title="削除"
-          >
-            🗑️
-          </button>
+          {isPendingDelete ? (
+            <span className="delete-confirm-inline">
+              <button className="delete-confirm-yes" onClick={() => onDelete(score)}>削除</button>
+              <button className="delete-confirm-no" onClick={onDeleteCancel}>戻す</button>
+            </span>
+          ) : (
+            <button
+              className="delete-btn"
+              onClick={() => onDeleteRequest(score.id)}
+              title="削除"
+            >
+              🗑️
+            </button>
+          )}
         </div>
       </div>
 
