@@ -74,7 +74,8 @@
   --z-modal-backdrop: 300;
   --z-modal: 400;
   --z-modal-nested: 450;
-  --z-toast: 500;
+  --z-modal-top: 500;
+  --z-toast: 600;
 
   /* Transitions */
   --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
