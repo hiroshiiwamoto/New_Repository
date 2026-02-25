@@ -1,10 +1,18 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import './TodayAndWeekView.css'
-import { subjectEmojis, subjectColors } from '../utils/constants'
+import { subjectEmojis, subjectColors, weekDayNames } from '../utils/constants'
+import { getHomeworkForDate, getHomeworkByDate } from '../utils/sapixHomework'
 import TaskDetailModal from './TaskDetailModal'
 
-function TodayAndWeekView({ tasks, onToggleTask, onDeleteTask, onEditTask, userId }) {
-  const [expandedSection, setExpandedSection] = useState('today') // 'today' or 'week'
+// 優先度のラベルと色
+const priorityStyles = {
+  A: { label: 'A', color: '#ef4444' },
+  B: { label: 'B', color: '#f59e0b' },
+  C: { label: 'C', color: '#3b82f6' },
+}
+
+function TodayAndWeekView({ tasks, homeworkDone, onToggleTask, onDeleteTask, onEditTask, onToggleHomework, userId }) {
+  const [expandedSection, setExpandedSection] = useState('today') // 'today', 'homework', 'week'
   const [detailTask, setDetailTask] = useState(null)
 
   // 日付フォーマット関数
@@ -23,6 +31,20 @@ function TodayAndWeekView({ tasks, onToggleTask, onDeleteTask, onEditTask, userI
 
   const todayTasks = getTodayTasks()
 
+  // 今日の家庭学習タスク
+  const todayHomework = useMemo(() => getHomeworkForDate(new Date()), [])
+
+  // 今週の家庭学習（7日分）
+  const weekHomework = useMemo(() => getHomeworkByDate(new Date(), 7), [])
+
+  // 家庭学習の完了チェック
+  const isHomeworkDone = (hwId) => {
+    return homeworkDone && homeworkDone[hwId] === true
+  }
+
+  const todayHomeworkCount = todayHomework.length
+  const todayHomeworkDoneCount = todayHomework.filter(hw => isHomeworkDone(hw.id)).length
+
   const toggleSection = (section) => {
     setExpandedSection(expandedSection === section ? null : section)
   }
@@ -37,16 +59,16 @@ function TodayAndWeekView({ tasks, onToggleTask, onDeleteTask, onEditTask, userI
 
   return (
     <div className="today-week-view">
-      {/* 今日のタスク */}
-      <div className="priority-section today-section">
+      {/* 今日の家庭学習 */}
+      <div className="priority-section homework-section">
         <div
           className="section-header"
           onClick={() => toggleSection('today')}
         >
           <h2>
-            🎯 今日のタスク
+            今日の家庭学習
             <span className="task-count">
-              {todayTasks.filter(t => !t.completed).length} / {todayTasks.length}
+              {todayHomeworkDoneCount} / {todayHomeworkCount}
             </span>
           </h2>
           <span className="toggle-icon">{expandedSection === 'today' ? '▼' : '▶'}</span>
@@ -54,10 +76,134 @@ function TodayAndWeekView({ tasks, onToggleTask, onDeleteTask, onEditTask, userI
 
         {expandedSection === 'today' && (
           <div className="task-grid">
-            {todayTasks.length === 0 ? (
-              <div className="no-tasks-message">今日のタスクはありません</div>
+            {todayHomework.length === 0 ? (
+              <div className="no-tasks-message">今日の家庭学習はありません</div>
             ) : (
-              todayTasks.map(task => {
+              todayHomework.map(hw => {
+                const subjectColor = subjectColors[hw.subject] || '#64748b'
+                const done = isHomeworkDone(hw.id)
+                const pStyle = priorityStyles[hw.priority]
+                return (
+                  <div
+                    key={hw.id}
+                    className={`priority-task ${done ? 'completed' : ''}`}
+                    style={{
+                      borderColor: subjectColor,
+                      backgroundColor: `${subjectColor}15`,
+                      boxShadow: `0 2px 8px ${subjectColor}25`
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={done}
+                      onChange={() => onToggleHomework && onToggleHomework(hw.id)}
+                      className="task-checkbox"
+                    />
+                    <span className="hw-priority-num" style={{ color: pStyle.color }}>
+                      {hw.studyPriority}
+                    </span>
+                    <span className="subject-emoji">{subjectEmojis[hw.subject]}</span>
+                    <span
+                      className="subject-badge"
+                      style={{ color: subjectColor }}
+                    >{hw.subject}</span>
+                    <span className="task-title">{hw.title}</span>
+                    {pStyle && (
+                      <span
+                        className="task-priority-badge"
+                        style={{ color: pStyle.color, borderColor: `${pStyle.color}40` }}
+                      >{pStyle.label}</span>
+                    )}
+                  </div>
+                )
+              })
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* 今週の家庭学習スケジュール */}
+      <div className="priority-section week-homework-section">
+        <div
+          className="section-header"
+          onClick={() => toggleSection('homework')}
+        >
+          <h2>
+            今週の学習スケジュール
+          </h2>
+          <span className="toggle-icon">{expandedSection === 'homework' ? '▼' : '▶'}</span>
+        </div>
+
+        {expandedSection === 'homework' && (
+          <div className="week-homework-grid">
+            {Object.entries(weekHomework).map(([dateStr, hwTasks]) => {
+              const d = new Date(dateStr + 'T00:00:00')
+              const dayName = weekDayNames[d.getDay()]
+              const isToday = dateStr === formatDate(new Date())
+              const doneCount = hwTasks.filter(hw => isHomeworkDone(hw.id)).length
+
+              return (
+                <div key={dateStr} className={`week-day-block ${isToday ? 'is-today' : ''}`}>
+                  <div className="week-day-header">
+                    <span className="week-day-label">
+                      {d.getMonth() + 1}/{d.getDate()}({dayName})
+                      {isToday && <span className="today-badge">TODAY</span>}
+                    </span>
+                    {hwTasks.length > 0 && (
+                      <span className="week-day-count">{doneCount}/{hwTasks.length}</span>
+                    )}
+                  </div>
+                  {hwTasks.length === 0 ? (
+                    <div className="week-day-empty">-</div>
+                  ) : (
+                    <div className="week-day-tasks">
+                      {hwTasks.map(hw => {
+                        const subjectColor = subjectColors[hw.subject] || '#64748b'
+                        const done = isHomeworkDone(hw.id)
+                        return (
+                          <div
+                            key={hw.id}
+                            className={`week-hw-item ${done ? 'completed' : ''}`}
+                            onClick={() => onToggleHomework && onToggleHomework(hw.id)}
+                          >
+                            <span className="week-hw-check">{done ? '✓' : '○'}</span>
+                            <span className="week-hw-priority">{hw.studyPriority}</span>
+                            <span
+                              className="week-hw-subject"
+                              style={{ color: subjectColor }}
+                            >{subjectEmojis[hw.subject]}</span>
+                            <span className="week-hw-title">{hw.title}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* 手動タスク */}
+      {todayTasks.length > 0 && (
+        <div className="priority-section today-section">
+          <div
+            className="section-header"
+            onClick={() => toggleSection('manual')}
+          >
+            <h2>
+              その他のタスク
+              <span className="task-count">
+                {todayTasks.filter(t => !t.completed).length} / {todayTasks.length}
+              </span>
+            </h2>
+            <span className="toggle-icon">{expandedSection === 'manual' ? '▼' : '▶'}</span>
+          </div>
+
+          {expandedSection === 'manual' && (
+            <div className="task-grid">
+              {todayTasks.map(task => {
                 const subjectColor = subjectColors[task.subject] || '#64748b'
                 return (
                   <div
@@ -108,11 +254,11 @@ function TodayAndWeekView({ tasks, onToggleTask, onDeleteTask, onEditTask, userI
                     </div>
                   </div>
                 )
-              })
-            )}
-          </div>
-        )}
-      </div>
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* タスク詳細モーダル */}
       {detailTask && userId && (

@@ -16,6 +16,16 @@
   box-shadow: var(--shadow-lg);
 }
 
+/* 今日の家庭学習ヘッダー */
+.homework-section .section-header {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+}
+
+/* 今週スケジュールヘッダー */
+.week-homework-section .section-header {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
 .today-section .section-header {
   background: linear-gradient(135deg, var(--color-danger) 0%, var(--color-danger-dark) 100%);
 }
@@ -108,13 +118,27 @@
 
 .task-priority-badge {
   background: rgba(0, 0, 0, 0.05);
-  color: var(--color-gray-500);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 0.7rem;
   font-weight: 600;
+  flex-shrink: 0;
+  border: 1px solid transparent;
 }
 
+/* 優先順位番号 */
+.hw-priority-num {
+  font-size: 0.75rem;
+  font-weight: 800;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.06);
+  flex-shrink: 0;
+}
 
 .task-checkbox {
   width: 18px;
@@ -236,6 +260,136 @@
   font-size: 1rem;
 }
 
+/* ========== 今週の家庭学習スケジュール ========== */
+.week-homework-grid {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--color-gray-50);
+}
+
+.week-day-block {
+  background: white;
+  border-radius: 10px;
+  padding: 10px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.week-day-block.is-today {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 1px #6366f140;
+}
+
+.week-day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.week-day-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.today-badge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  background: #6366f1;
+  color: white;
+  padding: 1px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+
+.week-day-count {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+.week-day-empty {
+  text-align: center;
+  color: #d1d5db;
+  font-size: 0.85rem;
+  padding: 4px;
+}
+
+.week-day-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.week-hw-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  font-size: 0.8rem;
+}
+
+.week-hw-item:hover {
+  background: #f3f4f6;
+}
+
+.week-hw-item.completed {
+  opacity: 0.45;
+}
+
+.week-hw-item.completed .week-hw-title {
+  text-decoration: line-through;
+}
+
+.week-hw-check {
+  font-size: 0.75rem;
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+  color: #6366f1;
+  font-weight: 700;
+}
+
+.week-hw-priority {
+  font-size: 0.65rem;
+  font-weight: 800;
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #e0e7ff;
+  color: #4f46e5;
+  flex-shrink: 0;
+}
+
+.week-hw-subject {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+}
+
+.week-hw-title {
+  font-size: 0.78rem;
+  color: #374151;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* モバイル対応 */
 @media (max-width: 768px) {
   .section-header h2 {
@@ -308,5 +462,18 @@
 
   .task-title {
     font-size: 0.8rem;
+  }
+
+  .week-homework-grid {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .week-day-block {
+    padding: 8px 10px;
+  }
+
+  .week-hw-title {
+    font-size: 0.72rem;
   }
 }
