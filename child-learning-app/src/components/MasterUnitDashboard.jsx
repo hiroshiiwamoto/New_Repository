@@ -163,6 +163,7 @@ function MasterUnitDashboard({ sapixTexts = [], userId }) {
     try {
       const result = await addLessonLogWithStats(userId, {
         unitIds: [practiceUnit.id],
+        subject: practiceUnit.subject,
         sourceType: 'practice',
         sourceName: practiceUnit.name,
         date: new Date(),
@@ -190,6 +191,7 @@ function MasterUnitDashboard({ sapixTexts = [], userId }) {
     try {
       const result = await addLessonLogWithStats(userId, {
         unitIds: text.unitIds,
+        subject: text.subject,
         sourceType: 'sapixTask',
         sourceId: text.id,
         sourceName: `${text.textName}${text.textNumber ? ' ' + text.textNumber : ''}`,

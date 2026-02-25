@@ -215,6 +215,7 @@ function SapixTextView({ user }) {
       const textProblems = state.problems[text.id] || []
       const result = await addLessonLogWithStats(user.uid, {
         unitIds: text.unitIds,
+        subject: text.subject,
         sourceType: 'sapixTask',
         sourceId: text.id,
         sourceName: `${text.textName}${text.textNumber ? ' ' + text.textNumber : ''}`,
@@ -222,6 +223,7 @@ function SapixTextView({ user }) {
         performance: EVALUATION_SCORES[evalKey],
         evaluationKey: evalKey,
         problemIds: textProblems.map(p => p.id),
+        grade: text.grade,
       })
       if (result.success) {
         setLessonLogs(prev => [result.data, ...prev])
@@ -450,7 +452,7 @@ function SapixTextView({ user }) {
                   type="button"
                   className={`mud-subject-btn subject-btn-common ${state.addForm.subject === subject ? 'active' : ''}`}
                   style={{ '--subject-color': subjectColors[subject] }}
-                  onClick={() => dispatch({ type: 'SET_FIELD', field: 'addForm', value: { ...state.addForm, subject, unitIds: [] } })}
+                  onClick={() => dispatch({ type: 'SET_FIELD', field: 'addForm', value: { ...state.addForm, subject, unitIds: state.addForm.subject === subject ? state.addForm.unitIds : [] } })}
                 >
                   <span className="subject-emoji">{subjectEmojis[subject]}</span>
                   <span>{subject}</span>
@@ -531,7 +533,7 @@ function SapixTextView({ user }) {
                           type="button"
                           className={`mud-subject-btn subject-btn-common ${state.editForm.subject === subject ? 'active' : ''}`}
                           style={{ '--subject-color': subjectColors[subject] }}
-                          onClick={() => dispatch({ type: 'SET_FIELD', field: 'editForm', value: { ...state.editForm, subject, unitIds: [] } })}
+                          onClick={() => dispatch({ type: 'SET_FIELD', field: 'editForm', value: { ...state.editForm, subject, unitIds: state.editForm.subject === subject ? state.editForm.unitIds : [] } })}
                         >
                           <span className="subject-emoji">{subjectEmojis[subject]}</span>
                           <span>{subject}</span>

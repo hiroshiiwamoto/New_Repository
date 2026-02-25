@@ -50,6 +50,7 @@ export default function TextDetailModal({ text, userId, onClose, onEvaluated, la
     try {
       const result = await addLessonLogWithStats(userId, {
         unitIds: text.unitIds,
+        subject: text.subject,
         sourceType: 'sapixTask',
         sourceId: text.id,
         sourceName: `${text.textName}${text.textNumber ? ' ' + text.textNumber : ''}`,
