@@ -205,6 +205,53 @@ const SAPIX_SCHEDULE = {
   'F44-03': { name: 'その他の工業',           unitIds: ['SHA_GEO_INDUSTRY'], subject: '社会' },
 }
 
+// ═══ 2026年度 4年生 前期カレンダー（仙川校 D01〜D19）═══════
+// 水曜 = 算数B(41B) + 理科(430)
+// 金曜 = 国語A(41A) + 社会(440)
+const SAPIX_CALENDAR_4_2026_FIRST = {
+  'D01': { wed: '2026-02-11', fri: '2026-02-13' },
+  'D02': { wed: '2026-02-18', fri: '2026-02-20' },
+  'D03': { wed: '2026-02-25', fri: '2026-02-27' },
+  'D04': { wed: '2026-03-04', fri: '2026-03-06' },
+  'D05': { wed: '2026-03-11', fri: '2026-03-13' },
+  'D06': { wed: '2026-03-18', fri: '2026-03-20' },
+  // 3/25=3月度復習テスト, 3/27=休講, 3/28〜4/2=春期講習, 4/3=休講
+  'D07': { wed: '2026-04-08', fri: '2026-04-10' },
+  'D08': { wed: '2026-04-15', fri: '2026-04-17' },
+  'D09': { wed: '2026-04-22', fri: '2026-04-24' },
+  'D10': { wed: '2026-04-29', fri: '2026-05-01' },
+  // 5/6=休講, 5/8=5月度マンスリー確認テスト
+  'D11': { wed: '2026-05-13', fri: '2026-05-15' },
+  'D12': { wed: '2026-05-20', fri: '2026-05-22' },
+  'D13': { wed: '2026-05-27', fri: '2026-05-29' },
+  'D14': { wed: '2026-06-03', fri: '2026-06-05' },
+  'D15': { wed: '2026-06-10', fri: '2026-06-12' },
+  // 6/17=6月度マンスリー確認テスト → D16以降は金曜が先
+  'D16': { wed: '2026-06-24', fri: '2026-06-19' },
+  'D17': { wed: '2026-07-01', fri: '2026-06-26' },
+  'D18': { wed: '2026-07-08', fri: '2026-07-03' },
+  'D19': { wed: '2026-07-15', fri: '2026-07-10' },
+  // 7/17=7月度復習テスト
+}
+
+// テスト日程
+export const SAPIX_TESTS_4_2026_FIRST = [
+  { date: '2026-03-08', name: '3月度組分けテスト' },
+  { date: '2026-03-25', name: '3月度復習テスト' },
+  { date: '2026-05-08', name: '5月度マンスリー確認テスト' },
+  { date: '2026-06-17', name: '6月度マンスリー確認テスト' },
+  { date: '2026-07-17', name: '7月度復習テスト' },
+]
+
+// 春期講習日程
+export const SAPIX_SPRING_4_2026 = [
+  { date: '2026-03-28', day: '土' },
+  { date: '2026-03-29', day: '日' },
+  { date: '2026-03-30', day: '月' },
+  { date: '2026-04-01', day: '水' },
+  { date: '2026-04-02', day: '木' },
+]
+
 // ── 正規表現 ────────────────────────────────────────────────
 // 通常: 41B-02, 430-01 / 季節講習: H41-01, N43-03, F43-02
 const CODE_REGEX = /(\d{2}[A-B]-\d{2}|\d{3}-\d{2}|[HNF]\d{2}-\d{2})/
@@ -238,6 +285,28 @@ export function gradeFromCode(code) {
   const gradeChar = /^[HNF]/.test(code) ? code.charAt(1) : code.charAt(0)
   const gradeMap = { '3': '3年生', '4': '4年生', '5': '5年生', '6': '6年生' }
   return gradeMap[gradeChar] || null
+}
+
+/**
+ * テキストコードから授業日（学習日）を自動取得する
+ * 水曜 = 算数B(41B) + 理科(43x), 金曜 = 国語A(41A) + 社会(44x)
+ * @param {string} code - 例: "41B-02", "430-03", "440-01"
+ * @returns {string|null} - 例: "2026-02-18" or null
+ */
+export function getStudyDateFromCode(code) {
+  // テキストコードから連番を抽出
+  const numMatch = code.match(/^(?:41[AB]|43\d|44\d)-(\d{2})$/)
+  if (!numMatch) return null
+  const num = parseInt(numMatch[1])
+  if (num < 1 || num > 19) return null
+  const dKey = `D${String(num).padStart(2, '0')}`
+  const cal = SAPIX_CALENDAR_4_2026_FIRST[dKey]
+  if (!cal) return null
+  // 算数B (41B) + 理科 (43x) → 水曜
+  if (/^41B-|^43\d-/.test(code)) return cal.wed
+  // 国語A (41A) + 社会 (44x) → 金曜
+  if (/^41A-|^44\d-/.test(code)) return cal.fri
+  return null
 }
 
 /**

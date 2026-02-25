@@ -11,7 +11,7 @@ import DriveFilePicker from './DriveFilePicker'
 import UnitTagPicker from './UnitTagPicker'
 import { addLessonLogWithStats, getLessonLogs, deleteLessonLogsBySource, EVALUATION_SCORES, EVALUATION_LABELS, EVALUATION_COLORS } from '../utils/lessonLogs'
 import { getStaticMasterUnits } from '../utils/importMasterUnits'
-import { extractSapixCode, lookupSapixSchedule, gradeFromCode } from '../utils/sapixSchedule'
+import { extractSapixCode, lookupSapixSchedule, gradeFromCode, getStudyDateFromCode } from '../utils/sapixSchedule'
 import EmptyState from './EmptyState'
 import {
   getProblemsBySource,
@@ -134,15 +134,17 @@ function SapixTextView({ user }) {
     const code = extractSapixCode(fileName)
     const schedule = code ? lookupSapixSchedule(code) : null
     const grade = code ? gradeFromCode(code) : null
+    const studyDate = code ? getStudyDateFromCode(code) : null
     const patch = {
       ...basePatch,
       ...(schedule && { textName: schedule.name, unitIds: schedule.unitIds, subject: schedule.subject }),
       ...(code && { textNumber: code }),
       ...(grade && { grade }),
+      ...(studyDate && { studyDate }),
     }
     dispatch({ type: 'PATCH_ADD_FORM', patch })
     if (schedule) {
-      toast.success(`${code} → ${schedule.name} を自動設定しました`)
+      toast.success(`${code} → ${schedule.name}${studyDate ? ` (${studyDate})` : ''} を自動設定しました`)
     } else {
       toast.success(TOAST.UPLOAD_SUCCESS)
     }
