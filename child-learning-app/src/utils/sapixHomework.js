@@ -47,7 +47,7 @@ const HOMEWORK_TEMPLATES = {
       studyPriority: 3,
       studyCategory: 'basic-training',
       title: '基礎力トレーニング',
-      dayOffsets: [1, 2, 3, 4, 5, 6],
+      dayOffsets: [0, 1, 2, 3, 4, 5, 6],
       priority: 'B',
     },
     {
