@@ -87,11 +87,69 @@ const SAPIX_SCHEDULE = {
   'F41-04': { name: '場合の数',           unitIds: ['SAN_COMB_COUNT'],    subject: '算数' },
   'F41-05': { name: '立体図形',           unitIds: ['SAN_SOLID_BASIC'],   subject: '算数' },
   'F41-06': { name: '総合（01～05）',     unitIds: [],                    subject: '算数' },
+
+  // ═══ 4年生 通常授業（理科）══════════════════════════════════
+  '430-01': { name: '磁石の性質',         unitIds: ['RIK_PHY_MAGNET'],        subject: '理科' },
+  '430-02': { name: '電気の性質',         unitIds: ['RIK_PHY_CIRCUIT_BASIC'], subject: '理科' },
+  '430-03': { name: '電磁石のはたらき',   unitIds: ['RIK_PHY_MAGNET'],        subject: '理科' },
+  '430-04': { name: '昆虫①',             unitIds: ['RIK_BIO_INSECT'],        subject: '理科' },
+  '430-05': { name: 'メダカの生態',       unitIds: ['RIK_BIO_FISH'],          subject: '理科' },
+  '430-06': { name: '食物連鎖',           unitIds: ['RIK_BIO_ECOLOGY'],       subject: '理科' },
+  '430-07': { name: '酸素の性質',         unitIds: ['RIK_CHE_GAS_BASIC'],     subject: '理科' },
+  '430-08': { name: '二酸化炭素の性質',   unitIds: ['RIK_CHE_GAS_BASIC'],     subject: '理科' },
+  '430-09': { name: '気体の発生',         unitIds: ['RIK_CHE_GAS_BASIC'],     subject: '理科' },
+  '430-10': { name: '植物のはたらき①',   unitIds: ['RIK_BIO_PHOTO'],         subject: '理科' },
+  '430-11': { name: '植物のはたらき②',   unitIds: ['RIK_BIO_PHOTO'],         subject: '理科' },
+  '430-12': { name: '生き物のつながり',   unitIds: ['RIK_BIO_ECOLOGY'],       subject: '理科' },
+  '430-13': { name: '水溶液①',           unitIds: ['RIK_CHE_DISSOLVE'],      subject: '理科' },
+  '430-14': { name: '水溶液②',           unitIds: ['RIK_CHE_ACID'],          subject: '理科' },
+  '430-15': { name: '水溶液③',           unitIds: ['RIK_CHE_NEUTRAL'],       subject: '理科' },
+  '430-16': { name: '花と受粉',           unitIds: ['RIK_BIO_FLOWER'],        subject: '理科' },
+  '430-17': { name: '種子と発芽',         unitIds: ['RIK_BIO_PLANT_GROW'],    subject: '理科' },
+  '430-18': { name: '生き物の増え方',     unitIds: ['RIK_BIO_ECOLOGY'],       subject: '理科' },
+  '430-19': { name: '植物の分類',         unitIds: ['RIK_BIO_PLANT_CLASS'],   subject: '理科' },
+  '430-20': { name: '地層①',             unitIds: ['RIK_GEO_LAYER'],         subject: '理科' },
+  '430-21': { name: '地層②',             unitIds: ['RIK_GEO_LAYER'],         subject: '理科' },
+  '430-22': { name: '地面の動き',         unitIds: ['RIK_GEO_QUAKE'],         subject: '理科' },
+  '430-23': { name: '膨張と収縮',         unitIds: ['RIK_PHY_EXPAND'],        subject: '理科' },
+  '430-24': { name: '水の三態①',         unitIds: ['RIK_CHE_STATE'],         subject: '理科' },
+  '430-25': { name: '熱の伝わり方',       unitIds: ['RIK_PHY_HEAT'],          subject: '理科' },
+  '430-26': { name: '光の性質',           unitIds: ['RIK_PHY_MIRROR'],        subject: '理科' },
+  '430-27': { name: '水の三態②',         unitIds: ['RIK_CHE_STATE'],         subject: '理科' },
+  '430-28': { name: '気象',               unitIds: ['RIK_GEO_WEATHER'],       subject: '理科' },
+  '430-29': { name: '太陽②',             unitIds: ['RIK_GEO_SUN_DAY'],      subject: '理科' },
+  '430-30': { name: '太陽③',             unitIds: ['RIK_GEO_SUN_YEAR'],     subject: '理科' },
+  '430-31': { name: '太陽④',             unitIds: ['RIK_GEO_SUN_YEAR'],     subject: '理科' },
+  '430-32': { name: '植物のはたらき③',   unitIds: ['RIK_BIO_PHOTO'],         subject: '理科' },
+  '430-33': { name: '昆虫③',             unitIds: ['RIK_BIO_INSECT_SEAS'],   subject: '理科' },
+  '430-34': { name: '生き物の分類②',     unitIds: ['RIK_BIO_ANIMAL'],        subject: '理科' },
+  '430-35': { name: '栄養素',             unitIds: ['RIK_BIO_DIGEST'],        subject: '理科' },
+  '430-36': { name: '動物の分類',         unitIds: ['RIK_BIO_ANIMAL'],        subject: '理科' },
+
+  // ═══ 4年生 春期講習（理科）═════════════════════════════════
+  'H43-01': { name: '太陽①',             unitIds: ['RIK_GEO_SUN_DAY'],      subject: '理科' },
+  'H43-02': { name: '星①',               unitIds: ['RIK_GEO_STAR'],          subject: '理科' },
+  'H43-03': { name: '天体総合',           unitIds: [],                        subject: '理科' },
+
+  // ═══ 4年生 夏期講習（理科）═════════════════════════════════
+  'N43-01': { name: '昆虫②',             unitIds: ['RIK_BIO_INSECT_SEAS'],   subject: '理科' },
+  'N43-02': { name: '生き物の分類①',     unitIds: ['RIK_BIO_ANIMAL'],        subject: '理科' },
+  'N43-03': { name: '星②',               unitIds: ['RIK_GEO_STAR'],          subject: '理科' },
+  'N43-04': { name: '星③',               unitIds: ['RIK_GEO_STAR'],          subject: '理科' },
+  'N43-05': { name: '星④',               unitIds: ['RIK_GEO_STAR'],          subject: '理科' },
+  'N43-06': { name: 'ばねの性質',         unitIds: ['RIK_PHY_SCALE'],         subject: '理科' },
+  'N43-07': { name: 'てこ①',             unitIds: ['RIK_PHY_LEVER'],         subject: '理科' },
+  'N43-08': { name: 'てこ②',             unitIds: ['RIK_PHY_LEVER'],         subject: '理科' },
+
+  // ═══ 4年生 冬期講習（理科）═════════════════════════════════
+  'F43-01': { name: '電気回路①',         unitIds: ['RIK_PHY_CIRCUIT_BASIC'], subject: '理科' },
+  'F43-02': { name: '電気回路②',         unitIds: ['RIK_PHY_CIRCUIT'],       subject: '理科' },
+  'F43-03': { name: '電気回路③',         unitIds: ['RIK_PHY_CIRCUIT'],       subject: '理科' },
 }
 
 // ── 正規表現 ────────────────────────────────────────────────
-// 通常: 41B-02 / 季節講習: H41-01, N41-03, F41-02
-const CODE_REGEX = /(\d{2}[A-B]-\d{2}|[HNF]\d{2}-\d{2})/
+// 通常: 41B-02, 430-01 / 季節講習: H41-01, N43-03, F43-02
+const CODE_REGEX = /(\d{2}[A-B]-\d{2}|\d{3}-\d{2}|[HNF]\d{2}-\d{2})/
 
 /**
  * ファイル名から SAPIX テキストコードを抽出する
