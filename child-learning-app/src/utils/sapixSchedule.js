@@ -147,9 +147,9 @@ const SAPIX_SCHEDULE = {
   'F43-03': { name: '電気回路③',         unitIds: ['RIK_PHY_CIRCUIT'],       subject: '理科' },
 
   // ═══ 4年生 通常授業（社会）══════════════════════════════════
-  '440-01': { name: '紙と生活',                             unitIds: [],                    subject: '社会' },
-  '440-02': { name: '日本の住居',                           unitIds: [],                    subject: '社会' },
-  '440-03': { name: '日本の衣服',                           unitIds: [],                    subject: '社会' },
+  '440-01': { name: '紙と生活',                             unitIds: ['SHA_GEO_LIFE'],      subject: '社会' },
+  '440-02': { name: '日本の住居',                           unitIds: ['SHA_GEO_LIFE'],      subject: '社会' },
+  '440-03': { name: '日本の衣服',                           unitIds: ['SHA_GEO_LIFE'],      subject: '社会' },
   '440-04': { name: '電気エネルギー',                       unitIds: ['SHA_GEO_RESOURCE'],  subject: '社会' },
   '440-05': { name: '自動車産業',                           unitIds: ['SHA_GEO_INDUSTRY'],  subject: '社会' },
   '440-06': { name: '商店と流通',                           unitIds: ['SHA_GEO_TRADE'],     subject: '社会' },

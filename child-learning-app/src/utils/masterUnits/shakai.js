@@ -5,7 +5,8 @@
  * order_index: 3001〜3500（3000番台）
  */
 export const SHAKAI_UNITS = [
-  // 地理分野：地域・産業 (19)
+  // 地理分野：地域・産業 (20)
+  { id: 'SHA_GEO_LIFE',      name: '日本のくらし',                       category: '地理分野：地域・産業', difficulty_level: 1, order_index: 3005 },
   { id: 'SHA_GEO_MAP',       name: '地図の見方・記号',                   category: '地理分野：地域・産業', difficulty_level: 1, order_index: 3010 },
   { id: 'SHA_GEO_LAND',      name: '日本の国土と地形（山地・平野・川）', category: '地理分野：地域・産業', difficulty_level: 2, order_index: 3020 },
   { id: 'SHA_GEO_CLIMATE',   name: '日本の気候と自然災害',               category: '地理分野：地域・産業', difficulty_level: 2, order_index: 3030 },
