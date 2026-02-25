@@ -514,6 +514,29 @@
   font-size: 0.8rem;
 }
 
+/* 未登録セッション — 破線 + 薄表示 */
+.calendar-lesson.session-unlinked {
+  background: transparent;
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--subject-color, #3b82f6) 20%, var(--color-gray-200));
+  opacity: 0.55;
+}
+
+.calendar-lesson.session-unlinked .lesson-name {
+  color: var(--color-gray-500, #6b7280);
+  font-weight: 500;
+}
+
+.session-pending-badge {
+  font-size: 0.6rem;
+  color: var(--color-gray-400, #9ca3af);
+  background: var(--color-gray-100, #f3f4f6);
+  border-radius: 4px;
+  padding: 1px 4px;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
 .calendar-lesson.clickable-row {
   cursor: pointer;
   transition: all 0.15s;
@@ -552,6 +575,16 @@
 .lesson-dot {
   font-size: 1.2rem;
   position: relative;
+}
+
+/* 月間ビュー — 未登録セッションドット */
+.lesson-dot.session-dot-unlinked {
+  opacity: 0.35;
+  filter: grayscale(0.6);
+}
+
+.lesson-dot.session-dot-unlinked::after {
+  display: none;
 }
 
 .lesson-dot::after {

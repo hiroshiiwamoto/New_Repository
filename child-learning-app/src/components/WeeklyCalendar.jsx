@@ -1,9 +1,13 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import './WeeklyCalendar.css'
 import { subjectEmojis, subjectColors, weekDayNames } from '../utils/constants'
 import { getWeekStart, formatDate, addDays } from '../utils/dateUtils'
+import { generateSapixSessions } from '../utils/sapixSchedule'
 import TaskDetailModal from './TaskDetailModal'
 import TextDetailModal from './TextDetailModal'
+
+// 静的データ — コンポーネント外で1回だけ生成
+const SAPIX_SESSIONS = generateSapixSessions()
 
 function WeeklyCalendar({ tasks, sapixTexts = [], testScores = [], onToggleTask, onDeleteTask, onEditTask, onTestClick, userId }) {
   // サンプルデータが2025年2月なので、初期表示を2月に設定
@@ -98,17 +102,93 @@ function WeeklyCalendar({ tasks, sapixTexts = [], testScores = [], onToggleTask,
     return tasks.filter(task => task.dueDate === dateStr)
   }
 
-  function getLessonsForDate(date) {
-    const dateStr = formatDate(date)
-    return sapixTexts.filter(t => t.studyDate === dateStr)
-  }
-
   function getTestsForDate(date) {
     const dateStr = formatDate(date)
     return testScores.filter(t => t.testDate === dateStr)
   }
 
+  // ── セッション × テキスト マージロジック ────────────────────
+  // textNumber → sapixText のマップ（O(1)検索用）
+  const textByCode = useMemo(() => {
+    const map = {}
+    sapixTexts.forEach(t => { if (t.textNumber) map[t.textNumber] = t })
+    return map
+  }, [sapixTexts])
+
+  /**
+   * 指定日のセッション一覧を返す。
+   * 登録済みテキストがあれば linkedText にセット。
+   * セッションに紐づかないテキスト（手動登録等）も末尾に追加。
+   */
+  function getMergedLessonsForDate(date) {
+    const dateStr = formatDate(date)
+    const sessions = SAPIX_SESSIONS.filter(s => s.date === dateStr)
+    const matchedTextIds = new Set()
+
+    const merged = sessions.map(session => {
+      const linked = textByCode[session.textCode] || null
+      if (linked) matchedTextIds.add(linked.id)
+      return { ...session, linkedText: linked }
+    })
+
+    // セッションに紐づかないテキスト（手動登録等）
+    const manualTexts = sapixTexts.filter(t => t.studyDate === dateStr && !matchedTextIds.has(t.id))
+    for (const text of manualTexts) {
+      merged.push({
+        date: dateStr,
+        dNumber: null,
+        subject: text.subject,
+        textCode: text.textNumber,
+        name: text.textName,
+        unitIds: text.unitIds || [],
+        linkedText: text,
+      })
+    }
+    return merged
+  }
+
   const today = formatDate(new Date())
+
+  // ── セッション行の描画（週間ビュー用）──────────────────────
+  const renderSessionItem = (item, index) => {
+    const linked = item.linkedText
+    return (
+      <div
+        key={`session-${item.textCode || index}`}
+        className={`calendar-lesson ${linked ? '' : 'session-unlinked'} ${linked && userId ? 'clickable-row' : ''}`}
+        style={{ '--subject-color': subjectColors[item.subject] || '#3b82f6' }}
+        onClick={() => linked && userId && setDetailText(linked)}
+        title={linked
+          ? `${item.textCode} ${item.name} (登録済み)`
+          : `${item.dNumber} ${item.name} (未登録)`}
+      >
+        <span className="lesson-icon">{subjectEmojis[item.subject] || '📘'}</span>
+        <span className="lesson-name">
+          {linked
+            ? `${item.textCode} ${item.name}`
+            : `${item.dNumber} ${item.name}`}
+        </span>
+        {!linked && <span className="session-pending-badge">未登録</span>}
+      </div>
+    )
+  }
+
+  // ── セッションドットの描画（月間ビュー用）─────────────────
+  const renderSessionDot = (item, index) => {
+    const linked = item.linkedText
+    return (
+      <div
+        key={`dot-${item.textCode || index}`}
+        className={`lesson-dot ${linked ? '' : 'session-dot-unlinked'} ${linked && userId ? 'clickable' : ''}`}
+        title={linked
+          ? `${item.textCode} ${item.name} (登録済み)`
+          : `${item.dNumber} ${item.name} (未登録)`}
+        onClick={() => linked && userId && setDetailText(linked)}
+      >
+        {subjectEmojis[item.subject] || '📘'}
+      </div>
+    )
+  }
 
   return (
     <div className="weekly-calendar">
@@ -156,7 +236,7 @@ function WeeklyCalendar({ tasks, sapixTexts = [], testScores = [], onToggleTask,
           {days.map((day, index) => {
             const dateStr = formatDate(day)
             const dayTasks = getTasksForDate(day)
-            const dayLessons = getLessonsForDate(day)
+            const dayLessons = getMergedLessonsForDate(day)
             const dayTests = getTestsForDate(day)
             const isToday = dateStr === today
             const isEmpty = dayTasks.length === 0 && dayLessons.length === 0 && dayTests.length === 0
@@ -182,17 +262,7 @@ function WeeklyCalendar({ tasks, sapixTexts = [], testScores = [], onToggleTask,
                       {test.status === 'scheduled' && <span className="test-badge">予定</span>}
                     </div>
                   ))}
-                  {dayLessons.map(lesson => (
-                    <div
-                      key={lesson.id}
-                      className={`calendar-lesson ${userId ? 'clickable-row' : ''}`}
-                      style={{ '--subject-color': subjectColors[lesson.subject] || '#3b82f6' }}
-                      onClick={() => userId && setDetailText(lesson)}
-                    >
-                      <span className="lesson-icon">{subjectEmojis[lesson.subject] || '📘'}</span>
-                      <span className="lesson-name">{lesson.textNumber ? `${lesson.textNumber} ` : ''}{lesson.textName}</span>
-                    </div>
-                  ))}
+                  {dayLessons.map((item, i) => renderSessionItem(item, i))}
                   {dayTasks.map(task => (
                     <div
                       key={task.id}
@@ -238,7 +308,7 @@ function WeeklyCalendar({ tasks, sapixTexts = [], testScores = [], onToggleTask,
             {getMonthDays().map((day, index) => {
               const dateStr = formatDate(day)
               const dayTasks = getTasksForDate(day)
-              const dayLessons = getLessonsForDate(day)
+              const dayLessons = getMergedLessonsForDate(day)
               const dayTests = getTestsForDate(day)
               const isToday = dateStr === today
               const isCurrentMonth = day.getMonth() === currentMonth.getMonth()
@@ -266,16 +336,7 @@ function WeeklyCalendar({ tasks, sapixTexts = [], testScores = [], onToggleTask,
                     )}
                     {dayLessons.length > 0 && (
                       <div className="lesson-indicators">
-                        {dayLessons.map(lesson => (
-                          <div
-                            key={lesson.id}
-                            className={`lesson-dot ${userId ? 'clickable' : ''}`}
-                            title={`${lesson.textNumber || ''} ${lesson.textName} (クリックして詳細表示)`}
-                            onClick={() => userId && setDetailText(lesson)}
-                          >
-                            {subjectEmojis[lesson.subject] || '📘'}
-                          </div>
-                        ))}
+                        {dayLessons.map((item, i) => renderSessionDot(item, i))}
                       </div>
                     )}
                     {dayTasks.length > 0 && (

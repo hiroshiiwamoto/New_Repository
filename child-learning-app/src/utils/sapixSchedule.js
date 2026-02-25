@@ -310,6 +310,37 @@ export function getStudyDateFromCode(code) {
 }
 
 /**
+ * 2026年度 前期 全授業セッション一覧を生成する
+ * 水曜 = 算数B + 理科, 金曜 = 国語A + 社会
+ * @returns {Array<{ date: string, dNumber: string, subject: string, textCode: string, name: string, unitIds: string[] }>}
+ */
+export function generateSapixSessions() {
+  const sessions = []
+  for (const [dNum, dates] of Object.entries(SAPIX_CALENDAR_4_2026_FIRST)) {
+    const num = dNum.replace('D', '')
+    const sansuCode = `41B-${num}`
+    const rikaCode = `430-${num}`
+    const shakaiCode = `440-${num}`
+    // 水曜: 算数B + 理科
+    const sansuInfo = SAPIX_SCHEDULE[sansuCode]
+    if (sansuInfo) {
+      sessions.push({ date: dates.wed, dNumber: dNum, subject: '算数', textCode: sansuCode, name: sansuInfo.name, unitIds: sansuInfo.unitIds })
+    }
+    const rikaInfo = SAPIX_SCHEDULE[rikaCode]
+    if (rikaInfo) {
+      sessions.push({ date: dates.wed, dNumber: dNum, subject: '理科', textCode: rikaCode, name: rikaInfo.name, unitIds: rikaInfo.unitIds })
+    }
+    // 金曜: 国語A + 社会
+    sessions.push({ date: dates.fri, dNumber: dNum, subject: '国語', textCode: `41A-${num}`, name: `国語A ${dNum}`, unitIds: [] })
+    const shakaiInfo = SAPIX_SCHEDULE[shakaiCode]
+    if (shakaiInfo) {
+      sessions.push({ date: dates.fri, dNumber: dNum, subject: '社会', textCode: shakaiCode, name: shakaiInfo.name, unitIds: shakaiInfo.unitIds })
+    }
+  }
+  return sessions.sort((a, b) => a.date.localeCompare(b.date))
+}
+
+/**
  * 教科でフィルタした SAPIX テキストコード一覧を返す（autocomplete用）
  * @param {string} subject - 例: '算数'
  * @returns {string[]}
