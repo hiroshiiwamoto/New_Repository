@@ -12,6 +12,7 @@ import {
   EVALUATION_COLORS,
 } from '../utils/lessonLogs'
 import { subjectEmojis, subjectColors } from '../utils/constants'
+import { getAllProblems, reviewStatusInfo, missTypeLabel } from '../utils/problems'
 import TextDetailModal from './TextDetailModal'
 import Loading from './Loading'
 import './MasterUnitDashboard.css'
@@ -32,6 +33,8 @@ function MasterUnitDashboard({ sapixTexts = [], userId }) {
   // ドリルダウンモーダル
   const [drillUnit, setDrillUnit] = useState(null)
   const [drillLogs, setDrillLogs] = useState([])
+  const [drillProblems, setDrillProblems] = useState([])
+  const [allProblems, setAllProblems] = useState(null) // null = 未ロード
 
   // テキスト詳細モーダル
   const [detailText, setDetailText] = useState(null)
@@ -76,6 +79,29 @@ function MasterUnitDashboard({ sapixTexts = [], userId }) {
       })
     setDrillLogs(unitLogs)
   }, [allLogs, drillUnit])
+
+  // drillUnit が開かれたとき、problems を取得してフィルタ
+  useEffect(() => {
+    if (!drillUnit || !userId) {
+      setDrillProblems([])
+      return
+    }
+    async function loadProblems() {
+      // 全 problems を一度だけ取得（キャッシュ）
+      let problems = allProblems
+      if (!problems) {
+        const result = await getAllProblems(userId)
+        problems = result.success ? result.data : []
+        setAllProblems(problems)
+      }
+      // この単元に関連する不正解問題をフィルタ
+      const unitProblems = problems.filter(
+        p => !p.isCorrect && p.unitIds?.includes(drillUnit.id)
+      )
+      setDrillProblems(unitProblems)
+    }
+    loadProblems()
+  }, [drillUnit, userId, allProblems])
 
   // ドリルダウン：メイン単元として評価されたログに共起するサブ単元を集計
   const coOccurringUnits = drillUnit
@@ -537,6 +563,39 @@ function MasterUnitDashboard({ sapixTexts = [], userId }) {
                 </button>
               )}
             </div>
+
+            {/* この単元の間違い問題 */}
+            {drillProblems.length > 0 && (
+              <div className="mud-drill-problems">
+                <h4>✗ この単元の間違い問題 ({drillProblems.length}件)</h4>
+                <div className="mud-drill-problem-list">
+                  {drillProblems.map(problem => {
+                    const st = reviewStatusInfo(problem.reviewStatus)
+                    return (
+                      <div key={problem.id} className="mud-drill-problem-item">
+                        <span className="mud-problem-number">第{problem.problemNumber}問</span>
+                        {problem.missType && (
+                          <span className={`mud-problem-miss-type miss-${problem.missType}`}>
+                            {missTypeLabel(problem.missType)}
+                          </span>
+                        )}
+                        <span
+                          className="mud-problem-review-badge"
+                          style={{ background: st.bg, color: st.color }}
+                        >
+                          {st.label}
+                        </span>
+                        {problem.correctRate != null && (
+                          <span className="mud-problem-correct-rate">
+                            正答率{problem.correctRate}%
+                          </span>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* 履歴リスト */}
             <div className="mud-drill-history">

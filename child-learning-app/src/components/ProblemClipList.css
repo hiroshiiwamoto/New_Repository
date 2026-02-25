@@ -561,3 +561,18 @@
   cursor: not-allowed;
 }
 
+/* 正答率50%以上で不正解の警告バッジ */
+.clip-rate-warning {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #ea580c;
+  background: #fff7ed;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid #fed7aa;
+  white-space: nowrap;
+}
+

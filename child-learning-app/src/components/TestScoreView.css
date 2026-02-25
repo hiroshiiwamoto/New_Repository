@@ -1962,3 +1962,49 @@
   color: var(--color-danger, #ef4444);
   font-weight: 600;
 }
+
+/* 問題分析プロンプト */
+.test-analysis-prompt {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  margin: 16px 0;
+}
+
+.test-analysis-prompt-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.test-analysis-prompt-text strong {
+  display: block;
+  font-size: 0.9rem;
+  color: #1e40af;
+  margin-bottom: 4px;
+}
+
+.test-analysis-prompt-text p {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #3b82f6;
+  line-height: 1.5;
+}
+
+/* 正答率50%以上で不正解の問題に警告アイコン */
+.clip-rate-warning {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #ea580c;
+  background: #fff7ed;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid #fed7aa;
+}

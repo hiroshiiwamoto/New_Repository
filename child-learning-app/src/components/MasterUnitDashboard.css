@@ -811,3 +811,76 @@
   color: #0284c7;
   font-weight: 700;
 }
+
+/* 間違い問題セクション（ドリルダウンモーダル内） */
+.mud-drill-problems {
+  margin: 12px 0;
+  padding: 12px;
+  background: #fef2f2;
+  border-radius: 10px;
+  border: 1px solid #fecaca;
+}
+
+.mud-drill-problems h4 {
+  margin: 0 0 8px 0;
+  font-size: 0.85rem;
+  color: #991b1b;
+}
+
+.mud-drill-problem-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mud-drill-problem-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
+  flex-wrap: wrap;
+}
+
+.mud-problem-number {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-gray-800);
+}
+
+.mud-problem-miss-type {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.mud-problem-miss-type.miss-understanding {
+  color: #dc2626;
+  background: #fee2e2;
+}
+
+.mud-problem-miss-type.miss-careless {
+  color: #ca8a04;
+  background: #fef9c3;
+}
+
+.mud-problem-miss-type.miss-not_studied {
+  color: #64748b;
+  background: #f1f5f9;
+}
+
+.mud-problem-review-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.mud-problem-correct-rate {
+  font-size: 0.7rem;
+  color: var(--color-gray-500);
+  margin-left: auto;
+}

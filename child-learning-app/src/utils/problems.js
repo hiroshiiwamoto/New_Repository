@@ -186,6 +186,22 @@ export async function deleteProblemsBySource(userId, sourceType, sourceId) {
   }
 }
 
+/**
+ * ユーザーの全問題を取得
+ * @param {string} userId
+ */
+export async function getAllProblems(userId) {
+  try {
+    const ref = collection(db, 'users', userId, 'problems')
+    const snapshot = await getDocs(ref)
+    const problems = snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
+    return { success: true, data: problems }
+  } catch (error) {
+    console.error('Error getting all problems:', error)
+    return { success: false, error: error.message, data: [] }
+  }
+}
+
 // ─── ヘルパー ───────────────────────────────────────────
 
 /** reviewStatus の表示情報 */

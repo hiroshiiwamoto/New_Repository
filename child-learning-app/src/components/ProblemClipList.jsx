@@ -299,6 +299,11 @@ export default function ProblemClipList({
               {problem.correctRate}%
             </span>
           )}
+          {!problem.isCorrect && problem.correctRate != null && parseFloat(problem.correctRate) >= 50 && (
+            <span className="clip-rate-warning" title="正答率50%以上で不正解 — 取るべき問題">
+              🔺要注意
+            </span>
+          )}
           {multiSubject && problem.subject && (
             <span className={`clip-subject subject-${problem.subject}`}>{problem.subject}</span>
           )}

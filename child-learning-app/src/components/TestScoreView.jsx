@@ -1078,6 +1078,17 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId }) {
         />
       )}
 
+      {/* 問題分析プロンプト: スコア入力済み＆問題クリップ0件 */}
+      {state.selectedScore.fourSubjects?.score != null && state.problemsCache.length === 0 && (
+        <div className="test-analysis-prompt">
+          <span className="test-analysis-prompt-icon">📊</span>
+          <div className="test-analysis-prompt-text">
+            <strong>問題分析をしますか？</strong>
+            <p>間違えた問題を記録すると、弱点分析や復習タスクの自動生成に活用できます。</p>
+          </div>
+        </div>
+      )}
+
       {/* 問題クリップ */}
       <ProblemClipList
         userId={user.uid}

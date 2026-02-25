@@ -18,6 +18,7 @@ import {
   deleteProblemsBySource,
 } from '../utils/problems'
 import ProblemClipList from './ProblemClipList'
+import QuickMistakeInput from './QuickMistakeInput'
 
 const defaultFormState = {
   textName: '',
@@ -75,6 +76,9 @@ function SapixTextView({ user }) {
     getStaticMasterUnits().forEach(u => { map[u.id] = u.name })
     return map
   }, [])
+
+  // 間違い問題クイック登録モーダル
+  const [quickMistakeText, setQuickMistakeText] = useState(null)
 
   const addFileInputRef = useRef(null)
   const editFileInputRef = useRef(null)
@@ -605,6 +609,13 @@ function SapixTextView({ user }) {
                       )}
                     </div>
                     <div className="sapix-text-actions">
+                      <button
+                        className="quick-mistake-btn"
+                        onClick={() => setQuickMistakeText(text)}
+                        title="間違い問題をクイック登録"
+                      >
+                        ⚡ 間違い登録
+                      </button>
                       {text.fileUrl && (
                         <button
                           className={`pdf-view-btn ${state.viewingPDF?.id === text.id ? 'active' : ''}`}
@@ -736,6 +747,18 @@ function SapixTextView({ user }) {
             dispatch({ type: 'SET_FIELD', field: 'showDrivePicker', value: null })
           }}
           onClose={() => dispatch({ type: 'SET_FIELD', field: 'showDrivePicker', value: null })}
+        />
+      )}
+
+      {/* 間違い問題クイック登録モーダル */}
+      {quickMistakeText && (
+        <QuickMistakeInput
+          userId={user.uid}
+          sapixText={quickMistakeText}
+          onClose={() => setQuickMistakeText(null)}
+          onSaved={async () => {
+            await loadTexts()
+          }}
         />
       )}
 
