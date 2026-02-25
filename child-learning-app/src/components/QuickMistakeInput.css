@@ -150,28 +150,73 @@
   border-color: var(--color-primary);
 }
 
-/* 問題番号選択 */
-.qmi-problems {
+/* ── セクションタブ ── */
+.qmi-tabs {
+  display: flex;
+  gap: 4px;
   margin-bottom: 12px;
+  border-bottom: 2px solid var(--color-gray-100);
+  padding-bottom: 0;
 }
 
-.qmi-problems-label {
-  font-size: 0.82rem;
+.qmi-tab {
+  flex: 1;
+  padding: 7px 4px;
+  font-size: 0.75rem;
   font-weight: 600;
-  color: var(--color-gray-700);
-  margin: 0 0 10px;
+  border: none;
+  background: none;
+  color: var(--color-gray-400);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.15s;
+  white-space: nowrap;
 }
 
-.qmi-problem-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+.qmi-tab:hover {
+  color: var(--color-gray-600);
+}
+
+.qmi-tab.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+/* ── セクション別問題グリッド ── */
+.qmi-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   margin-bottom: 10px;
 }
 
+.qmi-section-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.qmi-section-label {
+  flex-shrink: 0;
+  width: 72px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-gray-500);
+  text-align: right;
+}
+
+.qmi-section-btns {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+}
+
 .qmi-problem-btn {
-  padding: 10px 4px;
-  font-size: 0.85rem;
+  flex: 1;
+  padding: 8px 4px;
+  font-size: 0.78rem;
   font-weight: 600;
   border: 2px solid var(--color-gray-200);
   background: white;
@@ -179,6 +224,7 @@
   cursor: pointer;
   transition: all 0.15s;
   color: var(--color-gray-700);
+  min-width: 0;
 }
 
 .qmi-problem-btn:hover {
@@ -197,6 +243,7 @@
 .qmi-custom-input {
   display: flex;
   gap: 6px;
+  margin-bottom: 10px;
 }
 
 .qmi-custom-input input {
@@ -292,13 +339,18 @@
     max-height: 90vh;
   }
 
-  .qmi-problem-grid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
+  .qmi-section-label {
+    width: 56px;
+    font-size: 0.68rem;
   }
 
   .qmi-problem-btn {
-    padding: 8px 2px;
-    font-size: 0.78rem;
+    padding: 7px 2px;
+    font-size: 0.72rem;
+  }
+
+  .qmi-tab {
+    font-size: 0.7rem;
+    padding: 6px 2px;
   }
 }

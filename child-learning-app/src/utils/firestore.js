@@ -121,6 +121,33 @@ export const getTargetSchools = async (userId) => {
   }
 }
 
+// 家庭学習の完了状態を保存
+export const saveHomeworkDone = async (userId, homeworkDone) => {
+  try {
+    const userRef = getUserDoc(userId)
+    await setDoc(userRef, { homeworkDone }, { merge: true })
+    return { success: true }
+  } catch (error) {
+    console.error('Error saving homework done:', error)
+    return { success: false, error }
+  }
+}
+
+// 家庭学習の完了状態を読み込み
+export const loadHomeworkDone = async (userId) => {
+  try {
+    const userRef = getUserDoc(userId)
+    const docSnap = await getDoc(userRef)
+    if (docSnap.exists()) {
+      return { success: true, data: docSnap.data().homeworkDone || {} }
+    }
+    return { success: true, data: {} }
+  } catch (error) {
+    console.error('Error loading homework done:', error)
+    return { success: false, error, data: {} }
+  }
+}
+
 // localStorageからFirestoreへデータを移行
 export const migrateLocalStorageToFirestore = async (userId) => {
   try {

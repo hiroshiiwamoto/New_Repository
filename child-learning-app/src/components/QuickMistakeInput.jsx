@@ -9,8 +9,61 @@ import UnitTagPicker from './UnitTagPicker'
 import { SUBJECTS } from '../utils/constants'
 import './QuickMistakeInput.css'
 
-// 問題番号ボタンの初期候補
-const DEFAULT_PROBLEM_NUMBERS = ['1', '2', '3', '4', '5', '6', '7', '8']
+// ── Bテキスト共通構造 ──────────────────────────────────
+// 全Bテキストは同じページ構成:
+//   奇数P(3,5,7,9,11,13) = 授業用
+//   偶数P(4,6,8,10,12,14) = 復習用（授業とほぼ同内容）
+//   P15-17 = 頭脳トレーニング
+//   P18-27 = 練習しよう（ステップ①〜⑤）
+
+const SECTION_TABS = [
+  { key: 'class',    label: '授業' },
+  { key: 'review',   label: '復習' },
+  { key: 'practice', label: '練習しよう' },
+  { key: 'brain',    label: '頭脳トレ' },
+]
+
+const CLASS_SECTIONS = [
+  { page: 'P3',  problems: ['問1', '問2'] },
+  { page: 'P5',  problems: ['問1', '問2'] },
+  { page: 'P7',  problems: ['問1', '問2'] },
+  { page: 'P9',  problems: ['問1', '問2'] },
+  { page: 'P11', problems: ['問1', '問2'] },
+  { page: 'P13', problems: ['問1', '問2'] },
+]
+
+const REVIEW_SECTIONS = [
+  { page: 'P4',  problems: ['問1', '問2'] },
+  { page: 'P6',  problems: ['問1', '問2'] },
+  { page: 'P8',  problems: ['問1', '問2'] },
+  { page: 'P10', problems: ['問1', '問2'] },
+  { page: 'P12', problems: ['問1', '問2'] },
+  { page: 'P14', problems: ['問1', '問2'] },
+]
+
+const PRACTICE_SECTIONS = [
+  { label: 'ステップ①', page: 'P18-19', problems: ['問1', '問2'] },
+  { label: 'ステップ②', page: 'P20-21', problems: ['問1', '問2'] },
+  { label: 'ステップ③', page: 'P22-23', problems: ['問1', '問2'] },
+  { label: 'ステップ④', page: 'P24-25', problems: ['問1', '問2'] },
+  { label: 'ステップ⑤', page: 'P26-27', problems: ['問1', '問2', '問3'] },
+]
+
+const BRAIN_SECTIONS = [
+  { page: 'P15', problems: ['問1'] },
+  { page: 'P16', problems: ['問1'] },
+  { page: 'P17', problems: ['問1'] },
+]
+
+function getSectionsForTab(tab) {
+  switch (tab) {
+    case 'class':    return CLASS_SECTIONS
+    case 'review':   return REVIEW_SECTIONS
+    case 'practice': return PRACTICE_SECTIONS
+    case 'brain':    return BRAIN_SECTIONS
+    default:         return CLASS_SECTIONS
+  }
+}
 
 // パフォーマンス計算（間違い問題数→performance）
 function calculatePerformance(mistakeCount) {
@@ -30,6 +83,7 @@ function calculatePerformance(mistakeCount) {
  */
 export default function QuickMistakeInput({ userId, sapixText, onClose, onSaved }) {
   const [selectedProblems, setSelectedProblems] = useState(new Set())
+  const [activeTab, setActiveTab] = useState('review') // 家庭学習の最優先 = 復習
   const [customNumber, setCustomNumber] = useState('')
   const [saving, setSaving] = useState(false)
   const [done, setDone] = useState(false)
@@ -61,14 +115,14 @@ export default function QuickMistakeInput({ userId, sapixText, onClose, onSaved 
 
   const unitNames = effectiveUnitIds.map(id => unitNameMap[id] || id)
 
-  // 問題番号トグル
-  const toggleProblem = (num) => {
+  // 問題番号トグル（"P3 問1" のような形式でキーを管理）
+  const toggleProblem = (key) => {
     setSelectedProblems(prev => {
       const next = new Set(prev)
-      if (next.has(num)) {
-        next.delete(num)
+      if (next.has(key)) {
+        next.delete(key)
       } else {
-        next.add(num)
+        next.add(key)
       }
       return next
     })
@@ -136,16 +190,8 @@ export default function QuickMistakeInput({ userId, sapixText, onClose, onSaved 
     }
   }
 
-  // 全問題番号リスト（デフォルト + カスタム追加分）
-  const allNumbers = useMemo(() => {
-    const nums = [...DEFAULT_PROBLEM_NUMBERS]
-    for (const num of selectedProblems) {
-      if (!nums.includes(num)) nums.push(num)
-    }
-    return nums
-  }, [selectedProblems])
-
   const code = sapixText.textNumber || sapixText.sapixCode || ''
+  const sections = getSectionsForTab(activeTab)
 
   return createPortal(
     <div className="qmi-overlay" onClick={onClose}>
@@ -209,30 +255,56 @@ export default function QuickMistakeInput({ userId, sapixText, onClose, onSaved 
               </div>
             )}
 
-            {/* 問題番号選択 */}
-            <div className="qmi-problems">
-              <p className="qmi-problems-label">間違えた問題を選んでください:</p>
-              <div className="qmi-problem-grid">
-                {allNumbers.map(num => (
-                  <button
-                    key={num}
-                    className={`qmi-problem-btn ${selectedProblems.has(num) ? 'selected' : ''}`}
-                    onClick={() => toggleProblem(num)}
-                  >
-                    {DEFAULT_PROBLEM_NUMBERS.includes(num) ? `問${num}` : num}
-                  </button>
-                ))}
-              </div>
-              <div className="qmi-custom-input">
-                <input
-                  type="text"
-                  placeholder="例: 9, 大問3(2)"
-                  value={customNumber}
-                  onChange={e => setCustomNumber(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && addCustomNumber()}
-                />
-                <button className="qmi-custom-add" onClick={addCustomNumber}>追加</button>
-              </div>
+            {/* セクションタブ */}
+            <div className="qmi-tabs">
+              {SECTION_TABS.map(tab => (
+                <button
+                  key={tab.key}
+                  className={`qmi-tab ${activeTab === tab.key ? 'active' : ''}`}
+                  onClick={() => setActiveTab(tab.key)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* 問題番号選択 — セクション別 */}
+            <div className="qmi-sections">
+              {sections.map((section, si) => {
+                const sectionLabel = section.label || section.page
+                return (
+                  <div key={si} className="qmi-section-row">
+                    <span className="qmi-section-label">{sectionLabel}</span>
+                    <div className="qmi-section-btns">
+                      {section.problems.map(prob => {
+                        const key = `${section.page} ${prob}`
+                        const isSelected = selectedProblems.has(key)
+                        return (
+                          <button
+                            key={key}
+                            className={`qmi-problem-btn ${isSelected ? 'selected' : ''}`}
+                            onClick={() => toggleProblem(key)}
+                          >
+                            {prob}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* カスタム入力 */}
+            <div className="qmi-custom-input">
+              <input
+                type="text"
+                placeholder="例: P13 問2(3)"
+                value={customNumber}
+                onChange={e => setCustomNumber(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addCustomNumber()}
+              />
+              <button className="qmi-custom-add" onClick={addCustomNumber}>追加</button>
             </div>
 
             {/* 選択数表示 */}

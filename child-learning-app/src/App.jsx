@@ -17,6 +17,8 @@ import {
   bulkDeleteTasksFromFirestore,
   subscribeToTasks,
   migrateLocalStorageToFirestore,
+  loadHomeworkDone,
+  saveHomeworkDone,
 } from './utils/firestore'
 import {
   getCustomUnits,
@@ -41,6 +43,7 @@ function App() {
   const [pendingTestId, setPendingTestId] = useState(null)
   const [showTaskForm, setShowTaskForm] = useState(false)
   const [migrated, setMigrated] = useState(false)
+  const [homeworkDone, setHomeworkDone] = useState({}) // { hwId: true/false }
 
   // Firestore同期: ユーザーがログインしたら、タスクをリアルタイムで取得
   useEffect(() => {
@@ -112,6 +115,24 @@ function App() {
     const unsubscribe = subscribeTestScores(user.uid, setTestScores)
     return () => unsubscribe()
   }, [user])
+
+  // 家庭学習の完了状態を読み込み
+  useEffect(() => {
+    if (!user) return
+    loadHomeworkDone(user.uid).then(result => {
+      if (result.success) {
+        setHomeworkDone(result.data || {})
+      }
+    })
+  }, [user])
+
+  const toggleHomework = async (hwId) => {
+    const updated = { ...homeworkDone, [hwId]: !homeworkDone[hwId] }
+    setHomeworkDone(updated)
+    if (user) {
+      await saveHomeworkDone(user.uid, updated)
+    }
+  }
 
   const addTask = async (task) => {
     const newTask = {
@@ -313,9 +334,11 @@ function App() {
             {/* 1. 今日と今週のタスク（最優先） */}
             <TodayAndWeekView
               tasks={tasks}
+              homeworkDone={homeworkDone}
               onToggleTask={toggleTask}
               onDeleteTask={deleteTask}
               onEditTask={handleEditTask}
+              onToggleHomework={toggleHomework}
               userId={user.uid}
             />
 
