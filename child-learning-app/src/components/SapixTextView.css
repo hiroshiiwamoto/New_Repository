@@ -517,3 +517,22 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* 間違い問題クイック登録ボタン */
+.quick-mistake-btn {
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.quick-mistake-btn:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
