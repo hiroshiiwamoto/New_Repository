@@ -15,54 +15,50 @@ export const CLASS_SCHEDULE = {
 // dayOffset: 授業日を0として、何日後にやるか（配列で複数日指定可）
 const HOMEWORK_TEMPLATES = {
   '算数': [
+    // --- 授業当日 ---
     {
       studyPriority: 1,
       studyCategory: 'b-review',
-      title: 'Bテキスト 復習（白丸ページ）',
+      title: 'Bテキスト 復習',
       dayOffsets: [0],
       priority: 'A',
     },
     {
       studyPriority: 2,
       studyCategory: 'b-practice',
-      title: 'Bテキスト 練習しよう ステップ①②',
-      dayOffsets: [1],
+      title: 'Bテキスト 練習',
+      dayOffsets: [0],
       priority: 'A',
-    },
-    {
-      studyPriority: 2,
-      studyCategory: 'b-practice',
-      title: 'Bテキスト 練習しよう ステップ③④',
-      dayOffsets: [2],
-      priority: 'A',
-    },
-    {
-      studyPriority: 2,
-      studyCategory: 'b-practice',
-      title: 'Bテキスト 練習しよう ステップ⑤',
-      dayOffsets: [3],
-      priority: 'B',
     },
     {
       studyPriority: 3,
-      studyCategory: 'basic-training',
-      title: '基礎力トレーニング',
-      dayOffsets: [0, 1, 2, 3, 4, 5, 6],
-      priority: 'B',
-    },
-    {
-      studyPriority: 4,
       studyCategory: 'a-review',
       title: 'Aテキスト 復習',
-      dayOffsets: [4],
+      dayOffsets: [0],
+      priority: 'A',
+    },
+    // --- 次の授業までにスケジュール ---
+    {
+      studyPriority: 4,
+      studyCategory: 'b-brain',
+      title: 'Bテキスト 頭脳トレーニング',
+      dayOffsets: [1, 2, 3],
       priority: 'B',
     },
     {
       studyPriority: 5,
-      studyCategory: 'basic-test',
-      title: '基礎力定着テスト対策',
-      dayOffsets: [5, 6],
-      priority: 'C',
+      studyCategory: 'a-exam',
+      title: 'Aテキスト 入試問題',
+      dayOffsets: [4, 5],
+      priority: 'B',
+    },
+    // --- 毎日 ---
+    {
+      studyPriority: 6,
+      studyCategory: 'basic-training',
+      title: '基礎力トレーニング',
+      dayOffsets: [0, 1, 2, 3, 4, 5, 6],
+      priority: 'B',
     },
   ],
   '国語': [
