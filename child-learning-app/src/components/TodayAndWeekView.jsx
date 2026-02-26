@@ -11,18 +11,9 @@ const priorityStyles = {
   C: { label: 'C', color: '#3b82f6' },
 }
 
-// タスクタイプのラベル
-const taskTypeLabels = {
-  test_prep: 'テスト対策',
-  weakness: '弱点補強',
-  review: '復習',
-  sr_review: '忘却防止',
-}
-
-function TodayAndWeekView({ tasks, suggestedTasks = [], homeworkDone, onToggleTask, onDeleteTask, onEditTask, onToggleHomework, userId }) {
-  const [expandedSection, setExpandedSection] = useState('today') // 'today', 'homework', 'week', 'suggested'
+function TodayAndWeekView({ tasks, homeworkDone, onToggleTask, onDeleteTask, onEditTask, onToggleHomework, userId }) {
+  const [expandedSection, setExpandedSection] = useState('today') // 'today', 'homework', 'week'
   const [detailTask, setDetailTask] = useState(null)
-  const [expandedSuggestedId, setExpandedSuggestedId] = useState(null)
 
   // 日付フォーマット関数
   function formatDate(date) {
@@ -68,64 +59,6 @@ function TodayAndWeekView({ tasks, suggestedTasks = [], homeworkDone, onToggleTa
 
   return (
     <div className="today-week-view">
-      {/* おすすめ復習 */}
-      {suggestedTasks.length > 0 && (
-        <div className="priority-section suggested-section">
-          <div
-            className="section-header"
-            onClick={() => toggleSection('suggested')}
-          >
-            <h2>
-              おすすめ復習
-              <span className="task-count">{suggestedTasks.length}</span>
-            </h2>
-            <span className="toggle-icon">{expandedSection === 'suggested' ? '▼' : '▶'}</span>
-          </div>
-
-          {expandedSection === 'suggested' && (
-            <div className="task-grid suggested-grid">
-              {suggestedTasks.map(st => {
-                const subjectColor = subjectColors[st.subject] || '#64748b'
-                const isExpanded = expandedSuggestedId === st.id
-                return (
-                  <div
-                    key={st.id}
-                    className={`suggested-task priority-${st.priority}`}
-                    style={{
-                      borderColor: subjectColor,
-                      backgroundColor: `${subjectColor}10`,
-                    }}
-                    onClick={() => setExpandedSuggestedId(isExpanded ? null : st.id)}
-                  >
-                    <div className="suggested-task-header">
-                      <span className={`suggested-priority-badge ${st.priority}`}>
-                        {st.priority === 'high' ? '高' : st.priority === 'medium' ? '中' : '低'}
-                      </span>
-                      <span className="subject-emoji">{subjectEmojis[st.subject]}</span>
-                      <span className="subject-badge" style={{ color: subjectColor }}>{st.subject}</span>
-                      <span className="task-title">{st.unitName}</span>
-                      <span className="suggested-type-badge">{taskTypeLabels[st.taskType] || st.taskType}</span>
-                    </div>
-                    <div className="suggested-reason">{st.reason}</div>
-                    <div className="suggested-action">{st.suggestedAction}</div>
-                    {isExpanded && st.linkedProblems.length > 0 && (
-                      <div className="suggested-problems">
-                        {st.linkedProblems.map((p, i) => (
-                          <span key={i} className="suggested-problem-chip">
-                            {p.problemNumber}
-                            {p.correctRate != null && <span className="problem-rate">({p.correctRate}%)</span>}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
-      )}
-
       {/* 今日の家庭学習 */}
       <div className="priority-section homework-section">
         <div
