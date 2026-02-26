@@ -352,29 +352,6 @@ export function getSapixCodesBySubject(subject) {
 }
 
 /**
- * 授業日＋教科からテキストコードとスケジュール情報を取得（逆引き）
- */
-export function getTextInfoFromClassDate(classDate, subject) {
-  let dNumber = null
-  let dayType = null
-  for (const [dKey, dates] of Object.entries(SAPIX_CALENDAR_4_2026_FIRST)) {
-    if (dates.wed === classDate) { dNumber = dKey; dayType = 'wed'; break }
-    if (dates.fri === classDate) { dNumber = dKey; dayType = 'fri'; break }
-  }
-  if (!dNumber) return null
-  const wedSubjects = ['算数', '理科']
-  const friSubjects = ['国語', '社会']
-  if (dayType === 'wed' && !wedSubjects.includes(subject)) return null
-  if (dayType === 'fri' && !friSubjects.includes(subject)) return null
-  const num = dNumber.replace('D', '')
-  const codeMap = { '算数': `41B-${num}`, '理科': `430-${num}`, '国語': `41A-${num}`, '社会': `440-${num}` }
-  const textCode = codeMap[subject]
-  if (!textCode) return null
-  const info = SAPIX_SCHEDULE[textCode]
-  return { textCode, name: info?.name || '', unitIds: info?.unitIds || [] }
-}
-
-/**
  * sapixRange オブジェクトからカバーされるマスター単元IDを計算する
  * @param {Object} sapixRange - { 算数: ['41B-01', ...], 社会: ['440-01', ...], ... }
  * @returns {string[]} - ユニークな unitId の配列
