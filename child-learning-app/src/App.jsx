@@ -29,6 +29,10 @@ import {
 import { subscribeSapixTexts } from './utils/sapixTexts'
 import { subscribeTestScores } from './utils/testScores'
 import { toast } from './utils/toast'
+import { getMasterUnitStats, getLessonLogs } from './utils/lessonLogs'
+import { getAllProblems } from './utils/problems'
+import { getStaticMasterUnits } from './utils/importMasterUnits'
+import { generateDailyTasks } from './utils/dailyTaskEngine'
 
 function App() {
   const [user, setUser] = useState(null)
@@ -44,6 +48,7 @@ function App() {
   const [showTaskForm, setShowTaskForm] = useState(false)
   const [migrated, setMigrated] = useState(false)
   const [homeworkDone, setHomeworkDone] = useState({}) // { hwId: true/false }
+  const [suggestedTasks, setSuggestedTasks] = useState([])
 
   // Firestore同期: ユーザーがログインしたら、タスクをリアルタイムで取得
   useEffect(() => {
@@ -125,6 +130,35 @@ function App() {
       }
     })
   }, [user])
+
+  // おすすめ復習タスクを生成
+  useEffect(() => {
+    if (!user) return
+
+    async function loadSuggestedTasks() {
+      try {
+        const [statsResult, problemsResult, logsResult] = await Promise.all([
+          getMasterUnitStats(user.uid),
+          getAllProblems(user.uid),
+          getLessonLogs(user.uid),
+        ])
+
+        const tasks = generateDailyTasks({
+          unitStats: statsResult.data || {},
+          problems: problemsResult.data || [],
+          testScores,
+          lessonLogs: logsResult.data || [],
+          masterUnits: getStaticMasterUnits(),
+        })
+
+        setSuggestedTasks(tasks)
+      } catch (error) {
+        console.error('おすすめ復習タスク生成エラー:', error)
+      }
+    }
+
+    loadSuggestedTasks()
+  }, [user, testScores])
 
   const toggleHomework = async (hwId) => {
     const updated = { ...homeworkDone, [hwId]: !homeworkDone[hwId] }
@@ -334,6 +368,7 @@ function App() {
             {/* 1. 今日と今週のタスク（最優先） */}
             <TodayAndWeekView
               tasks={tasks}
+              suggestedTasks={suggestedTasks}
               homeworkDone={homeworkDone}
               onToggleTask={toggleTask}
               onDeleteTask={deleteTask}
