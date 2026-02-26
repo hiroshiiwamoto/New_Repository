@@ -313,17 +313,6 @@
   min-width: 50px;
 }
 
-.pending-miss-type {
-  font-size: 0.7rem;
-  color: #9ca3af;
-}
-
-.pending-correct-rate {
-  font-size: 0.7rem;
-  color: #d97706;
-  font-weight: 500;
-}
-
 .pending-resolve-btn {
   margin-left: auto;
   background: #dcfce7;

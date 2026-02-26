@@ -25,6 +25,7 @@ import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
 import { refreshGoogleAccessToken } from './Auth'
 import { grades } from '../utils/unitsDatabase'
 import EmptyState from './EmptyState'
+import TestRangeProblems from './TestRangeProblems'
 import {
   lookupSapixSchedule,
   getSapixCodesBySubject,
@@ -74,6 +75,7 @@ const initialState = {
   editForm: null,
   pendingDeleteId: null,
   confirmMarkCompleted: false,
+  showRangeProblems: null,
 }
 
 function reducer(state, action) {
@@ -241,7 +243,7 @@ function SapixRangeDisplay({ sapixRange, collapsed }) {
 // メインコンポーネント
 // ════════════════════════════════════════════════════════════════
 
-function TestScoreView({ user, initialTestId, onConsumeInitialTestId }) {
+function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts = [] }) {
   const [state, dispatch] = useReducer(reducer, initialState)
   const { data: scores, reload: reloadScores } = useFirestoreQuery(
     () => user ? getAllTestScores(user.uid) : null,
@@ -1009,6 +1011,16 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId }) {
       {/* テスト範囲（折りたたみ） */}
       <SapixRangeDisplay sapixRange={state.selectedScore.sapixRange} collapsed />
 
+      {/* テスト範囲の間違い問題を見るボタン */}
+      {state.selectedScore.sapixRange && Object.values(state.selectedScore.sapixRange).some(c => c?.length > 0) && (
+        <button
+          className="test-range-problems-btn"
+          onClick={() => dispatch({ type: 'SET_FIELD', field: 'showRangeProblems', value: state.selectedScore })}
+        >
+          この範囲の間違い問題を見る
+        </button>
+      )}
+
       {/* 科目別PDF紐付けバー */}
       <div className="subject-pdf-bar">
         <span className="subject-pdf-bar-label">科目別PDF（問題用紙）</span>
@@ -1144,6 +1156,20 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId }) {
           }
         }}
       />
+
+      {/* テスト範囲の間違い問題一覧 */}
+      {state.showRangeProblems && (
+        <TestRangeProblems
+          userId={user.uid}
+          sapixRange={state.showRangeProblems.sapixRange}
+          testName={state.showRangeProblems.testName}
+          sapixTexts={sapixTexts}
+          onClose={() => dispatch({ type: 'SET_FIELD', field: 'showRangeProblems', value: null })}
+          onResolveProblem={async (problemId) => {
+            await updateProblem(user.uid, problemId, { reviewStatus: 'done' })
+          }}
+        />
+      )}
     </div>
   )
 }
