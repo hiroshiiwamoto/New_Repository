@@ -4,6 +4,8 @@
 // 各教科の家庭学習優先順位（SAPIXカリキュラム共通）を
 // 授業翌日〜次回授業前日に自動配分する
 
+import { getTextInfoFromClassDate } from './sapixSchedule'
+
 // 授業スケジュール（曜日 → 教科リスト）
 // 0=日, 1=月, 2=火, 3=水, 4=木, 5=金, 6=土
 export const CLASS_SCHEDULE = {
@@ -223,6 +225,8 @@ export function generateWeeklyHomework(today = new Date()) {
       const templates = HOMEWORK_TEMPLATES[subject]
       if (!templates) continue
 
+      const textInfo = getTextInfoFromClassDate(classDayStr, subject)
+
       for (const template of templates) {
         for (const offset of template.dayOffsets) {
           const dueDate = addDays(classDate, offset)
@@ -238,6 +242,9 @@ export function generateWeeklyHomework(today = new Date()) {
             priority: template.priority,
             classDate: classDayStr,
             isHomework: true,
+            textCode: textInfo?.textCode || null,
+            textName: textInfo?.name || null,
+            unitIds: textInfo?.unitIds || [],
           })
         }
       }
