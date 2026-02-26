@@ -29,7 +29,10 @@ import {
 import { subscribeSapixTexts } from './utils/sapixTexts'
 import { subscribeTestScores } from './utils/testScores'
 import { toast } from './utils/toast'
-import { getAllProblems, addProblem, updateProblem } from './utils/problems'
+import { getMasterUnitStats, getLessonLogs } from './utils/lessonLogs'
+import { getAllProblems } from './utils/problems'
+import { getStaticMasterUnits } from './utils/importMasterUnits'
+import { generateDailyTasks } from './utils/dailyTaskEngine'
 
 function App() {
   const [user, setUser] = useState(null)
@@ -45,7 +48,7 @@ function App() {
   const [showTaskForm, setShowTaskForm] = useState(false)
   const [migrated, setMigrated] = useState(false)
   const [homeworkDone, setHomeworkDone] = useState({}) // { hwId: true/false }
-  const [pendingProblems, setPendingProblems] = useState([])
+  const [suggestedTasks, setSuggestedTasks] = useState([])
 
   // Firestore同期: ユーザーがログインしたら、タスクをリアルタイムで取得
   useEffect(() => {
@@ -128,19 +131,34 @@ function App() {
     })
   }, [user])
 
-  const loadPendingProblems = async () => {
-    if (!user) return
-    const result = await getAllProblems(user.uid)
-    if (result.success) {
-      setPendingProblems(
-        result.data.filter(p => !p.isCorrect && p.reviewStatus !== 'done')
-      )
-    }
-  }
-
+  // おすすめ復習タスクを生成
   useEffect(() => {
-    loadPendingProblems()
-  }, [user])
+    if (!user) return
+
+    async function loadSuggestedTasks() {
+      try {
+        const [statsResult, problemsResult, logsResult] = await Promise.all([
+          getMasterUnitStats(user.uid),
+          getAllProblems(user.uid),
+          getLessonLogs(user.uid),
+        ])
+
+        const tasks = generateDailyTasks({
+          unitStats: statsResult.data || {},
+          problems: problemsResult.data || [],
+          testScores,
+          lessonLogs: logsResult.data || [],
+          masterUnits: getStaticMasterUnits(),
+        })
+
+        setSuggestedTasks(tasks)
+      } catch (error) {
+        console.error('おすすめ復習タスク生成エラー:', error)
+      }
+    }
+
+    loadSuggestedTasks()
+  }, [user, testScores])
 
   const toggleHomework = async (hwId) => {
     const updated = { ...homeworkDone, [hwId]: !homeworkDone[hwId] }
@@ -148,37 +166,6 @@ function App() {
     if (user) {
       await saveHomeworkDone(user.uid, updated)
     }
-  }
-
-  const completeHomework = async (hwId, stuckInfo = null) => {
-    const updated = { ...homeworkDone, [hwId]: true }
-    setHomeworkDone(updated)
-    if (user) {
-      await saveHomeworkDone(user.uid, updated)
-    }
-    if (user && stuckInfo && stuckInfo.problemNumbers?.length > 0) {
-      for (const problemNumber of stuckInfo.problemNumbers) {
-        await addProblem(user.uid, {
-          sourceType: 'textbook',
-          sourceId: stuckInfo.textCode || hwId,
-          subject: stuckInfo.subject,
-          problemNumber,
-          unitIds: stuckInfo.unitIds || [],
-          isCorrect: false,
-          missType: 'understanding',
-          imageUrls: [],
-        })
-      }
-      toast(`${stuckInfo.problemNumbers.length}件の問題を記録しました`)
-      await loadPendingProblems()
-    }
-  }
-
-  const resolveProblem = async (problemId) => {
-    if (!user) return
-    await updateProblem(user.uid, problemId, { reviewStatus: 'done' })
-    setPendingProblems(prev => prev.filter(p => p.id !== problemId))
-    toast('解き直し完了！')
   }
 
   const addTask = async (task) => {
@@ -381,14 +368,12 @@ function App() {
             {/* 1. 今日と今週のタスク（最優先） */}
             <TodayAndWeekView
               tasks={tasks}
+              suggestedTasks={suggestedTasks}
               homeworkDone={homeworkDone}
               onToggleTask={toggleTask}
               onDeleteTask={deleteTask}
               onEditTask={handleEditTask}
               onToggleHomework={toggleHomework}
-              onCompleteHomework={completeHomework}
-              pendingProblems={pendingProblems}
-              onResolveProblem={resolveProblem}
               userId={user.uid}
             />
 
@@ -468,7 +453,6 @@ function App() {
             user={user}
             initialTestId={pendingTestId}
             onConsumeInitialTestId={() => setPendingTestId(null)}
-            sapixTexts={sapixTexts}
           />
         ) : view === 'sapixtext' ? (
           <SapixTextView

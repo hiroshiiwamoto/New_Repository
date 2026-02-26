@@ -11,12 +11,18 @@ const priorityStyles = {
   C: { label: 'C', color: '#3b82f6' },
 }
 
-function TodayAndWeekView({ tasks, homeworkDone, onToggleTask, onDeleteTask, onEditTask, onToggleHomework, onCompleteHomework, pendingProblems = [], onResolveProblem, userId }) {
-  const [expandedSection, setExpandedSection] = useState('today')
+// タスクタイプのラベル
+const taskTypeLabels = {
+  test_prep: 'テスト対策',
+  weakness: '弱点補強',
+  review: '復習',
+  sr_review: '忘却防止',
+}
+
+function TodayAndWeekView({ tasks, suggestedTasks = [], homeworkDone, onToggleTask, onDeleteTask, onEditTask, onToggleHomework, userId }) {
+  const [expandedSection, setExpandedSection] = useState('today') // 'today', 'homework', 'week', 'suggested'
   const [detailTask, setDetailTask] = useState(null)
-  const [completingHwId, setCompletingHwId] = useState(null) // 完了フロー中のhwId
-  const [stuckMode, setStuckMode] = useState(false) // 問題番号入力モード
-  const [problemInput, setProblemInput] = useState('')
+  const [expandedSuggestedId, setExpandedSuggestedId] = useState(null)
 
   // 日付フォーマット関数
   function formatDate(date) {
@@ -48,17 +54,6 @@ function TodayAndWeekView({ tasks, homeworkDone, onToggleTask, onDeleteTask, onE
   const todayHomeworkCount = todayHomework.length
   const todayHomeworkDoneCount = todayHomework.filter(hw => isHomeworkDone(hw.id)).length
 
-  // 解き直し待ちを教科別にグループ化
-  const pendingBySubject = useMemo(() => {
-    const groups = {}
-    for (const p of pendingProblems) {
-      const subj = p.subject || '不明'
-      if (!groups[subj]) groups[subj] = []
-      groups[subj].push(p)
-    }
-    return groups
-  }, [pendingProblems])
-
   const toggleSection = (section) => {
     setExpandedSection(expandedSection === section ? null : section)
   }
@@ -71,100 +66,58 @@ function TodayAndWeekView({ tasks, homeworkDone, onToggleTask, onDeleteTask, onE
     }
   }
 
-  // 完了フロー: チェックボックスクリック時
-  const handleHomeworkCheck = (hw) => {
-    const done = isHomeworkDone(hw.id)
-    if (done) {
-      // 完了済み → トグルで解除
-      onToggleHomework && onToggleHomework(hw.id)
-    } else {
-      // 未完了 → 完了フロー開始
-      setCompletingHwId(hw.id)
-      setStuckMode(false)
-      setProblemInput('')
-    }
-  }
-
-  // 「全部できた」
-  const handleAllOk = (hw) => {
-    onCompleteHomework && onCompleteHomework(hw.id, null)
-    setCompletingHwId(null)
-    setStuckMode(false)
-    setProblemInput('')
-  }
-
-  // 「止まった問題があった」→入力モードへ
-  const handleStuck = () => {
-    setStuckMode(true)
-  }
-
-  // 問題番号を記録して完了
-  const handleSaveStuck = (hw) => {
-    const numbers = problemInput
-      .split(/[,、\s]+/)
-      .map(s => s.trim())
-      .filter(Boolean)
-    if (numbers.length === 0) {
-      // 入力なしなら通常完了
-      handleAllOk(hw)
-      return
-    }
-    onCompleteHomework && onCompleteHomework(hw.id, {
-      textCode: hw.textCode,
-      subject: hw.subject,
-      unitIds: hw.unitIds || [],
-      problemNumbers: numbers,
-    })
-    setCompletingHwId(null)
-    setStuckMode(false)
-    setProblemInput('')
-  }
-
-  // キャンセル
-  const handleCancelComplete = () => {
-    setCompletingHwId(null)
-    setStuckMode(false)
-    setProblemInput('')
-  }
-
   return (
     <div className="today-week-view">
-      {/* 解き直し待ち */}
-      {pendingProblems.length > 0 && (
-        <div className="priority-section pending-section">
+      {/* おすすめ復習 */}
+      {suggestedTasks.length > 0 && (
+        <div className="priority-section suggested-section">
           <div
             className="section-header"
-            onClick={() => toggleSection('pending')}
+            onClick={() => toggleSection('suggested')}
           >
             <h2>
-              解き直し待ち
-              <span className="task-count">{pendingProblems.length}</span>
+              おすすめ復習
+              <span className="task-count">{suggestedTasks.length}</span>
             </h2>
-            <span className="toggle-icon">{expandedSection === 'pending' ? '▼' : '▶'}</span>
+            <span className="toggle-icon">{expandedSection === 'suggested' ? '▼' : '▶'}</span>
           </div>
 
-          {expandedSection === 'pending' && (
-            <div className="pending-list">
-              {Object.entries(pendingBySubject).map(([subject, problems]) => {
-                const subjectColor = subjectColors[subject] || '#64748b'
+          {expandedSection === 'suggested' && (
+            <div className="task-grid suggested-grid">
+              {suggestedTasks.map(st => {
+                const subjectColor = subjectColors[st.subject] || '#64748b'
+                const isExpanded = expandedSuggestedId === st.id
                 return (
-                  <div key={subject} className="pending-subject-group">
-                    <div className="pending-subject-header">
-                      <span className="subject-emoji">{subjectEmojis[subject]}</span>
-                      <span style={{ color: subjectColor, fontWeight: 600 }}>{subject}</span>
-                      <span className="pending-subject-count">{problems.length}</span>
+                  <div
+                    key={st.id}
+                    className={`suggested-task priority-${st.priority}`}
+                    style={{
+                      borderColor: subjectColor,
+                      backgroundColor: `${subjectColor}10`,
+                    }}
+                    onClick={() => setExpandedSuggestedId(isExpanded ? null : st.id)}
+                  >
+                    <div className="suggested-task-header">
+                      <span className={`suggested-priority-badge ${st.priority}`}>
+                        {st.priority === 'high' ? '高' : st.priority === 'medium' ? '中' : '低'}
+                      </span>
+                      <span className="subject-emoji">{subjectEmojis[st.subject]}</span>
+                      <span className="subject-badge" style={{ color: subjectColor }}>{st.subject}</span>
+                      <span className="task-title">{st.unitName}</span>
+                      <span className="suggested-type-badge">{taskTypeLabels[st.taskType] || st.taskType}</span>
                     </div>
-                    {problems.map(p => (
-                      <div key={p.id} className="pending-problem-row">
-                        <span className="pending-problem-num">{p.problemNumber}</span>
-                        <button
-                          className="pending-resolve-btn"
-                          onClick={() => onResolveProblem && onResolveProblem(p.id)}
-                        >
-                          できた
-                        </button>
+                    <div className="suggested-reason">{st.reason}</div>
+                    <div className="suggested-action">{st.suggestedAction}</div>
+                    {isExpanded && st.linkedProblems.length > 0 && (
+                      <div className="suggested-problems">
+                        {st.linkedProblems.map((p, i) => (
+                          <span key={i} className="suggested-problem-chip">
+                            {p.problemNumber}
+                            {p.correctRate != null && <span className="problem-rate">({p.correctRate}%)</span>}
+                          </span>
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
                 )
               })}
@@ -197,72 +150,36 @@ function TodayAndWeekView({ tasks, homeworkDone, onToggleTask, onDeleteTask, onE
                 const subjectColor = subjectColors[hw.subject] || '#64748b'
                 const done = isHomeworkDone(hw.id)
                 const pStyle = priorityStyles[hw.priority]
-                const isCompleting = completingHwId === hw.id
                 return (
-                  <div key={hw.id}>
-                    <div
-                      className={`priority-task ${done ? 'completed' : ''}`}
-                      style={{
-                        borderColor: subjectColor,
-                        backgroundColor: `${subjectColor}15`,
-                        boxShadow: `0 2px 8px ${subjectColor}25`
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={done}
-                        onChange={() => handleHomeworkCheck(hw)}
-                        className="task-checkbox"
-                      />
-                      <span className="hw-priority-num" style={{ color: pStyle.color }}>
-                        {hw.studyPriority}
-                      </span>
-                      <span className="subject-emoji">{subjectEmojis[hw.subject]}</span>
+                  <div
+                    key={hw.id}
+                    className={`priority-task ${done ? 'completed' : ''}`}
+                    style={{
+                      borderColor: subjectColor,
+                      backgroundColor: `${subjectColor}15`,
+                      boxShadow: `0 2px 8px ${subjectColor}25`
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={done}
+                      onChange={() => onToggleHomework && onToggleHomework(hw.id)}
+                      className="task-checkbox"
+                    />
+                    <span className="hw-priority-num" style={{ color: pStyle.color }}>
+                      {hw.studyPriority}
+                    </span>
+                    <span className="subject-emoji">{subjectEmojis[hw.subject]}</span>
+                    <span
+                      className="subject-badge"
+                      style={{ color: subjectColor }}
+                    >{hw.subject}</span>
+                    <span className="task-title">{hw.title}</span>
+                    {pStyle && (
                       <span
-                        className="subject-badge"
-                        style={{ color: subjectColor }}
-                      >{hw.subject}</span>
-                      <span className="task-title">{hw.title}</span>
-                      {pStyle && (
-                        <span
-                          className="task-priority-badge"
-                          style={{ color: pStyle.color, borderColor: `${pStyle.color}40` }}
-                        >{pStyle.label}</span>
-                      )}
-                    </div>
-                    {/* 完了フロー（インライン展開） */}
-                    {isCompleting && !stuckMode && (
-                      <div className="hw-complete-flow">
-                        <button className="hw-btn-ok" onClick={() => handleAllOk(hw)}>
-                          全部できた
-                        </button>
-                        <button className="hw-btn-stuck" onClick={handleStuck}>
-                          止まった問題があった
-                        </button>
-                        <button className="hw-btn-cancel" onClick={handleCancelComplete}>
-                          キャンセル
-                        </button>
-                      </div>
-                    )}
-                    {isCompleting && stuckMode && (
-                      <div className="hw-complete-flow">
-                        <input
-                          type="text"
-                          className="hw-problem-input"
-                          placeholder="問題番号（例: 問3, 問5）"
-                          value={problemInput}
-                          onChange={e => setProblemInput(e.target.value)}
-                          autoFocus
-                        />
-                        <div className="hw-complete-flow-buttons">
-                          <button className="hw-btn-save" onClick={() => handleSaveStuck(hw)}>
-                            記録して完了
-                          </button>
-                          <button className="hw-btn-cancel" onClick={handleCancelComplete}>
-                            キャンセル
-                          </button>
-                        </div>
-                      </div>
+                        className="task-priority-badge"
+                        style={{ color: pStyle.color, borderColor: `${pStyle.color}40` }}
+                      >{pStyle.label}</span>
                     )}
                   </div>
                 )
@@ -310,14 +227,6 @@ function TodayAndWeekView({ tasks, homeworkDone, onToggleTask, onDeleteTask, onE
                       {hwTasks.map(hw => {
                         const subjectColor = subjectColors[hw.subject] || '#64748b'
                         const done = isHomeworkDone(hw.id)
-                        // 完了済みかつ未解決問題がある場合のバッジ
-                        const stuckCount = done
-                          ? pendingProblems.filter(p =>
-                              p.subject === hw.subject &&
-                              p.sourceId === hw.textCode &&
-                              p.reviewStatus !== 'done'
-                            ).length
-                          : 0
                         return (
                           <div
                             key={hw.id}
@@ -331,9 +240,6 @@ function TodayAndWeekView({ tasks, homeworkDone, onToggleTask, onDeleteTask, onE
                               style={{ color: subjectColor }}
                             >{subjectEmojis[hw.subject]}</span>
                             <span className="week-hw-title">{hw.title}</span>
-                            {stuckCount > 0 && (
-                              <span className="hw-stuck-badge">{stuckCount}</span>
-                            )}
                           </div>
                         )
                       })}
