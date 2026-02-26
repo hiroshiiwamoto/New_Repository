@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react'
 import './TodayAndWeekView.css'
 import { subjectEmojis, subjectColors, weekDayNames } from '../utils/constants'
 import { getHomeworkForDate, getHomeworkByDate } from '../utils/sapixHomework'
-import { missTypeLabel } from '../utils/problems'
 import TaskDetailModal from './TaskDetailModal'
 
 // 優先度のラベルと色
@@ -158,12 +157,6 @@ function TodayAndWeekView({ tasks, homeworkDone, onToggleTask, onDeleteTask, onE
                     {problems.map(p => (
                       <div key={p.id} className="pending-problem-row">
                         <span className="pending-problem-num">{p.problemNumber}</span>
-                        {p.missType && (
-                          <span className="pending-miss-type">{missTypeLabel(p.missType)}</span>
-                        )}
-                        {p.correctRate != null && (
-                          <span className="pending-correct-rate">正答率{p.correctRate}%</span>
-                        )}
                         <button
                           className="pending-resolve-btn"
                           onClick={() => onResolveProblem && onResolveProblem(p.id)}
