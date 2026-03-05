@@ -19,6 +19,44 @@
 // 新しいテキストを追加する場合は、ここにエントリを追加するだけでOK。
 
 const SAPIX_SCHEDULE = {
+  // ═══ 4年生 通常授業 Aテキスト（算数）═══════════════════════
+  '41A-01': { name: 'Aテキスト 01',  unitIds: [], subject: '算数' },
+  '41A-02': { name: 'Aテキスト 02',  unitIds: [], subject: '算数' },
+  '41A-03': { name: 'Aテキスト 03',  unitIds: [], subject: '算数' },
+  '41A-04': { name: 'Aテキスト 04',  unitIds: [], subject: '算数' },
+  '41A-05': { name: 'Aテキスト 05',  unitIds: [], subject: '算数' },
+  '41A-06': { name: 'Aテキスト 06',  unitIds: [], subject: '算数' },
+  '41A-07': { name: 'Aテキスト 07',  unitIds: [], subject: '算数' },
+  '41A-08': { name: 'Aテキスト 08',  unitIds: [], subject: '算数' },
+  '41A-09': { name: 'Aテキスト 09',  unitIds: [], subject: '算数' },
+  '41A-10': { name: 'Aテキスト 10',  unitIds: [], subject: '算数' },
+  '41A-11': { name: 'Aテキスト 11',  unitIds: [], subject: '算数' },
+  '41A-12': { name: 'Aテキスト 12',  unitIds: [], subject: '算数' },
+  '41A-13': { name: 'Aテキスト 13',  unitIds: [], subject: '算数' },
+  '41A-14': { name: 'Aテキスト 14',  unitIds: [], subject: '算数' },
+  '41A-15': { name: 'Aテキスト 15',  unitIds: [], subject: '算数' },
+  '41A-16': { name: 'Aテキスト 16',  unitIds: [], subject: '算数' },
+  '41A-17': { name: 'Aテキスト 17',  unitIds: [], subject: '算数' },
+  '41A-18': { name: 'Aテキスト 18',  unitIds: [], subject: '算数' },
+  '41A-19': { name: 'Aテキスト 19',  unitIds: [], subject: '算数' },
+  '41A-20': { name: 'Aテキスト 20',  unitIds: [], subject: '算数' },
+  '41A-21': { name: 'Aテキスト 21',  unitIds: [], subject: '算数' },
+  '41A-22': { name: 'Aテキスト 22',  unitIds: [], subject: '算数' },
+  '41A-23': { name: 'Aテキスト 23',  unitIds: [], subject: '算数' },
+  '41A-24': { name: 'Aテキスト 24',  unitIds: [], subject: '算数' },
+  '41A-25': { name: 'Aテキスト 25',  unitIds: [], subject: '算数' },
+  '41A-26': { name: 'Aテキスト 26',  unitIds: [], subject: '算数' },
+  '41A-27': { name: 'Aテキスト 27',  unitIds: [], subject: '算数' },
+  '41A-28': { name: 'Aテキスト 28',  unitIds: [], subject: '算数' },
+  '41A-29': { name: 'Aテキスト 29',  unitIds: [], subject: '算数' },
+  '41A-30': { name: 'Aテキスト 30',  unitIds: [], subject: '算数' },
+  '41A-31': { name: 'Aテキスト 31',  unitIds: [], subject: '算数' },
+  '41A-32': { name: 'Aテキスト 32',  unitIds: [], subject: '算数' },
+  '41A-33': { name: 'Aテキスト 33',  unitIds: [], subject: '算数' },
+  '41A-34': { name: 'Aテキスト 34',  unitIds: [], subject: '算数' },
+  '41A-35': { name: 'Aテキスト 35',  unitIds: [], subject: '算数' },
+  '41A-36': { name: 'Aテキスト 36',  unitIds: [], subject: '算数' },
+
   // ═══ 4年生 通常授業 Bテキスト（算数）═══════════════════════
   '41B-01': { name: '大きな数',           unitIds: ['SAN_CALC_BASIC'],    subject: '算数' },
   '41B-02': { name: '角と角度①',         unitIds: ['SAN_PLANE_ANGLE'],   subject: '算数' },
@@ -206,8 +244,8 @@ const SAPIX_SCHEDULE = {
 }
 
 // ═══ 2026年度 4年生 前期カレンダー（仙川校 D01〜D19）═══════
-// 水曜 = 算数B(41B) + 理科(430)
-// 金曜 = 国語A(41A) + 社会(440)
+// 水曜 = 算数A(41A) + 算数B(41B) + 理科(430)
+// 金曜 = 社会(440)
 const SAPIX_CALENDAR_4_2026_FIRST = {
   'D01': { wed: '2026-02-11', fri: '2026-02-13' },
   'D02': { wed: '2026-02-18', fri: '2026-02-20' },
@@ -289,7 +327,7 @@ export function gradeFromCode(code) {
 
 /**
  * テキストコードから授業日（学習日）を自動取得する
- * 水曜 = 算数B(41B) + 理科(43x), 金曜 = 国語A(41A) + 社会(44x)
+ * 水曜 = 算数A(41A) + 算数B(41B) + 理科(43x), 金曜 = 社会(44x)
  * @param {string} code - 例: "41B-02", "430-03", "440-01"
  * @returns {string|null} - 例: "2026-02-18" or null
  */
@@ -302,36 +340,40 @@ export function getStudyDateFromCode(code) {
   const dKey = `D${String(num).padStart(2, '0')}`
   const cal = SAPIX_CALENDAR_4_2026_FIRST[dKey]
   if (!cal) return null
-  // 算数B (41B) + 理科 (43x) → 水曜
-  if (/^41B-|^43\d-/.test(code)) return cal.wed
-  // 国語A (41A) + 社会 (44x) → 金曜
-  if (/^41A-|^44\d-/.test(code)) return cal.fri
+  // 算数A (41A) + 算数B (41B) + 理科 (43x) → 水曜
+  if (/^41[AB]-|^43\d-/.test(code)) return cal.wed
+  // 社会 (44x) → 金曜
+  if (/^44\d-/.test(code)) return cal.fri
   return null
 }
 
 /**
  * 2026年度 前期 全授業セッション一覧を生成する
- * 水曜 = 算数B + 理科, 金曜 = 国語A + 社会
+ * 水曜 = 算数A + 算数B + 理科, 金曜 = 社会
  * @returns {Array<{ date: string, dNumber: string, subject: string, textCode: string, name: string, unitIds: string[] }>}
  */
 export function generateSapixSessions() {
   const sessions = []
   for (const [dNum, dates] of Object.entries(SAPIX_CALENDAR_4_2026_FIRST)) {
     const num = dNum.replace('D', '')
-    const sansuCode = `41B-${num}`
+    const sansuACode = `41A-${num}`
+    const sansuBCode = `41B-${num}`
     const rikaCode = `430-${num}`
     const shakaiCode = `440-${num}`
-    // 水曜: 算数B + 理科
-    const sansuInfo = SAPIX_SCHEDULE[sansuCode]
-    if (sansuInfo) {
-      sessions.push({ date: dates.wed, dNumber: dNum, subject: '算数', textCode: sansuCode, name: sansuInfo.name, unitIds: sansuInfo.unitIds })
+    // 水曜: 算数A + 算数B + 理科
+    const sansuAInfo = SAPIX_SCHEDULE[sansuACode]
+    if (sansuAInfo) {
+      sessions.push({ date: dates.wed, dNumber: dNum, subject: '算数', textCode: sansuACode, name: sansuAInfo.name, unitIds: sansuAInfo.unitIds })
+    }
+    const sansuBInfo = SAPIX_SCHEDULE[sansuBCode]
+    if (sansuBInfo) {
+      sessions.push({ date: dates.wed, dNumber: dNum, subject: '算数', textCode: sansuBCode, name: sansuBInfo.name, unitIds: sansuBInfo.unitIds })
     }
     const rikaInfo = SAPIX_SCHEDULE[rikaCode]
     if (rikaInfo) {
       sessions.push({ date: dates.wed, dNumber: dNum, subject: '理科', textCode: rikaCode, name: rikaInfo.name, unitIds: rikaInfo.unitIds })
     }
-    // 金曜: 国語A + 社会
-    sessions.push({ date: dates.fri, dNumber: dNum, subject: '国語', textCode: `41A-${num}`, name: `国語A ${dNum}`, unitIds: [] })
+    // 金曜: 社会
     const shakaiInfo = SAPIX_SCHEDULE[shakaiCode]
     if (shakaiInfo) {
       sessions.push({ date: dates.fri, dNumber: dNum, subject: '社会', textCode: shakaiCode, name: shakaiInfo.name, unitIds: shakaiInfo.unitIds })
