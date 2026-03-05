@@ -126,8 +126,13 @@ function SapixTextView({ user }) {
     loadTexts()
   }, [loadTexts])
 
-  // 科目でフィルタリング
-  const filteredTexts = state.texts.filter(t => t.subject === state.selectedSubject)
+  // 科目でフィルタリング＋実施日（studyDate）降順ソート
+  const filteredTexts = useMemo(() =>
+    state.texts
+      .filter(t => t.subject === state.selectedSubject)
+      .sort((a, b) => (b.studyDate || '').localeCompare(a.studyDate || '')),
+    [state.texts, state.selectedSubject]
+  )
 
   // ファイル名から SAPIX コードを抽出し、addForm にスケジュール情報をパッチする
   const applySchedulePatch = (basePatch, fileName) => {
