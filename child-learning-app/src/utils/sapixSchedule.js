@@ -350,7 +350,7 @@ const SAPIX_SCHEDULE = {
 
 // ═══ 2026年度 4年生 前期カレンダー（仙川校 D01〜D19）═══════
 // 水曜 = 算数A(41A) + 算数B(41B) + 理科(430)
-// 金曜 = 社会(440)
+// 金曜 = 国語A(42A) + 国語B(42B) + 社会(440)
 const SAPIX_CALENDAR_4_2026_FIRST = {
   'D01': { wed: '2026-02-11', fri: '2026-02-13' },
   'D02': { wed: '2026-02-18', fri: '2026-02-20' },
@@ -432,13 +432,13 @@ export function gradeFromCode(code) {
 
 /**
  * テキストコードから授業日（学習日）を自動取得する
- * 水曜 = 算数A(41A) + 算数B(41B) + 理科(43x), 金曜 = 社会(44x)
- * @param {string} code - 例: "41B-02", "430-03", "440-01"
+ * 水曜 = 算数A(41A) + 算数B(41B) + 理科(43x), 金曜 = 国語A(42A) + 国語B(42B) + 社会(44x)
+ * @param {string} code - 例: "41B-02", "430-03", "42A-01", "440-01"
  * @returns {string|null} - 例: "2026-02-18" or null
  */
 export function getStudyDateFromCode(code) {
   // テキストコードから連番を抽出
-  const numMatch = code.match(/^(?:41[AB]|43\d|44\d)-(\d{2})$/)
+  const numMatch = code.match(/^(?:41[AB]|42[AB]|43\d|44\d)-(\d{2})$/)
   if (!numMatch) return null
   const num = parseInt(numMatch[1])
   if (num < 1 || num > 19) return null
@@ -447,14 +447,14 @@ export function getStudyDateFromCode(code) {
   if (!cal) return null
   // 算数A (41A) + 算数B (41B) + 理科 (43x) → 水曜
   if (/^41[AB]-|^43\d-/.test(code)) return cal.wed
-  // 社会 (44x) → 金曜
-  if (/^44\d-/.test(code)) return cal.fri
+  // 国語A (42A) + 国語B (42B) + 社会 (44x) → 金曜
+  if (/^42[AB]-|^44\d-/.test(code)) return cal.fri
   return null
 }
 
 /**
  * 2026年度 前期 全授業セッション一覧を生成する
- * 水曜 = 算数A + 算数B + 理科, 金曜 = 社会
+ * 水曜 = 算数A + 算数B + 理科, 金曜 = 国語A + 国語B + 社会
  * @returns {Array<{ date: string, dNumber: string, subject: string, textCode: string, name: string, unitIds: string[] }>}
  */
 export function generateSapixSessions() {
@@ -463,6 +463,8 @@ export function generateSapixSessions() {
     const num = dNum.replace('D', '')
     const sansuACode = `41A-${num}`
     const sansuBCode = `41B-${num}`
+    const kokugoACode = `42A-${num}`
+    const kokugoBCode = `42B-${num}`
     const rikaCode = `430-${num}`
     const shakaiCode = `440-${num}`
     // 水曜: 算数A + 算数B + 理科
@@ -478,7 +480,15 @@ export function generateSapixSessions() {
     if (rikaInfo) {
       sessions.push({ date: dates.wed, dNumber: dNum, subject: '理科', textCode: rikaCode, name: rikaInfo.name, unitIds: rikaInfo.unitIds })
     }
-    // 金曜: 社会
+    // 金曜: 国語A + 国語B + 社会
+    const kokugoAInfo = SAPIX_SCHEDULE[kokugoACode]
+    if (kokugoAInfo) {
+      sessions.push({ date: dates.fri, dNumber: dNum, subject: '国語', textCode: kokugoACode, name: kokugoAInfo.name, unitIds: kokugoAInfo.unitIds })
+    }
+    const kokugoBInfo = SAPIX_SCHEDULE[kokugoBCode]
+    if (kokugoBInfo) {
+      sessions.push({ date: dates.fri, dNumber: dNum, subject: '国語', textCode: kokugoBCode, name: kokugoBInfo.name, unitIds: kokugoBInfo.unitIds })
+    }
     const shakaiInfo = SAPIX_SCHEDULE[shakaiCode]
     if (shakaiInfo) {
       sessions.push({ date: dates.fri, dNumber: dNum, subject: '社会', textCode: shakaiCode, name: shakaiInfo.name, unitIds: shakaiInfo.unitIds })
