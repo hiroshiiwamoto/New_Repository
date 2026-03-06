@@ -242,11 +242,115 @@ const SAPIX_SCHEDULE = {
   'F44-01': { name: '金属工業と石油化学工業', unitIds: ['SHA_GEO_INDUSTRY'], subject: '社会' },
   'F44-02': { name: '機械工業',               unitIds: ['SHA_GEO_INDUSTRY'], subject: '社会' },
   'F44-03': { name: 'その他の工業',           unitIds: ['SHA_GEO_INDUSTRY'], subject: '社会' },
+
+  // ═══ 4年生 通常授業 Aテキスト（国語）═══════════════════════
+  '42A-01': { name: '知の冒険／漢字なんていらない？',         unitIds: [], subject: '国語' },
+  '42A-02': { name: 'コトノハ／あいつなんてきらいだ',         unitIds: [], subject: '国語' },
+  '42A-03': { name: 'コトノハ／今日は楽しいひなまつり',       unitIds: [], subject: '国語' },
+  '42A-04': { name: 'コトノハ／何がおいしい？いつがおいしい？', unitIds: [], subject: '国語' },
+  '42A-05': { name: 'コトノハ／かざらない言葉で…',           unitIds: [], subject: '国語' },
+  '42A-06': { name: '知の冒険／へんな かんじ？',             unitIds: [], subject: '国語' },
+  '42A-07': { name: '知の冒険／〇〇したのはだれだ？',         unitIds: [], subject: '国語' },
+  '42A-08': { name: 'コトノハ／これからの自動車は？',         unitIds: [], subject: '国語' },
+  '42A-09': { name: 'コトノハ／おにいちゃんはつらいよ',       unitIds: [], subject: '国語' },
+  '42A-10': { name: 'コトノハ／雨、雨、ふれふれ',             unitIds: [], subject: '国語' },
+  '42A-11': { name: 'コトノハ／宝物を見つけよう',             unitIds: [], subject: '国語' },
+  '42A-12': { name: '知の冒険／言葉をバラバラにしてみよう！', unitIds: [], subject: '国語' },
+  '42A-13': { name: 'コトノハ／堪忍袋の緒',                   unitIds: [], subject: '国語' },
+  '42A-14': { name: 'コトノハ／星に願いを',                   unitIds: [], subject: '国語' },
+  '42A-15': { name: 'コトノハ／コノハチョウ',                 unitIds: [], subject: '国語' },
+  '42A-16': { name: 'コトノハ／努力は君を裏切らない',         unitIds: [], subject: '国語' },
+  '42A-17': { name: '知の冒険／それでも そこに行くのかい？',   unitIds: [], subject: '国語' },
+  '42A-18': { name: 'コトノハ／十五夜',                       unitIds: [], subject: '国語' },
+  '42A-19': { name: 'コトノハ／夏が終わってしまう',           unitIds: [], subject: '国語' },
+  '42A-20': { name: '知の冒険／とどけ、言葉たち！',           unitIds: [], subject: '国語' },
+  '42A-21': { name: '漢字の成り立ち／部首',                   unitIds: [], subject: '国語' },
+  '42A-22': { name: '読解メソッド・読解演習／説明文01',       unitIds: [], subject: '国語' },
+  '42A-23': { name: '読解メソッド・読解演習／物語文01',       unitIds: [], subject: '国語' },
+  '42A-24': { name: '読解メソッド・読解演習／物語文02',       unitIds: [], subject: '国語' },
+  '42A-25': { name: '読解メソッド・読解演習／説明文02',       unitIds: [], subject: '国語' },
+  '42A-26': { name: '漢字の音訓／熟語の組み立て',             unitIds: [], subject: '国語' },
+  '42A-27': { name: '読解メソッド・読解演習／物語文03',       unitIds: [], subject: '国語' },
+  '42A-28': { name: '読解メソッド・読解演習／物語文04',       unitIds: [], subject: '国語' },
+  '42A-29': { name: '読解メソッド・読解演習／説明文03',       unitIds: [], subject: '国語' },
+  '42A-30': { name: '読解メソッド・読解演習／物語文05',       unitIds: [], subject: '国語' },
+  '42A-31': { name: '主語と述語／かかり受け',                 unitIds: [], subject: '国語' },
+  '42A-32': { name: '読解メソッド・読解演習／物語文06',       unitIds: [], subject: '国語' },
+  '42A-33': { name: '読解メソッド・読解演習／説明文04',       unitIds: [], subject: '国語' },
+  '42A-34': { name: '読解メソッド・読解演習／説明文06',       unitIds: [], subject: '国語' },
+  '42A-35': { name: '指示語／接続語',                         unitIds: [], subject: '国語' },
+  '42A-36': { name: '読解メソッド・読解演習／物語文11',       unitIds: [], subject: '国語' },
+
+  // ═══ 4年生 通常授業 Bテキスト（国語）═══════════════════════
+  '42B-01': { name: '貝がら',                             unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+  '42B-02': { name: '子ねこ',                             unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+  '42B-03': { name: 'マリモのひみつ',                     unitIds: ['KOK_GEN_EXPLAIN'], subject: '国語' },
+  '42B-04': { name: '手の中のもの、なあんだ？',           unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+  '42B-05': { name: 'きくのせい',                         unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+  '42B-06': { name: 'つるしびなの季節',                   unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+  '42B-07': { name: 'エレベーターとエスカレーター',       unitIds: ['KOK_GEN_EXPLAIN'], subject: '国語' },
+  '42B-08': { name: 'ウサギとウサギ',                     unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+  '42B-09': { name: 'バースディ・タイム',                 unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+  '42B-10': { name: 'モモ色フレンズ',                     unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+  '42B-11': { name: '日本語にはどうして敬語が多いの？',   unitIds: ['KOK_GEN_EXPLAIN'], subject: '国語' },
+  '42B-12': { name: '五月のはじめ、日曜日の朝',           unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+  '42B-13': { name: 'もも子・ぼくの妹',                   unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+  '42B-14': { name: 'ルリ色の夢',                         unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+  '42B-15': { name: 'ダチョウ君がほしかったもの',         unitIds: ['KOK_GEN_EXPLAIN'], subject: '国語' },
+  '42B-16': { name: '歩いて行こう',                       unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+  '42B-17': { name: '祭りがやってきた',                   unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+  '42B-18': { name: '七福鳥',                             unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+  '42B-19': { name: '森田さんのおもしろ天気予報',         unitIds: ['KOK_GEN_EXPLAIN'], subject: '国語' },
+  '42B-20': { name: 'ぼくとナギ',                         unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+  '42B-21': { name: '子供たちの晩餐',                     unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+  '42B-22': { name: 'スタートライン',                     unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+  '42B-23': { name: 'くじびき',                           unitIds: ['KOK_GEN_EXPLAIN'], subject: '国語' },
+  '42B-24': { name: 'キャラメルの木',                     unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+  '42B-25': { name: '糸',                                 unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+  '42B-26': { name: '倉田と、おれ',                       unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+  '42B-27': { name: 'いのちってなんだ―生命と細胞',       unitIds: ['KOK_GEN_EXPLAIN'], subject: '国語' },
+  '42B-28': { name: '小さな来客',                         unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+  '42B-29': { name: 'おせんべ、焼けたかな',               unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+  '42B-30': { name: '飛ぶ教室',                           unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+  '42B-31': { name: 'おかねのない動物園',                 unitIds: ['KOK_GEN_EXPLAIN'], subject: '国語' },
+  '42B-32': { name: '流れ星におねがい',                   unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+  '42B-33': { name: '赤いマフラー',                       unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+  '42B-34': { name: '天のシーソー',                       unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+  '42B-35': { name: '峰雲へ',                             unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+  '42B-36': { name: 'マイマイ新子',                       unitIds: ['KOK_GEN_STORY'],   subject: '国語' },
+
+  // ═══ 4年生 春期講習（国語）═════════════════════════════════
+  'H42-01': { name: 'コトノハ／入学式',               unitIds: [], subject: '国語' },
+  'H42-02': { name: 'コトノハ／小さな大発見',         unitIds: [], subject: '国語' },
+  'H42-03': { name: 'コトノハ／どうしてぼくだけ',     unitIds: [], subject: '国語' },
+  'H42-04': { name: 'コトノハ／こいのぼりを見上げて', unitIds: [], subject: '国語' },
+
+  // ═══ 4年生 夏期講習（国語）═════════════════════════════════
+  'N42-01': { name: 'コトノハ／秋晴れの空のもと',         unitIds: [], subject: '国語' },
+  'N42-02': { name: 'コトノハ／実りの秋に',               unitIds: [], subject: '国語' },
+  'N42-03': { name: '知の冒険／日本語博士はここにいる！', unitIds: [], subject: '国語' },
+  'N42-04': { name: 'コトノハ／あいさつのすすめ',         unitIds: [], subject: '国語' },
+  'N42-05': { name: 'コトノハ／なごみの日？',             unitIds: [], subject: '国語' },
+  'N42-06': { name: 'コトノハ／小さな芸術家',             unitIds: [], subject: '国語' },
+  'N42-07': { name: 'コトノハ／髪型・今と昔',             unitIds: [], subject: '国語' },
+  'N42-08': { name: '知の冒険／先生が食べられました？？', unitIds: [], subject: '国語' },
+  'N42-09': { name: 'コトノハ／メリークリスマス',         unitIds: [], subject: '国語' },
+  'N42-10': { name: 'コトノハ／いきもの係',               unitIds: [], subject: '国語' },
+  'N42-11': { name: 'コトノハ／かけがえのない自然',       unitIds: [], subject: '国語' },
+  'N42-12': { name: 'コトノハ／雪遊び',                   unitIds: [], subject: '国語' },
+
+  // ═══ 4年生 冬期講習（国語）═════════════════════════════════
+  'F42-01': { name: '読解メソッド・読解演習／物語文07', unitIds: [], subject: '国語' },
+  'F42-02': { name: '読解メソッド・読解演習／物語文08', unitIds: [], subject: '国語' },
+  'F42-03': { name: '品詞',                             unitIds: [], subject: '国語' },
+  'F42-04': { name: '読解メソッド・読解演習／説明文05', unitIds: [], subject: '国語' },
+  'F42-05': { name: '読解メソッド・読解演習／物語文09', unitIds: [], subject: '国語' },
+  'F42-06': { name: '読解メソッド・読解演習／物語文10', unitIds: [], subject: '国語' },
 }
 
 // ═══ 2026年度 4年生 前期カレンダー（仙川校 D01〜D19）═══════
 // 水曜 = 算数A(41A) + 算数B(41B) + 理科(430)
-// 金曜 = 社会(440)
+// 金曜 = 国語A(42A) + 国語B(42B) + 社会(440)
 const SAPIX_CALENDAR_4_2026_FIRST = {
   'D01': { wed: '2026-02-11', fri: '2026-02-13' },
   'D02': { wed: '2026-02-18', fri: '2026-02-20' },
@@ -328,13 +432,13 @@ export function gradeFromCode(code) {
 
 /**
  * テキストコードから授業日（学習日）を自動取得する
- * 水曜 = 算数A(41A) + 算数B(41B) + 理科(43x), 金曜 = 社会(44x)
- * @param {string} code - 例: "41B-02", "430-03", "440-01"
+ * 水曜 = 算数A(41A) + 算数B(41B) + 理科(43x), 金曜 = 国語A(42A) + 国語B(42B) + 社会(44x)
+ * @param {string} code - 例: "41B-02", "430-03", "42A-01", "440-01"
  * @returns {string|null} - 例: "2026-02-18" or null
  */
 export function getStudyDateFromCode(code) {
   // テキストコードから連番を抽出
-  const numMatch = code.match(/^(?:41[AB]|43\d|44\d)-(\d{2})$/)
+  const numMatch = code.match(/^(?:41[AB]|42[AB]|43\d|44\d)-(\d{2})$/)
   if (!numMatch) return null
   const num = parseInt(numMatch[1])
   if (num < 1 || num > 19) return null
@@ -343,14 +447,14 @@ export function getStudyDateFromCode(code) {
   if (!cal) return null
   // 算数A (41A) + 算数B (41B) + 理科 (43x) → 水曜
   if (/^41[AB]-|^43\d-/.test(code)) return cal.wed
-  // 社会 (44x) → 金曜
-  if (/^44\d-/.test(code)) return cal.fri
+  // 国語A (42A) + 国語B (42B) + 社会 (44x) → 金曜
+  if (/^42[AB]-|^44\d-/.test(code)) return cal.fri
   return null
 }
 
 /**
  * 2026年度 前期 全授業セッション一覧を生成する
- * 水曜 = 算数A + 算数B + 理科, 金曜 = 社会
+ * 水曜 = 算数A + 算数B + 理科, 金曜 = 国語A + 国語B + 社会
  * @returns {Array<{ date: string, dNumber: string, subject: string, textCode: string, name: string, unitIds: string[] }>}
  */
 export function generateSapixSessions() {
@@ -359,6 +463,8 @@ export function generateSapixSessions() {
     const num = dNum.replace('D', '')
     const sansuACode = `41A-${num}`
     const sansuBCode = `41B-${num}`
+    const kokugoACode = `42A-${num}`
+    const kokugoBCode = `42B-${num}`
     const rikaCode = `430-${num}`
     const shakaiCode = `440-${num}`
     // 水曜: 算数A + 算数B + 理科
@@ -374,7 +480,15 @@ export function generateSapixSessions() {
     if (rikaInfo) {
       sessions.push({ date: dates.wed, dNumber: dNum, subject: '理科', textCode: rikaCode, name: rikaInfo.name, unitIds: rikaInfo.unitIds })
     }
-    // 金曜: 社会
+    // 金曜: 国語A + 国語B + 社会
+    const kokugoAInfo = SAPIX_SCHEDULE[kokugoACode]
+    if (kokugoAInfo) {
+      sessions.push({ date: dates.fri, dNumber: dNum, subject: '国語', textCode: kokugoACode, name: kokugoAInfo.name, unitIds: kokugoAInfo.unitIds })
+    }
+    const kokugoBInfo = SAPIX_SCHEDULE[kokugoBCode]
+    if (kokugoBInfo) {
+      sessions.push({ date: dates.fri, dNumber: dNum, subject: '国語', textCode: kokugoBCode, name: kokugoBInfo.name, unitIds: kokugoBInfo.unitIds })
+    }
     const shakaiInfo = SAPIX_SCHEDULE[shakaiCode]
     if (shakaiInfo) {
       sessions.push({ date: dates.fri, dNumber: dNum, subject: '社会', textCode: shakaiCode, name: shakaiInfo.name, unitIds: shakaiInfo.unitIds })
