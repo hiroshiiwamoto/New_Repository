@@ -127,8 +127,8 @@
 
 /* 成績カード */
 .scores-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(450px, 100%), 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 20px;
 }
 
@@ -729,10 +729,6 @@
   .view-filters {
     flex-direction: column;
     gap: 15px;
-  }
-
-  .scores-list {
-    grid-template-columns: 1fr;
   }
 
   .summary-scores {
