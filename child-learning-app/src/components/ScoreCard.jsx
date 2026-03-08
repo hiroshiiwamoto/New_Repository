@@ -15,16 +15,14 @@ function ScoreCard({ score, onEdit, onDelete, onDeleteRequest, onDeleteCancel, i
   return (
     <div className="score-card">
       <div className="card-header">
-        <div className="test-info">
-          <h3 className="test-name">{score.testName}</h3>
-          <span className="test-date">
-            {new Date(score.testDate).toLocaleDateString('ja-JP', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })}
-          </span>
-        </div>
+        <h3 className="test-name">{score.testName}</h3>
+        <span className="test-date">
+          {new Date(score.testDate).toLocaleDateString('ja-JP', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          })}
+        </span>
         <div className="card-actions">
           <button className="edit-btn" onClick={() => onEdit(score)} title="編集">
             ✏️
