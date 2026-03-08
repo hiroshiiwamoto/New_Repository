@@ -214,9 +214,10 @@ function GradesView({ user }) {
     }))
   }
 
-  // 統一行レンダラー: 得点/合計 平均点 偏差値 順位/人数
-  function renderScoreRow(sectionKey, label) {
+  // 統一行レンダラー: 得点/合計 平均点 偏差値 順位/受験者数 男女別平均点 男女別偏差値 男女別順位/受験者数
+  function renderScoreRow(sectionKey, genderKey, label) {
     const data = scoreForm[sectionKey]
+    const genderData = scoreForm[genderKey]
     return (
       <tr key={sectionKey}>
         <th className="grades-table-label">{label}</th>
@@ -244,6 +245,23 @@ function GradesView({ user }) {
             <span>/</span>
             <input type="number" placeholder="人数" value={data.totalStudents}
               onChange={(e) => updateField(sectionKey, 'totalStudents', e.target.value)} />
+          </div>
+        </td>
+        <td>
+          <input type="number" step="0.1" placeholder="平均" value={genderData.average}
+            onChange={(e) => updateField(genderKey, 'average', e.target.value)} />
+        </td>
+        <td>
+          <input type="number" step="0.1" placeholder="偏差値" value={genderData.deviation}
+            onChange={(e) => updateField(genderKey, 'deviation', e.target.value)} />
+        </td>
+        <td>
+          <div className="score-input-group">
+            <input type="number" placeholder="順位" value={genderData.rank}
+              onChange={(e) => updateField(genderKey, 'rank', e.target.value)} />
+            <span>/</span>
+            <input type="number" placeholder="人数" value={genderData.totalStudents}
+              onChange={(e) => updateField(genderKey, 'totalStudents', e.target.value)} />
           </div>
         </td>
       </tr>
@@ -347,28 +365,28 @@ function GradesView({ user }) {
             <table className="grades-table">
               <thead>
                 <tr>
-                  <th></th>
+                  <th rowSpan="2"></th>
+                  <th colSpan="4">全体</th>
+                  <th colSpan="3">男女別</th>
+                </tr>
+                <tr>
                   <th>得点/合計</th>
                   <th>平均点</th>
                   <th>偏差値</th>
-                  <th>順位/人数</th>
+                  <th>順位/受験者数</th>
+                  <th>平均点</th>
+                  <th>偏差値</th>
+                  <th>順位/受験者数</th>
                 </tr>
               </thead>
               <tbody>
-                {renderScoreRow('fourSubjects', '4科目合計')}
-                {renderScoreRow('fourSubjectsGender', '男女別4科目合計')}
-                <tr className="grades-table-separator"><td colSpan="5"></td></tr>
-                {renderScoreRow('sansu', '算数')}
-                {renderScoreRow('kokugo', '国語')}
-                {renderScoreRow('rika', '理科')}
-                {renderScoreRow('shakai', '社会')}
-                <tr className="grades-table-separator"><td colSpan="5"></td></tr>
-                {renderScoreRow('twoSubjects', '2科目合計')}
-                {renderScoreRow('twoSubjectsGender', '男女別2科目合計')}
-                {renderScoreRow('sansuGender', '男女別算数')}
-                {renderScoreRow('kokugoGender', '男女別国語')}
-                {renderScoreRow('rikaGender', '男女別理科')}
-                {renderScoreRow('shakaiGender', '男女別社会')}
+                {renderScoreRow('fourSubjects', 'fourSubjectsGender', '4科目合計')}
+                {renderScoreRow('twoSubjects', 'twoSubjectsGender', '2科目合計')}
+                <tr className="grades-table-separator"><td colSpan="8"></td></tr>
+                {renderScoreRow('sansu', 'sansuGender', '算数')}
+                {renderScoreRow('kokugo', 'kokugoGender', '国語')}
+                {renderScoreRow('rika', 'rikaGender', '理科')}
+                {renderScoreRow('shakai', 'shakaiGender', '社会')}
               </tbody>
             </table>
           </div>
