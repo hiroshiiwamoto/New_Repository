@@ -124,47 +124,6 @@ function ScoreCard({ score, onEdit, onDelete, onDeleteRequest, onDeleteCancel, i
         </div>
       )}
 
-      {/* 設問内容別成績 */}
-      {score.questionBreakdown && (() => {
-        const qb = score.questionBreakdown
-        const subjectLabels = { sansu: '算数', kokugo: '国語', rika: '理科', shakai: '社会' }
-        const hasAny = ['sansu', 'kokugo', 'rika', 'shakai'].some(s => qb[s]?.length > 0)
-        if (!hasAny) return null
-        return (
-          <div className="qb-display">
-            <div className="qb-display-title">設問内容別</div>
-            {['sansu', 'kokugo', 'rika', 'shakai'].map(subj => {
-              const rows = qb[subj]
-              if (!rows?.length) return null
-              return (
-                <div key={subj} className="qb-display-subject">
-                  <span className="qb-display-subject-label">{subjectLabels[subj]}</span>
-                  <div className="qb-display-rows">
-                    {rows.map((row, i) => {
-                      const pct = row.totalScore > 0 ? Math.round((row.score / row.totalScore) * 100) : 0
-                      const avgPct = row.totalScore > 0 && row.average != null ? Math.round((row.average / row.totalScore) * 100) : 0
-                      return (
-                        <div key={i} className="qb-display-row">
-                          <span className="qb-display-name">{row.name}</span>
-                          <span className="qb-display-score">{row.score}/{row.totalScore}</span>
-                          <div className="qb-bar-container">
-                            <div className="qb-bar-avg" style={{ width: `${avgPct}%` }} />
-                            <div className="qb-bar-score" style={{ width: `${pct}%` }} />
-                          </div>
-                          {row.average != null && (
-                            <span className="qb-display-avg">平均{row.average}</span>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )
-      })()}
-
       {/* 成績表PDF */}
       {score.pdfUrl && (
         <div className="additional-info">
