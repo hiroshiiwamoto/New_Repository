@@ -573,6 +573,35 @@
   cursor: wait;
 }
 
+/* Gemini API 使用量アラート */
+.gemini-usage-alert {
+  margin-top: 8px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.gemini-usage-alert.warning {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fcd34d;
+}
+
+.gemini-usage-alert.over-limit {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+}
+
+.gemini-usage-info {
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  text-align: center;
+}
+
 .grades-table-separator td {
   height: 8px;
   border-bottom: 1px solid var(--color-gray-100);
@@ -2147,4 +2176,207 @@
   padding: 2px 6px;
   border-radius: 4px;
   border: 1px solid #fed7aa;
+}
+
+/* ========== 設問内容別成績表（フォーム） ========== */
+.qb-subject-block {
+  margin-bottom: 16px;
+}
+
+.qb-subject-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.qb-subject-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #374151;
+}
+
+.btn-add-qb-row {
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-add-qb-row:hover {
+  background: #dbeafe;
+}
+
+.qb-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  margin-bottom: 8px;
+}
+
+.qb-table th {
+  padding: 4px 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94a3b8;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+}
+
+.qb-table td {
+  padding: 4px 6px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: middle;
+}
+
+.qb-table .qb-num {
+  width: 30px;
+  text-align: center;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.qb-table input[type="text"] {
+  width: 100%;
+  min-width: 80px;
+  padding: 4px 6px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.qb-table input[type="number"] {
+  width: 100%;
+  min-width: 40px;
+  max-width: 60px;
+  padding: 4px 6px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.btn-remove-qb-row {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  line-height: 1;
+}
+
+.btn-remove-qb-row:hover {
+  color: #dc2626;
+}
+
+.form-hint {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin: 0 0 12px 0;
+}
+
+/* ========== 設問内容別成績表（表示） ========== */
+.qb-display {
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: #fafbff;
+  border: 1px solid #e0e7ff;
+  border-radius: 10px;
+}
+
+.qb-display-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #6366f1;
+  margin-bottom: 10px;
+}
+
+.qb-display-subject {
+  margin-bottom: 10px;
+}
+
+.qb-display-subject-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #374151;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.qb-display-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.qb-display-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+}
+
+.qb-display-name {
+  min-width: 90px;
+  color: #4b5563;
+  font-weight: 500;
+}
+
+.qb-display-score {
+  font-weight: 700;
+  color: #1f2937;
+  min-width: 50px;
+  text-align: right;
+}
+
+.qb-bar-container {
+  flex: 1;
+  height: 14px;
+  background: #f3f4f6;
+  border-radius: 7px;
+  position: relative;
+  overflow: hidden;
+  min-width: 60px;
+  max-width: 160px;
+}
+
+.qb-bar-avg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: #fde68a;
+  border-radius: 7px;
+  z-index: 1;
+}
+
+.qb-bar-score {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: #60a5fa;
+  border-radius: 7px;
+  z-index: 2;
+  opacity: 0.8;
+}
+
+.qb-display-avg {
+  font-size: 0.7rem;
+  color: #9ca3af;
+  min-width: 50px;
+}
+
+@media (max-width: 480px) {
+  .qb-display-name {
+    min-width: 60px;
+    font-size: 0.72rem;
+  }
+  .qb-bar-container {
+    max-width: 80px;
+  }
 }

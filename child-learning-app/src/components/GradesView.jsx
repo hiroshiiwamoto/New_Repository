@@ -18,7 +18,7 @@ import { useFirestoreQuery } from '../hooks/useFirestoreQuery'
 import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
 import { refreshGoogleAccessToken } from './Auth'
 import { MAX_FILE_SIZE } from '../utils/constants'
-import { extractScoresFromImage } from '../utils/scoreOcr'
+import { extractScoresFromImage, getGeminiUsage } from '../utils/scoreOcr'
 
 const scoreFields = { score: '', totalScore: '', average: '', deviation: '', rank: '', totalStudents: '' }
 
@@ -311,10 +311,35 @@ function GradesView({ user }) {
               type="button"
               className="btn-ocr"
               onClick={() => imageInputRef.current?.click()}
-              disabled={ocrLoading}
+              disabled={ocrLoading || getGeminiUsage().isOverLimit}
             >
               {ocrLoading ? '読み取り中...' : '画像から自動入力'}
             </button>
+            {(() => {
+              const usage = getGeminiUsage()
+              if (usage.isOverLimit) {
+                return (
+                  <div className="gemini-usage-alert over-limit">
+                    今月のAPI使用上限（{usage.limit}回）に達しました。来月にリセットされます。
+                  </div>
+                )
+              }
+              if (usage.isWarning) {
+                return (
+                  <div className="gemini-usage-alert warning">
+                    今月のAPI使用量: {usage.count} / {usage.limit}回（残り{usage.remaining}回）
+                  </div>
+                )
+              }
+              if (usage.count > 0) {
+                return (
+                  <div className="gemini-usage-info">
+                    今月の使用: {usage.count} / {usage.limit}回
+                  </div>
+                )
+              }
+              return null
+            })()}
           </div>
 
           {/* 成績テーブル */}
