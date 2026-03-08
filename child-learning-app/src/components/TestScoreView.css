@@ -477,9 +477,26 @@
   border-bottom: 2px solid var(--color-gray-100);
 }
 
+.grades-table thead tr:first-child th[colspan="4"] {
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.grades-table thead tr:first-child th[colspan="3"] {
+  border-bottom: 1px solid var(--color-gray-200);
+  background: rgba(0, 122, 255, 0.04);
+}
+
+.grades-table thead tr:nth-child(2) th:nth-child(n+5) {
+  background: rgba(0, 122, 255, 0.04);
+}
+
+.grades-table tbody td:nth-child(n+6) {
+  background: rgba(0, 122, 255, 0.02);
+}
+
 .grades-table thead th:first-child {
   text-align: left;
-  min-width: 110px;
+  min-width: 90px;
 }
 
 .grades-table tbody td,
@@ -607,10 +624,22 @@
   border-bottom: 1px solid var(--color-gray-100);
 }
 
+/* ScoreCard 表示用テーブル */
+.scorecard-table td {
+  font-size: 0.85rem;
+  color: var(--color-gray-800);
+  text-align: center;
+  padding: 5px 8px;
+}
+
+.scorecard-table tbody tr:not(:last-child) {
+  border-bottom: 1px solid var(--color-gray-100);
+}
+
 @media (max-width: 640px) {
   .grades-table-label {
     font-size: 0.75rem;
-    min-width: 80px;
+    min-width: 70px;
   }
   .grades-table tbody td input {
     min-width: 36px;

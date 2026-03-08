@@ -1,19 +1,16 @@
 import './TestScoreView.css'
 
 function ScoreCard({ score, onEdit, onDelete, onDeleteRequest, onDeleteCancel, isPendingDelete }) {
-  const subjects = [
-    { key: 'sansu', label: '算数' },
-    { key: 'kokugo', label: '国語' },
-    { key: 'rika', label: '理科' },
-    { key: 'shakai', label: '社会' },
+  const rows = [
+    { key: 'fourSubjects', genderKey: 'fourSubjectsGender', label: '4科目合計' },
+    { key: 'twoSubjects', genderKey: 'twoSubjectsGender', label: '2科目合計' },
+    { key: 'sansu', genderKey: 'sansuGender', label: '算数' },
+    { key: 'kokugo', genderKey: 'kokugoGender', label: '国語' },
+    { key: 'rika', genderKey: 'rikaGender', label: '理科' },
+    { key: 'shakai', genderKey: 'shakaiGender', label: '社会' },
   ]
 
-  const genderSections = [
-    { key: 'fourSubjectsGender', label: '男女別4科' },
-    { key: 'twoSubjectsGender', label: '男女別2科' },
-    { key: 'sansuGender', label: '男女別算数' },
-    { key: 'kokugoGender', label: '男女別国語' },
-  ]
+  const hasAnyData = rows.some(({ key }) => score[key]?.score || score[key]?.deviation)
 
   return (
     <div className="score-card">
@@ -45,82 +42,46 @@ function ScoreCard({ score, onEdit, onDelete, onDeleteRequest, onDeleteCancel, i
         </div>
       </div>
 
-      {/* 4科目・2科目サマリー */}
-      <div className="summary-scores">
-        {score.fourSubjects?.deviation && (
-          <div className="summary-item four-subjects">
-            <span className="summary-label">4科目</span>
-            {score.fourSubjects.score && (
-              <span className="summary-score">{score.fourSubjects.score}点</span>
-            )}
-            <span className="summary-deviation">偏差値 {score.fourSubjects.deviation}</span>
-            {score.fourSubjects.rank && (
-              <span className="summary-rank">
-                {score.fourSubjects.rank}位{score.fourSubjects.totalStudents && `/${score.fourSubjects.totalStudents}人`}
-              </span>
-            )}
-          </div>
-        )}
-        {score.twoSubjects?.deviation && (
-          <div className="summary-item two-subjects">
-            <span className="summary-label">2科目</span>
-            {score.twoSubjects.score && (
-              <span className="summary-score">{score.twoSubjects.score}点</span>
-            )}
-            <span className="summary-deviation">偏差値 {score.twoSubjects.deviation}</span>
-            {score.twoSubjects.rank && (
-              <span className="summary-rank">
-                {score.twoSubjects.rank}位{score.twoSubjects.totalStudents && `/${score.twoSubjects.totalStudents}人`}
-              </span>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* 科目別得点 */}
-      <div className="subject-scores">
-        {subjects.map(({ key, label }) => {
-          const data = score[key]
-          if (!data?.score && !data?.deviation) return null
-
-          return (
-            <div key={key} className="subject-item">
-              <span className="subject-label">{label}</span>
-              {data.score && (
-                <span className="subject-score">
-                  {data.score}点
-                  {data.average && <span className="average">（平均 {data.average}）</span>}
-                </span>
-              )}
-              {data.deviation && (
-                <span className="subject-deviation">偏差値 {data.deviation}</span>
-              )}
-              {data.rank && (
-                <span className="subject-rank">{data.rank}位</span>
-              )}
-            </div>
-          )
-        })}
-      </div>
-
-      {/* 男女別 */}
-      {genderSections.some(({ key }) => score[key]?.deviation) && (
-        <div className="gender-scores">
-          {genderSections.map(({ key, label }) => {
-            const data = score[key]
-            if (!data?.deviation) return null
-            return (
-              <div key={key} className="subject-item gender-item">
-                <span className="subject-label">{label}</span>
-                <span className="subject-deviation">偏差値 {data.deviation}</span>
-                {data.rank && (
-                  <span className="summary-rank">
-                    {data.rank}位{data.totalStudents && `/${data.totalStudents}人`}
-                  </span>
-                )}
-              </div>
-            )
-          })}
+      {/* 成績テーブル */}
+      {hasAnyData && (
+        <div className="grades-table-wrapper">
+          <table className="grades-table scorecard-table">
+            <thead>
+              <tr>
+                <th rowSpan="2"></th>
+                <th colSpan="4">全体</th>
+                <th colSpan="3">男女別</th>
+              </tr>
+              <tr>
+                <th>得点</th>
+                <th>平均</th>
+                <th>偏差値</th>
+                <th>順位</th>
+                <th>平均</th>
+                <th>偏差値</th>
+                <th>順位</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(({ key, genderKey, label }) => {
+                const data = score[key]
+                const gData = score[genderKey]
+                if (!data?.score && !data?.deviation) return null
+                return (
+                  <tr key={key}>
+                    <th className="grades-table-label">{label}</th>
+                    <td>{data.score && `${data.score}${data.totalScore ? `/${data.totalScore}` : ''}`}</td>
+                    <td>{data.average || ''}</td>
+                    <td>{data.deviation || ''}</td>
+                    <td>{data.rank && `${data.rank}${data.totalStudents ? `/${data.totalStudents}` : ''}`}</td>
+                    <td>{gData?.average || ''}</td>
+                    <td>{gData?.deviation || ''}</td>
+                    <td>{gData?.rank && `${gData.rank}${gData.totalStudents ? `/${gData.totalStudents}` : ''}`}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
         </div>
       )}
 
