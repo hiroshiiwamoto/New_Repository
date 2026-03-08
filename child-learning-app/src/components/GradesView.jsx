@@ -18,6 +18,7 @@ import { useFirestoreQuery } from '../hooks/useFirestoreQuery'
 import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
 import { refreshGoogleAccessToken } from './Auth'
 import { MAX_FILE_SIZE } from '../utils/constants'
+import { extractScoresFromImage } from '../utils/scoreOcr'
 
 const scoreFields = { score: '', totalScore: '', average: '', deviation: '', rank: '', totalStudents: '' }
 
@@ -36,6 +37,8 @@ function getEmptyForm() {
     twoSubjectsGender: { ...scoreFields },
     sansuGender: { ...scoreFields },
     kokugoGender: { ...scoreFields },
+    rikaGender: { ...scoreFields },
+    shakaiGender: { ...scoreFields },
     // 成績表PDF
     pdfUrl: '',
     pdfFileName: '',
@@ -74,7 +77,9 @@ function GradesView({ user }) {
   const [scoreForm, setScoreForm] = useState(getEmptyForm())
   const [pendingDeleteId, setPendingDeleteId] = useState(null)
   const [uploading, setUploading] = useState(false)
+  const [ocrLoading, setOcrLoading] = useState(false)
   const fileInputRef = useRef(null)
+  const imageInputRef = useRef(null)
 
   const filteredScores = (scores || []).filter(s => s.grade === selectedGrade && s.status !== 'scheduled')
 
@@ -156,6 +161,48 @@ function GradesView({ user }) {
       toast.error(TOAST.UPLOAD_ERROR + error.message)
     } finally {
       setUploading(false)
+    }
+  }
+
+  // 画像から成績を自動入力
+  const handleImageOcr = async (file) => {
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      toast.error('画像ファイルを選択してください')
+      return
+    }
+    setOcrLoading(true)
+    try {
+      const extracted = await extractScoresFromImage(file)
+      setScoreForm(prev => {
+        const updated = { ...prev }
+        if (extracted.testName) updated.testName = extracted.testName
+        if (extracted.grade) updated.grade = extracted.grade
+        const sections = [
+          'fourSubjects', 'fourSubjectsGender',
+          'sansu', 'kokugo', 'rika', 'shakai',
+          'twoSubjects', 'twoSubjectsGender',
+          'sansuGender', 'kokugoGender',
+          'rikaGender', 'shakaiGender'
+        ]
+        for (const key of sections) {
+          if (extracted[key]) {
+            updated[key] = { ...prev[key] }
+            for (const field of Object.keys(extracted[key])) {
+              const val = extracted[key][field]
+              if (val !== undefined && val !== null) {
+                updated[key][field] = String(val)
+              }
+            }
+          }
+        }
+        return updated
+      })
+      toast.success('画像から成績を読み取りました')
+    } catch (error) {
+      toast.error('読み取りエラー: ' + error.message)
+    } finally {
+      setOcrLoading(false)
     }
   }
 
@@ -248,6 +295,28 @@ function GradesView({ user }) {
             </div>
           </div>
 
+          {/* 画像から自動入力 */}
+          <div className="form-section ocr-section">
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden-input"
+              onChange={(e) => {
+                handleImageOcr(e.target.files[0])
+                e.target.value = ''
+              }}
+            />
+            <button
+              type="button"
+              className="btn-ocr"
+              onClick={() => imageInputRef.current?.click()}
+              disabled={ocrLoading}
+            >
+              {ocrLoading ? '読み取り中...' : '画像から自動入力'}
+            </button>
+          </div>
+
           {/* 成績テーブル */}
           <div className="grades-table-wrapper">
             <table className="grades-table">
@@ -273,6 +342,8 @@ function GradesView({ user }) {
                 {renderScoreRow('twoSubjectsGender', '男女別2科目合計')}
                 {renderScoreRow('sansuGender', '男女別算数')}
                 {renderScoreRow('kokugoGender', '男女別国語')}
+                {renderScoreRow('rikaGender', '男女別理科')}
+                {renderScoreRow('shakaiGender', '男女別社会')}
               </tbody>
             </table>
           </div>
