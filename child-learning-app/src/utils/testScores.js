@@ -25,52 +25,41 @@ export async function addTestScore(userId, scoreData) {
   try {
     const scoresRef = collection(db, 'users', userId, 'testScores')
 
+    // 成績セクションのフィールドを保存用に整形（空文字はnullに変換）
+    const saveSection = (section) => {
+      if (!section) return {}
+      const result = {}
+      for (const [key, val] of Object.entries(section)) {
+        result[key] = val === '' ? null : val
+      }
+      return result
+    }
+
     const newScore = {
       testName: scoreData.testName || '',
       testDate: scoreData.testDate || getTodayString(),
       grade: scoreData.grade || '',
 
-      // 科目別得点
-      scores: {
-        kokugo: scoreData.scores?.kokugo || null,
-        sansu: scoreData.scores?.sansu || null,
-        rika: scoreData.scores?.rika || null,
-        shakai: scoreData.scores?.shakai || null,
-      },
+      // 4科目合計・2科目合計
+      fourSubjects: saveSection(scoreData.fourSubjects),
+      fourSubjectsGender: saveSection(scoreData.fourSubjectsGender),
+      twoSubjects: saveSection(scoreData.twoSubjects),
+      twoSubjectsGender: saveSection(scoreData.twoSubjectsGender),
 
-      // 科目別満点
-      maxScores: {
-        kokugo: scoreData.maxScores?.kokugo || null,
-        sansu: scoreData.maxScores?.sansu || null,
-        rika: scoreData.maxScores?.rika || null,
-        shakai: scoreData.maxScores?.shakai || null,
-      },
+      // 科目別
+      sansu: saveSection(scoreData.sansu),
+      kokugo: saveSection(scoreData.kokugo),
+      rika: saveSection(scoreData.rika),
+      shakai: saveSection(scoreData.shakai),
 
-      // 2科目
-      twoSubjects: {
-        score: scoreData.twoSubjects?.score || null,
-        maxScore: scoreData.twoSubjects?.maxScore || null,
-        deviation: scoreData.twoSubjects?.deviation || null,
-        rank: scoreData.twoSubjects?.rank || null,
-        totalStudents: scoreData.twoSubjects?.totalStudents || null,
-      },
+      // 科目別（男女別）
+      sansuGender: saveSection(scoreData.sansuGender),
+      kokugoGender: saveSection(scoreData.kokugoGender),
+      rikaGender: saveSection(scoreData.rikaGender),
+      shakaiGender: saveSection(scoreData.shakaiGender),
 
-      // 4科目
-      fourSubjects: {
-        score: scoreData.fourSubjects?.score || null,
-        maxScore: scoreData.fourSubjects?.maxScore || null,
-        deviation: scoreData.fourSubjects?.deviation || null,
-        rank: scoreData.fourSubjects?.rank || null,
-        totalStudents: scoreData.fourSubjects?.totalStudents || null,
-      },
-
-      // 科目別偏差値
-      deviations: {
-        kokugo: scoreData.deviations?.kokugo || null,
-        sansu: scoreData.deviations?.sansu || null,
-        rika: scoreData.deviations?.rika || null,
-        shakai: scoreData.deviations?.shakai || null,
-      },
+      // 設問内容別
+      questionBreakdown: scoreData.questionBreakdown || {},
 
       // コース・クラス
       course: scoreData.course || '',
@@ -78,6 +67,10 @@ export async function addTestScore(userId, scoreData) {
 
       // メモ
       notes: scoreData.notes || '',
+
+      // 成績表PDF
+      pdfUrl: scoreData.pdfUrl || '',
+      pdfFileName: scoreData.pdfFileName || '',
 
       // 紐付けPDF
       pdfDocumentId: scoreData.pdfDocumentId || null,
