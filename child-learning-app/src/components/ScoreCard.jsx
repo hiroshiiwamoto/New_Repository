@@ -1,16 +1,5 @@
 import './TestScoreView.css'
 
-// 旧データ形式から科目データを取得するヘルパー
-function getSubjectData(score, key) {
-  // 新形式: score.sansu.score etc.
-  if (score[key]?.score || score[key]?.deviation) return score[key]
-  // 旧形式: score.scores.sansu + score.deviations.sansu
-  const s = score.scores?.[key]
-  const d = score.deviations?.[key]
-  if (s || d) return { score: s, average: '', deviation: d, rank: '' }
-  return null
-}
-
 function ScoreCard({ score, onEdit, onDelete, onDeleteRequest, onDeleteCancel, isPendingDelete }) {
   const subjects = [
     { key: 'sansu', label: '算数' },
@@ -91,8 +80,8 @@ function ScoreCard({ score, onEdit, onDelete, onDeleteRequest, onDeleteCancel, i
       {/* 科目別得点 */}
       <div className="subject-scores">
         {subjects.map(({ key, label }) => {
-          const data = getSubjectData(score, key)
-          if (!data) return null
+          const data = score[key]
+          if (!data?.score && !data?.deviation) return null
 
           return (
             <div key={key} className="subject-item">

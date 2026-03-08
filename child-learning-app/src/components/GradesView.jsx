@@ -45,74 +45,21 @@ function getEmptyForm() {
   }
 }
 
-// 旧データ形式からの変換
-function migrateScoreData(score) {
-  return {
-    testName: score.testName || '',
-    testDate: score.testDate || '',
-    grade: score.grade || '4年生',
-    fourSubjects: {
-      score: score.fourSubjects?.score || '',
-      average: score.fourSubjects?.average || '',
-      deviation: score.fourSubjects?.deviation || '',
-      rank: score.fourSubjects?.rank || '',
-      totalStudents: score.fourSubjects?.totalStudents || ''
-    },
-    fourSubjectsGender: {
-      deviation: score.fourSubjectsGender?.deviation || '',
-      rank: score.fourSubjectsGender?.rank || '',
-      totalStudents: score.fourSubjectsGender?.totalStudents || ''
-    },
-    sansu: {
-      score: score.sansu?.score || score.scores?.sansu || '',
-      average: score.sansu?.average || '',
-      deviation: score.sansu?.deviation || score.deviations?.sansu || '',
-      rank: score.sansu?.rank || ''
-    },
-    kokugo: {
-      score: score.kokugo?.score || score.scores?.kokugo || '',
-      average: score.kokugo?.average || '',
-      deviation: score.kokugo?.deviation || score.deviations?.kokugo || '',
-      rank: score.kokugo?.rank || ''
-    },
-    rika: {
-      score: score.rika?.score || score.scores?.rika || '',
-      average: score.rika?.average || '',
-      deviation: score.rika?.deviation || score.deviations?.rika || '',
-      rank: score.rika?.rank || ''
-    },
-    shakai: {
-      score: score.shakai?.score || score.scores?.shakai || '',
-      average: score.shakai?.average || '',
-      deviation: score.shakai?.deviation || score.deviations?.shakai || '',
-      rank: score.shakai?.rank || ''
-    },
-    twoSubjects: {
-      score: score.twoSubjects?.score || '',
-      average: score.twoSubjects?.average || '',
-      deviation: score.twoSubjects?.deviation || '',
-      rank: score.twoSubjects?.rank || '',
-      totalStudents: score.twoSubjects?.totalStudents || ''
-    },
-    twoSubjectsGender: {
-      deviation: score.twoSubjectsGender?.deviation || '',
-      rank: score.twoSubjectsGender?.rank || '',
-      totalStudents: score.twoSubjectsGender?.totalStudents || ''
-    },
-    sansuGender: {
-      deviation: score.sansuGender?.deviation || '',
-      rank: score.sansuGender?.rank || '',
-      totalStudents: score.sansuGender?.totalStudents || ''
-    },
-    kokugoGender: {
-      deviation: score.kokugoGender?.deviation || '',
-      rank: score.kokugoGender?.rank || '',
-      totalStudents: score.kokugoGender?.totalStudents || ''
-    },
-    course: score.course || '',
-    className: score.className || '',
-    notes: score.notes || ''
+// 編集用にスコアデータをフォーム形式に変換
+function scoreToForm(score) {
+  const empty = getEmptyForm()
+  const result = {}
+  for (const key of Object.keys(empty)) {
+    if (typeof empty[key] === 'object') {
+      result[key] = {}
+      for (const field of Object.keys(empty[key])) {
+        result[key][field] = score[key]?.[field] || ''
+      }
+    } else {
+      result[key] = score[key] || ''
+    }
   }
+  return result
 }
 
 function GradesView({ user }) {
@@ -142,7 +89,7 @@ function GradesView({ user }) {
 
   const handleEditScore = (score) => {
     setEditingScore(score)
-    setScoreForm(migrateScoreData(score))
+    setScoreForm(scoreToForm(score))
     setShowForm(true)
   }
 
