@@ -573,6 +573,35 @@
   cursor: wait;
 }
 
+/* Gemini API 使用量アラート */
+.gemini-usage-alert {
+  margin-top: 8px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.gemini-usage-alert.warning {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fcd34d;
+}
+
+.gemini-usage-alert.over-limit {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+}
+
+.gemini-usage-info {
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  text-align: center;
+}
+
 .grades-table-separator td {
   height: 8px;
   border-bottom: 1px solid var(--color-gray-100);
