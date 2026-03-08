@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import './TestScoreView.css'
 import { getTodayString } from '../utils/dateUtils'
 import { grades } from '../utils/unitsDatabase'
@@ -15,6 +15,58 @@ import { toast } from '../utils/toast'
 import { LABELS, TOAST } from '../utils/messages'
 import EmptyState from './EmptyState'
 import { useFirestoreQuery } from '../hooks/useFirestoreQuery'
+import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
+import { refreshGoogleAccessToken } from './Auth'
+import { MAX_FILE_SIZE } from '../utils/constants'
+
+function getEmptyForm() {
+  return {
+    testName: '',
+    testDate: getTodayString(),
+    grade: '4年生',
+    // 4科目合計
+    fourSubjects: { score: '', average: '', deviation: '', rank: '', totalStudents: '' },
+    // 男女別4科目合計
+    fourSubjectsGender: { deviation: '', rank: '', totalStudents: '' },
+    // 科目別
+    sansu:  { score: '', average: '', deviation: '', rank: '' },
+    kokugo: { score: '', average: '', deviation: '', rank: '' },
+    rika:   { score: '', average: '', deviation: '', rank: '' },
+    shakai: { score: '', average: '', deviation: '', rank: '' },
+    // 2科目合計
+    twoSubjects: { score: '', average: '', deviation: '', rank: '', totalStudents: '' },
+    // 男女別2科目合計
+    twoSubjectsGender: { deviation: '', rank: '', totalStudents: '' },
+    // 男女別算数
+    sansuGender: { deviation: '', rank: '', totalStudents: '' },
+    // 男女別国語
+    kokugoGender: { deviation: '', rank: '', totalStudents: '' },
+    // 成績表PDF
+    pdfUrl: '',
+    pdfFileName: '',
+    // その他
+    course: '',
+    className: '',
+    notes: ''
+  }
+}
+
+// 編集用にスコアデータをフォーム形式に変換
+function scoreToForm(score) {
+  const empty = getEmptyForm()
+  const result = {}
+  for (const key of Object.keys(empty)) {
+    if (typeof empty[key] === 'object') {
+      result[key] = {}
+      for (const field of Object.keys(empty[key])) {
+        result[key][field] = score[key]?.[field] || ''
+      }
+    } else {
+      result[key] = score[key] || ''
+    }
+  }
+  return result
+}
 
 function GradesView({ user }) {
   const { data: scores, reload: reloadScores } = useFirestoreQuery(
@@ -26,22 +78,8 @@ function GradesView({ user }) {
   const [editingScore, setEditingScore] = useState(null)
   const [scoreForm, setScoreForm] = useState(getEmptyForm())
   const [pendingDeleteId, setPendingDeleteId] = useState(null)
-
-  function getEmptyForm() {
-    return {
-      testName: '',
-      testDate: getTodayString(),
-      grade: '4年生',
-      scores: { kokugo: '', sansu: '', rika: '', shakai: '' },
-      maxScores: { kokugo: '', sansu: '', rika: '', shakai: '' },
-      twoSubjects: { score: '', maxScore: '', deviation: '', rank: '', totalStudents: '' },
-      fourSubjects: { score: '', maxScore: '', deviation: '', rank: '', totalStudents: '' },
-      deviations: { kokugo: '', sansu: '', rika: '', shakai: '' },
-      course: '',
-      className: '',
-      notes: ''
-    }
-  }
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef(null)
 
   const filteredScores = (scores || []).filter(s => s.grade === selectedGrade && s.status !== 'scheduled')
 
@@ -59,19 +97,7 @@ function GradesView({ user }) {
 
   const handleEditScore = (score) => {
     setEditingScore(score)
-    setScoreForm({
-      testName: score.testName || '',
-      testDate: score.testDate || '',
-      grade: score.grade || '4年生',
-      scores: score.scores || { kokugo: '', sansu: '', rika: '', shakai: '' },
-      maxScores: score.maxScores || { kokugo: '', sansu: '', rika: '', shakai: '' },
-      twoSubjects: score.twoSubjects || { score: '', maxScore: '', deviation: '', rank: '', totalStudents: '' },
-      fourSubjects: score.fourSubjects || { score: '', maxScore: '', deviation: '', rank: '', totalStudents: '' },
-      deviations: score.deviations || { kokugo: '', sansu: '', rika: '', shakai: '' },
-      course: score.course || '',
-      className: score.className || '',
-      notes: score.notes || ''
-    })
+    setScoreForm(scoreToForm(score))
     setShowForm(true)
   }
 
@@ -106,12 +132,146 @@ function GradesView({ user }) {
     }
   }
 
+  // 成績表PDFアップロード
+  const handlePDFUpload = async (file) => {
+    if (!file) return
+    if (file.type !== 'application/pdf') {
+      toast.error(TOAST.PDF_ONLY)
+      return
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error(TOAST.FILE_TOO_LARGE)
+      return
+    }
+    const hasAccess = await checkDriveAccess()
+    if (!hasAccess) {
+      const token = await refreshGoogleAccessToken()
+      if (!token) {
+        toast.error(TOAST.DRIVE_NOT_CONNECTED)
+        return
+      }
+    }
+    setUploading(true)
+    try {
+      const result = await uploadPDFToDrive(file, () => {})
+      const viewUrl = `https://drive.google.com/file/d/${result.driveFileId}/view`
+      setScoreForm(prev => ({ ...prev, pdfUrl: viewUrl, pdfFileName: file.name }))
+      toast.success(TOAST.UPLOAD_SUCCESS)
+    } catch (error) {
+      toast.error(TOAST.UPLOAD_ERROR + error.message)
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  // フォーム更新ヘルパー
+  const updateField = (section, field, value) => {
+    setScoreForm(prev => ({
+      ...prev,
+      [section]: { ...prev[section], [field]: value }
+    }))
+  }
+
+  // 合計行（得点・平均点・偏差値・順位/人）
+  function renderSummaryRow(sectionKey, label) {
+    const data = scoreForm[sectionKey]
+    return (
+      <div className="form-section">
+        <h4>{label}</h4>
+        <div className="form-row summary-row">
+          <div className="form-field">
+            <label>得点</label>
+            <input type="number" placeholder="得点" value={data.score}
+              onChange={(e) => updateField(sectionKey, 'score', e.target.value)} />
+          </div>
+          <div className="form-field">
+            <label>平均点</label>
+            <input type="number" step="0.1" placeholder="平均点" value={data.average}
+              onChange={(e) => updateField(sectionKey, 'average', e.target.value)} />
+          </div>
+          <div className="form-field">
+            <label>偏差値</label>
+            <input type="number" step="0.1" placeholder="偏差値" value={data.deviation}
+              onChange={(e) => updateField(sectionKey, 'deviation', e.target.value)} />
+          </div>
+          <div className="form-field">
+            <label>順位</label>
+            <div className="score-input-group">
+              <input type="number" placeholder="順位" value={data.rank}
+                onChange={(e) => updateField(sectionKey, 'rank', e.target.value)} />
+              <span>/</span>
+              <input type="number" placeholder="人数" value={data.totalStudents}
+                onChange={(e) => updateField(sectionKey, 'totalStudents', e.target.value)} />
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // 男女別行（偏差値・順位/人）
+  function renderGenderRow(sectionKey, label) {
+    const data = scoreForm[sectionKey]
+    return (
+      <div className="form-section">
+        <h4>{label}</h4>
+        <div className="form-row summary-row">
+          <div className="form-field">
+            <label>偏差値</label>
+            <input type="number" step="0.1" placeholder="偏差値" value={data.deviation}
+              onChange={(e) => updateField(sectionKey, 'deviation', e.target.value)} />
+          </div>
+          <div className="form-field">
+            <label>順位</label>
+            <div className="score-input-group">
+              <input type="number" placeholder="順位" value={data.rank}
+                onChange={(e) => updateField(sectionKey, 'rank', e.target.value)} />
+              <span>/</span>
+              <input type="number" placeholder="人数" value={data.totalStudents}
+                onChange={(e) => updateField(sectionKey, 'totalStudents', e.target.value)} />
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // 科目別行（得点・平均点・偏差値・順位）
+  function renderSubjectRow(sectionKey, label) {
+    const data = scoreForm[sectionKey]
+    return (
+      <div className="form-row subject-row" key={sectionKey}>
+        <div className="form-field">
+          <label>{label}</label>
+          <input type="number" placeholder="得点" value={data.score}
+            onChange={(e) => updateField(sectionKey, 'score', e.target.value)} />
+        </div>
+        <div className="form-field">
+          <label>平均点</label>
+          <input type="number" step="0.1" placeholder="平均点" value={data.average}
+            onChange={(e) => updateField(sectionKey, 'average', e.target.value)} />
+        </div>
+        <div className="form-field">
+          <label>偏差値</label>
+          <input type="number" step="0.1" placeholder="偏差値" value={data.deviation}
+            onChange={(e) => updateField(sectionKey, 'deviation', e.target.value)} />
+        </div>
+        <div className="form-field">
+          <label>順位</label>
+          <input type="number" placeholder="順位" value={data.rank}
+            onChange={(e) => updateField(sectionKey, 'rank', e.target.value)} />
+        </div>
+      </div>
+    )
+  }
+
   function renderScoreForm() {
     return (
       <div className="modal-overlay-common" onClick={() => setShowForm(false)}>
         <div className="form-container" onClick={(e) => e.stopPropagation()}>
           <h3>{editingScore ? '✏️ 成績を編集' : '➕ 成績を追加'}</h3>
 
+          {/* 1. 基本情報 */}
           <div className="form-section">
             <h4>基本情報</h4>
             <div className="form-row">
@@ -150,138 +310,75 @@ function GradesView({ user }) {
             </div>
           </div>
 
+          {/* 2. 4科目合計 */}
+          {renderSummaryRow('fourSubjects', '4科目合計')}
+
+          {/* 3. 男女別4科目合計 */}
+          {renderGenderRow('fourSubjectsGender', '男女別4科目合計')}
+
+          {/* 4-7. 科目別（算数→国語→理科→社会） */}
           <div className="form-section">
-            <h4>科目別得点</h4>
-            {[
-              { key: 'kokugo', label: '国語' },
-              { key: 'sansu', label: '算数' },
-              { key: 'rika', label: '理科' },
-              { key: 'shakai', label: '社会' }
-            ].map(({ key, label }) => (
-              <div key={key} className="form-row subject-row">
-                <div className="form-field">
-                  <label>{label}</label>
-                  <div className="score-input-group">
-                    <input
-                      type="number"
-                      placeholder="得点"
-                      value={scoreForm.scores[key]}
-                      onChange={(e) => setScoreForm({
-                        ...scoreForm,
-                        scores: { ...scoreForm.scores, [key]: e.target.value }
-                      })}
-                    />
-                    <span>/</span>
-                    <input
-                      type="number"
-                      placeholder="満点"
-                      value={scoreForm.maxScores[key]}
-                      onChange={(e) => setScoreForm({
-                        ...scoreForm,
-                        maxScores: { ...scoreForm.maxScores, [key]: e.target.value }
-                      })}
-                    />
-                  </div>
-                </div>
-                <div className="form-field">
-                  <label>偏差値</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    placeholder="偏差値"
-                    value={scoreForm.deviations[key]}
-                    onChange={(e) => setScoreForm({
-                      ...scoreForm,
-                      deviations: { ...scoreForm.deviations, [key]: e.target.value }
-                    })}
-                  />
-                </div>
-              </div>
-            ))}
+            <h4>科目別</h4>
+            {renderSubjectRow('sansu', '算数')}
+            {renderSubjectRow('kokugo', '国語')}
+            {renderSubjectRow('rika', '理科')}
+            {renderSubjectRow('shakai', '社会')}
           </div>
 
+          {/* 8. 2科目合計 */}
+          {renderSummaryRow('twoSubjects', '2科目合計')}
+
+          {/* 9. 男女別2科目合計 */}
+          {renderGenderRow('twoSubjectsGender', '男女別2科目合計')}
+
+          {/* 10. 男女別算数 */}
+          {renderGenderRow('sansuGender', '男女別算数')}
+
+          {/* 11. 男女別国語 */}
+          {renderGenderRow('kokugoGender', '男女別国語')}
+
+          {/* 12. 成績表PDF */}
           <div className="form-section">
-            <h4>2科目（国語+算数）</h4>
-            <div className="form-row summary-row">
-              <div className="form-field">
-                <label>得点</label>
-                <div className="score-input-group">
-                  <input type="number" placeholder="得点"
-                    value={scoreForm.twoSubjects.score}
-                    onChange={(e) => setScoreForm({ ...scoreForm, twoSubjects: { ...scoreForm.twoSubjects, score: e.target.value } })}
-                  />
-                  <span>/</span>
-                  <input type="number" placeholder="満点"
-                    value={scoreForm.twoSubjects.maxScore}
-                    onChange={(e) => setScoreForm({ ...scoreForm, twoSubjects: { ...scoreForm.twoSubjects, maxScore: e.target.value } })}
-                  />
-                </div>
+            <h4>成績表PDF</h4>
+            {scoreForm.pdfUrl ? (
+              <div className="task-file-url-preview">
+                <span className="task-file-icon">📎</span>
+                <a href={scoreForm.pdfUrl} target="_blank" rel="noopener noreferrer" className="task-file-link">
+                  {scoreForm.pdfFileName || 'Google Drive のファイル'}
+                </a>
+                <button
+                  type="button"
+                  className="task-file-clear-btn"
+                  onClick={() => setScoreForm(prev => ({ ...prev, pdfUrl: '', pdfFileName: '' }))}
+                >
+                  &times;
+                </button>
               </div>
-              <div className="form-field">
-                <label>偏差値</label>
-                <input type="number" step="0.1" placeholder="偏差値"
-                  value={scoreForm.twoSubjects.deviation}
-                  onChange={(e) => setScoreForm({ ...scoreForm, twoSubjects: { ...scoreForm.twoSubjects, deviation: e.target.value } })}
+            ) : (
+              <div className="task-file-upload-area">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="application/pdf"
+                  className="hidden-input"
+                  onChange={(e) => {
+                    handlePDFUpload(e.target.files[0])
+                    e.target.value = ''
+                  }}
                 />
+                <button
+                  type="button"
+                  className="task-pdf-upload-btn"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                >
+                  {uploading ? LABELS.UPLOADING : LABELS.UPLOAD_NEW}
+                </button>
               </div>
-              <div className="form-field">
-                <label>順位</label>
-                <div className="score-input-group">
-                  <input type="number" placeholder="順位"
-                    value={scoreForm.twoSubjects.rank}
-                    onChange={(e) => setScoreForm({ ...scoreForm, twoSubjects: { ...scoreForm.twoSubjects, rank: e.target.value } })}
-                  />
-                  <span>/</span>
-                  <input type="number" placeholder="受験者数"
-                    value={scoreForm.twoSubjects.totalStudents}
-                    onChange={(e) => setScoreForm({ ...scoreForm, twoSubjects: { ...scoreForm.twoSubjects, totalStudents: e.target.value } })}
-                  />
-                </div>
-              </div>
-            </div>
+            )}
           </div>
 
-          <div className="form-section">
-            <h4>4科目合計</h4>
-            <div className="form-row summary-row">
-              <div className="form-field">
-                <label>得点</label>
-                <div className="score-input-group">
-                  <input type="number" placeholder="得点"
-                    value={scoreForm.fourSubjects.score}
-                    onChange={(e) => setScoreForm({ ...scoreForm, fourSubjects: { ...scoreForm.fourSubjects, score: e.target.value } })}
-                  />
-                  <span>/</span>
-                  <input type="number" placeholder="満点"
-                    value={scoreForm.fourSubjects.maxScore}
-                    onChange={(e) => setScoreForm({ ...scoreForm, fourSubjects: { ...scoreForm.fourSubjects, maxScore: e.target.value } })}
-                  />
-                </div>
-              </div>
-              <div className="form-field">
-                <label>偏差値</label>
-                <input type="number" step="0.1" placeholder="偏差値"
-                  value={scoreForm.fourSubjects.deviation}
-                  onChange={(e) => setScoreForm({ ...scoreForm, fourSubjects: { ...scoreForm.fourSubjects, deviation: e.target.value } })}
-                />
-              </div>
-              <div className="form-field">
-                <label>順位</label>
-                <div className="score-input-group">
-                  <input type="number" placeholder="順位"
-                    value={scoreForm.fourSubjects.rank}
-                    onChange={(e) => setScoreForm({ ...scoreForm, fourSubjects: { ...scoreForm.fourSubjects, rank: e.target.value } })}
-                  />
-                  <span>/</span>
-                  <input type="number" placeholder="受験者数"
-                    value={scoreForm.fourSubjects.totalStudents}
-                    onChange={(e) => setScoreForm({ ...scoreForm, fourSubjects: { ...scoreForm.fourSubjects, totalStudents: e.target.value } })}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
+          {/* 13. その他 */}
           <div className="form-section">
             <h4>その他</h4>
             <div className="form-row">
