@@ -39,6 +39,13 @@ function getEmptyForm() {
     kokugoGender: { ...scoreFields },
     rikaGender: { ...scoreFields },
     shakaiGender: { ...scoreFields },
+    // 設問内容別成績
+    questionBreakdown: {
+      sansu: [],
+      kokugo: [],
+      rika: [],
+      shakai: [],
+    },
     // 成績表PDF
     pdfUrl: '',
     pdfFileName: '',
@@ -54,7 +61,14 @@ function scoreToForm(score) {
   const empty = getEmptyForm()
   const result = {}
   for (const key of Object.keys(empty)) {
-    if (typeof empty[key] === 'object') {
+    if (key === 'questionBreakdown') {
+      result[key] = {
+        sansu:  score.questionBreakdown?.sansu  || [],
+        kokugo: score.questionBreakdown?.kokugo || [],
+        rika:   score.questionBreakdown?.rika   || [],
+        shakai: score.questionBreakdown?.shakai || [],
+      }
+    } else if (typeof empty[key] === 'object') {
       result[key] = {}
       for (const field of Object.keys(empty[key])) {
         result[key][field] = score[key]?.[field] || ''
@@ -193,6 +207,15 @@ function GradesView({ user }) {
               if (val !== undefined && val !== null) {
                 updated[key][field] = String(val)
               }
+            }
+          }
+        }
+        // 設問内容別成績
+        if (extracted.questionBreakdown) {
+          updated.questionBreakdown = { ...prev.questionBreakdown }
+          for (const subj of ['sansu', 'kokugo', 'rika', 'shakai']) {
+            if (Array.isArray(extracted.questionBreakdown[subj])) {
+              updated.questionBreakdown[subj] = extracted.questionBreakdown[subj]
             }
           }
         }
@@ -372,6 +395,93 @@ function GradesView({ user }) {
               </tbody>
             </table>
           </div>
+
+          {/* 設問内容別成績表 */}
+          {(() => {
+            const qb = scoreForm.questionBreakdown
+            const subjectLabels = { sansu: '算数', kokugo: '国語', rika: '理科', shakai: '社会' }
+            const hasAny = ['sansu', 'kokugo', 'rika', 'shakai'].some(s => qb[s]?.length > 0)
+
+            const addRow = (subj) => {
+              setScoreForm(prev => ({
+                ...prev,
+                questionBreakdown: {
+                  ...prev.questionBreakdown,
+                  [subj]: [...prev.questionBreakdown[subj], { number: prev.questionBreakdown[subj].length + 1, name: '', score: '', totalScore: '', average: '' }]
+                }
+              }))
+            }
+
+            const updateRow = (subj, idx, field, value) => {
+              setScoreForm(prev => {
+                const rows = [...prev.questionBreakdown[subj]]
+                rows[idx] = { ...rows[idx], [field]: value }
+                return { ...prev, questionBreakdown: { ...prev.questionBreakdown, [subj]: rows } }
+              })
+            }
+
+            const removeRow = (subj, idx) => {
+              setScoreForm(prev => {
+                const rows = prev.questionBreakdown[subj].filter((_, i) => i !== idx)
+                return { ...prev, questionBreakdown: { ...prev.questionBreakdown, [subj]: rows } }
+              })
+            }
+
+            return (
+              <div className="form-section">
+                <h4>設問内容別成績表</h4>
+                {!hasAny && <p className="form-hint">画像から自動入力、または手動で追加できます</p>}
+                {['sansu', 'kokugo', 'rika', 'shakai'].map(subj => (
+                  <div key={subj} className="qb-subject-block">
+                    <div className="qb-subject-header">
+                      <span className="qb-subject-label">{subjectLabels[subj]}</span>
+                      <button type="button" className="btn-add-qb-row" onClick={() => addRow(subj)}>+ 追加</button>
+                    </div>
+                    {qb[subj]?.length > 0 && (
+                      <table className="qb-table">
+                        <thead>
+                          <tr>
+                            <th>No</th>
+                            <th>分野名</th>
+                            <th>得点/配点</th>
+                            <th>平均</th>
+                            <th></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {qb[subj].map((row, idx) => (
+                            <tr key={idx}>
+                              <td className="qb-num">{row.number || idx + 1}</td>
+                              <td>
+                                <input type="text" value={row.name || ''} placeholder="分野名"
+                                  onChange={(e) => updateRow(subj, idx, 'name', e.target.value)} />
+                              </td>
+                              <td>
+                                <div className="score-input-group">
+                                  <input type="number" value={row.score ?? ''} placeholder="得点"
+                                    onChange={(e) => updateRow(subj, idx, 'score', e.target.value)} />
+                                  <span>/</span>
+                                  <input type="number" value={row.totalScore ?? ''} placeholder="配点"
+                                    onChange={(e) => updateRow(subj, idx, 'totalScore', e.target.value)} />
+                                </div>
+                              </td>
+                              <td>
+                                <input type="number" step="0.1" value={row.average ?? ''} placeholder="平均"
+                                  onChange={(e) => updateRow(subj, idx, 'average', e.target.value)} />
+                              </td>
+                              <td>
+                                <button type="button" className="btn-remove-qb-row" onClick={() => removeRow(subj, idx)}>&times;</button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )
+          })()}
 
           {/* 12. 成績表PDF */}
           <div className="form-section">
