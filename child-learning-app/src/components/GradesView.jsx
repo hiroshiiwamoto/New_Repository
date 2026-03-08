@@ -37,6 +37,8 @@ function getEmptyForm() {
     twoSubjectsGender: { ...scoreFields },
     sansuGender: { ...scoreFields },
     kokugoGender: { ...scoreFields },
+    rikaGender: { ...scoreFields },
+    shakaiGender: { ...scoreFields },
     // 成績表PDF
     pdfUrl: '',
     pdfFileName: '',
@@ -180,7 +182,8 @@ function GradesView({ user }) {
           'fourSubjects', 'fourSubjectsGender',
           'sansu', 'kokugo', 'rika', 'shakai',
           'twoSubjects', 'twoSubjectsGender',
-          'sansuGender', 'kokugoGender'
+          'sansuGender', 'kokugoGender',
+          'rikaGender', 'shakaiGender'
         ]
         for (const key of sections) {
           if (extracted[key]) {
@@ -339,6 +342,8 @@ function GradesView({ user }) {
                 {renderScoreRow('twoSubjectsGender', '男女別2科目合計')}
                 {renderScoreRow('sansuGender', '男女別算数')}
                 {renderScoreRow('kokugoGender', '男女別国語')}
+                {renderScoreRow('rikaGender', '男女別理科')}
+                {renderScoreRow('shakaiGender', '男女別社会')}
               </tbody>
             </table>
           </div>
