@@ -455,6 +455,108 @@
   flex-shrink: 0;
 }
 
+/* 成績テーブル（GradesView） */
+.grades-table-wrapper {
+  overflow-x: auto;
+  margin-bottom: 20px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.grades-table {
+  width: 100%;
+  border-collapse: collapse;
+  white-space: nowrap;
+}
+
+.grades-table thead th {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-gray-500);
+  padding: 6px 8px;
+  text-align: center;
+  border-bottom: 2px solid var(--color-gray-100);
+}
+
+.grades-table thead th:first-child {
+  text-align: left;
+  min-width: 110px;
+}
+
+.grades-table tbody td,
+.grades-table tbody th {
+  padding: 5px 6px;
+  vertical-align: middle;
+}
+
+.grades-table-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-gray-800);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.grades-table tbody td input {
+  width: 100%;
+  min-width: 50px;
+  max-width: 80px;
+  padding: 6px 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  background: var(--color-gray-100);
+  color: #1d1d1f;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+
+.grades-table tbody td input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1);
+  background: white;
+}
+
+.grades-table tbody td .score-input-group {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.grades-table tbody td .score-input-group input {
+  flex: 1;
+  min-width: 40px;
+  max-width: 65px;
+}
+
+.grades-table tbody td .score-input-group span {
+  color: var(--color-gray-400);
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.grades-table-separator td {
+  height: 8px;
+  border-bottom: 1px solid var(--color-gray-100);
+}
+
+@media (max-width: 640px) {
+  .grades-table-label {
+    font-size: 0.75rem;
+    min-width: 80px;
+  }
+  .grades-table tbody td input {
+    min-width: 36px;
+    max-width: 60px;
+    padding: 5px 4px;
+    font-size: 0.8rem;
+  }
+  .grades-table tbody td .score-input-group input {
+    min-width: 32px;
+    max-width: 50px;
+  }
+}
+
 .form-actions {
   display: flex;
   gap: 10px;
