@@ -12,17 +12,28 @@ function ScoreCard({ score, onEdit, onDelete, onDeleteRequest, onDeleteCancel, i
 
   const hasAnyData = rows.some(({ key }) => score[key]?.score || score[key]?.deviation)
 
+  // 4科目偏差値 → なければ2科目偏差値
+  const mainDeviation = score.fourSubjects?.deviation || score.twoSubjects?.deviation
+  const mainDeviationLabel = score.fourSubjects?.deviation ? '4科' : '2科'
+
   return (
     <div className="score-card">
       <div className="card-header">
-        <h3 className="test-name">{score.testName}</h3>
-        <span className="test-date">
-          {new Date(score.testDate).toLocaleDateString('ja-JP', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          })}
-        </span>
+        <div className="card-header-left">
+          <h3 className="test-name">{score.testName}</h3>
+          <span className="test-date">
+            {new Date(score.testDate).toLocaleDateString('ja-JP', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric'
+            })}
+          </span>
+        </div>
+        {mainDeviation && (
+          <span className="card-deviation-badge">
+            {mainDeviationLabel} {mainDeviation}
+          </span>
+        )}
         <div className="card-actions">
           <button className="edit-btn" onClick={() => onEdit(score)} title="編集">
             ✏️
