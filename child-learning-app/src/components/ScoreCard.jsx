@@ -29,27 +29,27 @@ function ScoreCard({ score, onEdit, onDelete, onDeleteRequest, onDeleteCancel, i
             })}
           </span>
         </div>
-        <div className="card-header-right">
+        <div className="card-header-center">
           {mainDeviation && (
             <span className="card-deviation-badge">
               {mainDeviationLabel} {mainDeviation}
             </span>
           )}
-          <div className="card-actions">
-            <button className="edit-btn" onClick={() => onEdit(score)} title="編集">
-              ✏️
+        </div>
+        <div className="card-actions">
+          <button className="edit-btn" onClick={() => onEdit(score)} title="編集">
+            ✏️
+          </button>
+          {isPendingDelete ? (
+            <span className="delete-confirm-inline">
+              <button className="delete-confirm-yes" onClick={() => onDelete(score)}>削除</button>
+              <button className="delete-confirm-no" onClick={onDeleteCancel}>戻す</button>
+            </span>
+          ) : (
+            <button className="delete-btn" onClick={() => onDeleteRequest(score.id)} title="削除">
+              🗑️
             </button>
-            {isPendingDelete ? (
-              <span className="delete-confirm-inline">
-                <button className="delete-confirm-yes" onClick={() => onDelete(score)}>削除</button>
-                <button className="delete-confirm-no" onClick={onDeleteCancel}>戻す</button>
-              </span>
-            ) : (
-              <button className="delete-btn" onClick={() => onDeleteRequest(score.id)} title="削除">
-                🗑️
-              </button>
-            )}
-          </div>
+          )}
         </div>
       </div>
 

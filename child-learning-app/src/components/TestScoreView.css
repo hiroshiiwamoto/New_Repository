@@ -166,13 +166,20 @@
   align-items: baseline;
   gap: 6px;
   min-width: 0;
-  flex: 1;
+  flex-shrink: 1;
 }
 
-.card-header-right {
+.card-header-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.card-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   flex-shrink: 0;
 }
 
@@ -202,12 +209,6 @@
   font-size: 0.75rem;
   font-weight: 700;
   white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.card-actions {
-  display: flex;
-  gap: 4px;
   flex-shrink: 0;
 }
 
