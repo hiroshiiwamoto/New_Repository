@@ -1,5 +1,5 @@
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent'
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent'
 
 const PROMPT = `この画像はSAPIXなど塾のテスト成績表（総合成績表）です。表から数値を読み取り、JSON形式で返してください。
 該当する行がない場合はそのキーを省略してください。数値のみ返し、「位」「名」「点」などの文字は含めないでください。
