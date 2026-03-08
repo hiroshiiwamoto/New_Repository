@@ -517,6 +517,16 @@
   background: white;
 }
 
+/* 数値入力のスピナー非表示 */
+.grades-table tbody td input[type="number"]::-webkit-inner-spin-button,
+.grades-table tbody td input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.grades-table tbody td input[type="number"] {
+  -moz-appearance: textfield;
+}
+
 .grades-table tbody td .score-input-group {
   display: flex;
   align-items: center;
