@@ -128,7 +128,7 @@
 /* 成績カード */
 .scores-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(450px, 100%), 1fr));
   gap: 20px;
 }
 
@@ -139,6 +139,8 @@
   padding: 12px;
   box-shadow: var(--shadow-sm);
   transition: all var(--transition-slow);
+  overflow: hidden;
+  max-width: 100%;
 }
 
 .score-card:hover {
@@ -464,6 +466,7 @@
 
 .grades-table {
   width: 100%;
+  min-width: 600px;
   border-collapse: collapse;
   white-space: nowrap;
 }
