@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import './TestScoreView.css'
 import { getTodayString } from '../utils/dateUtils'
 import { grades } from '../utils/unitsDatabase'
@@ -15,6 +15,9 @@ import { toast } from '../utils/toast'
 import { LABELS, TOAST } from '../utils/messages'
 import EmptyState from './EmptyState'
 import { useFirestoreQuery } from '../hooks/useFirestoreQuery'
+import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
+import { refreshGoogleAccessToken } from './Auth'
+import { MAX_FILE_SIZE } from '../utils/constants'
 
 function getEmptyForm() {
   return {
@@ -38,6 +41,9 @@ function getEmptyForm() {
     sansuGender: { deviation: '', rank: '', totalStudents: '' },
     // 男女別国語
     kokugoGender: { deviation: '', rank: '', totalStudents: '' },
+    // 成績表PDF
+    pdfUrl: '',
+    pdfFileName: '',
     // その他
     course: '',
     className: '',
@@ -72,6 +78,8 @@ function GradesView({ user }) {
   const [editingScore, setEditingScore] = useState(null)
   const [scoreForm, setScoreForm] = useState(getEmptyForm())
   const [pendingDeleteId, setPendingDeleteId] = useState(null)
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef(null)
 
   const filteredScores = (scores || []).filter(s => s.grade === selectedGrade && s.status !== 'scheduled')
 
@@ -121,6 +129,38 @@ function GradesView({ user }) {
       toast.success(TOAST.DELETE_SUCCESS)
     } else {
       toast.error(TOAST.DELETE_FAILED)
+    }
+  }
+
+  // 成績表PDFアップロード
+  const handlePDFUpload = async (file) => {
+    if (!file) return
+    if (file.type !== 'application/pdf') {
+      toast.error(TOAST.PDF_ONLY)
+      return
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error(TOAST.FILE_TOO_LARGE)
+      return
+    }
+    const hasAccess = await checkDriveAccess()
+    if (!hasAccess) {
+      const token = await refreshGoogleAccessToken()
+      if (!token) {
+        toast.error(TOAST.DRIVE_NOT_CONNECTED)
+        return
+      }
+    }
+    setUploading(true)
+    try {
+      const result = await uploadPDFToDrive(file, () => {})
+      const viewUrl = `https://drive.google.com/file/d/${result.driveFileId}/view`
+      setScoreForm(prev => ({ ...prev, pdfUrl: viewUrl, pdfFileName: file.name }))
+      toast.success(TOAST.UPLOAD_SUCCESS)
+    } catch (error) {
+      toast.error(TOAST.UPLOAD_ERROR + error.message)
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -297,7 +337,48 @@ function GradesView({ user }) {
           {/* 11. 男女別国語 */}
           {renderGenderRow('kokugoGender', '男女別国語')}
 
-          {/* 12. その他 */}
+          {/* 12. 成績表PDF */}
+          <div className="form-section">
+            <h4>成績表PDF</h4>
+            {scoreForm.pdfUrl ? (
+              <div className="task-file-url-preview">
+                <span className="task-file-icon">📎</span>
+                <a href={scoreForm.pdfUrl} target="_blank" rel="noopener noreferrer" className="task-file-link">
+                  {scoreForm.pdfFileName || 'Google Drive のファイル'}
+                </a>
+                <button
+                  type="button"
+                  className="task-file-clear-btn"
+                  onClick={() => setScoreForm(prev => ({ ...prev, pdfUrl: '', pdfFileName: '' }))}
+                >
+                  &times;
+                </button>
+              </div>
+            ) : (
+              <div className="task-file-upload-area">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="application/pdf"
+                  className="hidden-input"
+                  onChange={(e) => {
+                    handlePDFUpload(e.target.files[0])
+                    e.target.value = ''
+                  }}
+                />
+                <button
+                  type="button"
+                  className="task-pdf-upload-btn"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                >
+                  {uploading ? LABELS.UPLOADING : LABELS.UPLOAD_NEW}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* 13. その他 */}
           <div className="form-section">
             <h4>その他</h4>
             <div className="form-row">

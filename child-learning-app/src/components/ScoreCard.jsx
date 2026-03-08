@@ -124,6 +124,16 @@ function ScoreCard({ score, onEdit, onDelete, onDeleteRequest, onDeleteCancel, i
         </div>
       )}
 
+      {/* 成績表PDF */}
+      {score.pdfUrl && (
+        <div className="additional-info">
+          <span className="task-file-icon">📎</span>
+          <a href={score.pdfUrl} target="_blank" rel="noopener noreferrer" className="task-file-link">
+            {score.pdfFileName || '成績表PDF'}
+          </a>
+        </div>
+      )}
+
       {/* コース・クラス・メモ */}
       {(score.course || score.className || score.notes) && (
         <div className="additional-info">
