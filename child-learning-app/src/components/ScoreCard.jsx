@@ -29,11 +29,13 @@ function ScoreCard({ score, onEdit, onDelete, onDeleteRequest, onDeleteCancel, i
             })}
           </span>
         </div>
-        {mainDeviation && (
-          <span className="card-deviation-badge">
-            {mainDeviationLabel} {mainDeviation}
-          </span>
-        )}
+        <div className="card-header-center">
+          {mainDeviation && (
+            <span className="card-deviation-badge">
+              {mainDeviationLabel} {mainDeviation}
+            </span>
+          )}
+        </div>
         <div className="card-actions">
           <button className="edit-btn" onClick={() => onEdit(score)} title="編集">
             ✏️
