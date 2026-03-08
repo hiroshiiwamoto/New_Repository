@@ -19,28 +19,23 @@ import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
 import { refreshGoogleAccessToken } from './Auth'
 import { MAX_FILE_SIZE } from '../utils/constants'
 
+const scoreFields = { score: '', totalScore: '', average: '', deviation: '', rank: '', totalStudents: '' }
+
 function getEmptyForm() {
   return {
     testName: '',
     testDate: getTodayString(),
     grade: '4年生',
-    // 4科目合計
-    fourSubjects: { score: '', average: '', deviation: '', rank: '', totalStudents: '' },
-    // 男女別4科目合計
-    fourSubjectsGender: { deviation: '', rank: '', totalStudents: '' },
-    // 科目別
-    sansu:  { score: '', average: '', deviation: '', rank: '' },
-    kokugo: { score: '', average: '', deviation: '', rank: '' },
-    rika:   { score: '', average: '', deviation: '', rank: '' },
-    shakai: { score: '', average: '', deviation: '', rank: '' },
-    // 2科目合計
-    twoSubjects: { score: '', average: '', deviation: '', rank: '', totalStudents: '' },
-    // 男女別2科目合計
-    twoSubjectsGender: { deviation: '', rank: '', totalStudents: '' },
-    // 男女別算数
-    sansuGender: { deviation: '', rank: '', totalStudents: '' },
-    // 男女別国語
-    kokugoGender: { deviation: '', rank: '', totalStudents: '' },
+    fourSubjects: { ...scoreFields },
+    fourSubjectsGender: { ...scoreFields },
+    sansu:  { ...scoreFields },
+    kokugo: { ...scoreFields },
+    rika:   { ...scoreFields },
+    shakai: { ...scoreFields },
+    twoSubjects: { ...scoreFields },
+    twoSubjectsGender: { ...scoreFields },
+    sansuGender: { ...scoreFields },
+    kokugoGender: { ...scoreFields },
     // 成績表PDF
     pdfUrl: '',
     pdfFileName: '',
@@ -172,96 +167,39 @@ function GradesView({ user }) {
     }))
   }
 
-  // 合計行（得点・平均点・偏差値・順位/人）
-  function renderSummaryRow(sectionKey, label) {
+  // 統一行レンダラー: 得点/合計 平均点 偏差値 順位/人数
+  function renderScoreRow(sectionKey, label) {
     const data = scoreForm[sectionKey]
     return (
-      <div className="form-section">
-        <h4>{label}</h4>
-        <div className="form-row summary-row">
-          <div className="form-field">
-            <label>得点</label>
+      <tr key={sectionKey}>
+        <th className="grades-table-label">{label}</th>
+        <td>
+          <div className="score-input-group">
             <input type="number" placeholder="得点" value={data.score}
               onChange={(e) => updateField(sectionKey, 'score', e.target.value)} />
+            <span>/</span>
+            <input type="number" placeholder="合計" value={data.totalScore}
+              onChange={(e) => updateField(sectionKey, 'totalScore', e.target.value)} />
           </div>
-          <div className="form-field">
-            <label>平均点</label>
-            <input type="number" step="0.1" placeholder="平均点" value={data.average}
-              onChange={(e) => updateField(sectionKey, 'average', e.target.value)} />
-          </div>
-          <div className="form-field">
-            <label>偏差値</label>
-            <input type="number" step="0.1" placeholder="偏差値" value={data.deviation}
-              onChange={(e) => updateField(sectionKey, 'deviation', e.target.value)} />
-          </div>
-          <div className="form-field">
-            <label>順位</label>
-            <div className="score-input-group">
-              <input type="number" placeholder="順位" value={data.rank}
-                onChange={(e) => updateField(sectionKey, 'rank', e.target.value)} />
-              <span>/</span>
-              <input type="number" placeholder="人数" value={data.totalStudents}
-                onChange={(e) => updateField(sectionKey, 'totalStudents', e.target.value)} />
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // 男女別行（偏差値・順位/人）
-  function renderGenderRow(sectionKey, label) {
-    const data = scoreForm[sectionKey]
-    return (
-      <div className="form-section">
-        <h4>{label}</h4>
-        <div className="form-row summary-row">
-          <div className="form-field">
-            <label>偏差値</label>
-            <input type="number" step="0.1" placeholder="偏差値" value={data.deviation}
-              onChange={(e) => updateField(sectionKey, 'deviation', e.target.value)} />
-          </div>
-          <div className="form-field">
-            <label>順位</label>
-            <div className="score-input-group">
-              <input type="number" placeholder="順位" value={data.rank}
-                onChange={(e) => updateField(sectionKey, 'rank', e.target.value)} />
-              <span>/</span>
-              <input type="number" placeholder="人数" value={data.totalStudents}
-                onChange={(e) => updateField(sectionKey, 'totalStudents', e.target.value)} />
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // 科目別行（得点・平均点・偏差値・順位）
-  function renderSubjectRow(sectionKey, label) {
-    const data = scoreForm[sectionKey]
-    return (
-      <div className="form-row subject-row" key={sectionKey}>
-        <div className="form-field">
-          <label>{label}</label>
-          <input type="number" placeholder="得点" value={data.score}
-            onChange={(e) => updateField(sectionKey, 'score', e.target.value)} />
-        </div>
-        <div className="form-field">
-          <label>平均点</label>
-          <input type="number" step="0.1" placeholder="平均点" value={data.average}
+        </td>
+        <td>
+          <input type="number" step="0.1" placeholder="平均" value={data.average}
             onChange={(e) => updateField(sectionKey, 'average', e.target.value)} />
-        </div>
-        <div className="form-field">
-          <label>偏差値</label>
+        </td>
+        <td>
           <input type="number" step="0.1" placeholder="偏差値" value={data.deviation}
             onChange={(e) => updateField(sectionKey, 'deviation', e.target.value)} />
-        </div>
-        <div className="form-field">
-          <label>順位</label>
-          <input type="number" placeholder="順位" value={data.rank}
-            onChange={(e) => updateField(sectionKey, 'rank', e.target.value)} />
-        </div>
-      </div>
+        </td>
+        <td>
+          <div className="score-input-group">
+            <input type="number" placeholder="順位" value={data.rank}
+              onChange={(e) => updateField(sectionKey, 'rank', e.target.value)} />
+            <span>/</span>
+            <input type="number" placeholder="人数" value={data.totalStudents}
+              onChange={(e) => updateField(sectionKey, 'totalStudents', e.target.value)} />
+          </div>
+        </td>
+      </tr>
     )
   }
 
@@ -310,32 +248,34 @@ function GradesView({ user }) {
             </div>
           </div>
 
-          {/* 2. 4科目合計 */}
-          {renderSummaryRow('fourSubjects', '4科目合計')}
-
-          {/* 3. 男女別4科目合計 */}
-          {renderGenderRow('fourSubjectsGender', '男女別4科目合計')}
-
-          {/* 4-7. 科目別（算数→国語→理科→社会） */}
-          <div className="form-section">
-            <h4>科目別</h4>
-            {renderSubjectRow('sansu', '算数')}
-            {renderSubjectRow('kokugo', '国語')}
-            {renderSubjectRow('rika', '理科')}
-            {renderSubjectRow('shakai', '社会')}
+          {/* 成績テーブル */}
+          <div className="grades-table-wrapper">
+            <table className="grades-table">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>得点/合計</th>
+                  <th>平均点</th>
+                  <th>偏差値</th>
+                  <th>順位/人数</th>
+                </tr>
+              </thead>
+              <tbody>
+                {renderScoreRow('fourSubjects', '4科目合計')}
+                {renderScoreRow('fourSubjectsGender', '男女別4科目合計')}
+                <tr className="grades-table-separator"><td colSpan="5"></td></tr>
+                {renderScoreRow('sansu', '算数')}
+                {renderScoreRow('kokugo', '国語')}
+                {renderScoreRow('rika', '理科')}
+                {renderScoreRow('shakai', '社会')}
+                <tr className="grades-table-separator"><td colSpan="5"></td></tr>
+                {renderScoreRow('twoSubjects', '2科目合計')}
+                {renderScoreRow('twoSubjectsGender', '男女別2科目合計')}
+                {renderScoreRow('sansuGender', '男女別算数')}
+                {renderScoreRow('kokugoGender', '男女別国語')}
+              </tbody>
+            </table>
           </div>
-
-          {/* 8. 2科目合計 */}
-          {renderSummaryRow('twoSubjects', '2科目合計')}
-
-          {/* 9. 男女別2科目合計 */}
-          {renderGenderRow('twoSubjectsGender', '男女別2科目合計')}
-
-          {/* 10. 男女別算数 */}
-          {renderGenderRow('sansuGender', '男女別算数')}
-
-          {/* 11. 男女別国語 */}
-          {renderGenderRow('kokugoGender', '男女別国語')}
 
           {/* 12. 成績表PDF */}
           <div className="form-section">
