@@ -169,6 +169,13 @@
   flex: 1;
 }
 
+.card-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .test-name {
   color: #1d1d1f;
   font-size: 0.9rem;
