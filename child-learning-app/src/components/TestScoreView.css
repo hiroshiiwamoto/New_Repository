@@ -545,6 +545,34 @@
   flex-shrink: 0;
 }
 
+/* 画像から自動入力ボタン */
+.ocr-section {
+  text-align: center;
+  padding-bottom: 15px !important;
+  margin-bottom: 15px !important;
+}
+
+.btn-ocr {
+  padding: 10px 24px;
+  border: 2px dashed var(--color-primary);
+  border-radius: 10px;
+  background: rgba(0, 122, 255, 0.05);
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-ocr:hover:not(:disabled) {
+  background: rgba(0, 122, 255, 0.12);
+}
+
+.btn-ocr:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 .grades-table-separator td {
   height: 8px;
   border-bottom: 1px solid var(--color-gray-100);
