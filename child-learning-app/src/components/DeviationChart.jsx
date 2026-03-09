@@ -42,6 +42,15 @@ function DeviationChart({ data }) {
   const effectiveMode = mode ||
     (fourLine.length > 0 ? 'four' : twoLine.length > 0 ? 'two' : hasSubjects ? 'subjects' : 'four')
 
+  // 全モードの値を集めてスケール用に使う
+  const allValues = [
+    ...fourLine.map(p => p.val),
+    ...twoLine.map(p => p.val),
+    ...subjectKeys.flatMap(key => subjectLines[key].map(p => p.val)),
+  ]
+
+  if (allValues.length === 0) return null
+
   // モードに応じて表示するラインの値を集める
   let activeValues = []
   if (effectiveMode === 'four') {
@@ -54,10 +63,10 @@ function DeviationChart({ data }) {
     })
   }
 
-  if (activeValues.length === 0) return null
-
-  const minVal = Math.floor(Math.min(...activeValues) - 3)
-  const maxVal = Math.ceil(Math.max(...activeValues) + 3)
+  const hasActiveData = activeValues.length > 0
+  const scaleValues = hasActiveData ? activeValues : allValues
+  const minVal = Math.floor(Math.min(...scaleValues) - 3)
+  const maxVal = Math.ceil(Math.max(...scaleValues) + 3)
   const range = maxVal - minVal || 1
 
   // SVG dimensions
@@ -136,6 +145,9 @@ function DeviationChart({ data }) {
         </div>
       </div>
 
+      {!hasActiveData ? (
+        <div className="chart-no-data">このモードのデータはありません</div>
+      ) : (
       <div className="chart-wrapper">
         <svg viewBox={`0 0 ${width} ${height}`} className="chart-svg">
           {/* Grid */}
@@ -210,6 +222,7 @@ function DeviationChart({ data }) {
           )
         })}
       </div>
+      )}
     </div>
   )
 }

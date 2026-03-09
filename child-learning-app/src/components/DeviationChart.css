@@ -54,6 +54,13 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+.chart-no-data {
+  text-align: center;
+  padding: 40px 20px;
+  color: #94a3b8;
+  font-size: 0.875rem;
+}
+
 .chart-wrapper {
   width: 100%;
   overflow-x: auto;
