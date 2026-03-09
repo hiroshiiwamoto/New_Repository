@@ -500,7 +500,7 @@ function GradesView({ user }) {
         + 成績を追加
       </button>
 
-      {chartData.length >= 2 && (
+      {chartData.length >= 1 && (
         <DeviationChart data={chartData} />
       )}
 
