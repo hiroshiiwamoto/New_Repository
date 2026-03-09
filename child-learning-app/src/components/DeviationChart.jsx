@@ -148,6 +148,7 @@ function DeviationChart({ data }) {
       {!hasActiveData ? (
         <div className="chart-no-data">このモードのデータはありません</div>
       ) : (
+      <>
       <div className="chart-wrapper">
         <svg viewBox={`0 0 ${width} ${height}`} className="chart-svg">
           {/* Grid */}
@@ -222,6 +223,7 @@ function DeviationChart({ data }) {
           )
         })}
       </div>
+      </>
       )}
     </div>
   )
