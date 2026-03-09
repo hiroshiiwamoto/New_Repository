@@ -85,7 +85,11 @@ function GradesView({ user }) {
 
   const chartData = useMemo(() => {
     return [...filteredScores]
-      .filter(s => s.fourSubjects?.deviation || s.twoSubjects?.deviation)
+      .filter(s =>
+        s.fourSubjects?.deviation || s.twoSubjects?.deviation ||
+        s.sansu?.deviation || s.kokugo?.deviation ||
+        s.rika?.deviation || s.shakai?.deviation
+      )
       .sort((a, b) => new Date(a.testDate) - new Date(b.testDate))
   }, [filteredScores])
 
