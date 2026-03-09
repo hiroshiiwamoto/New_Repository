@@ -12,9 +12,9 @@ const subjectLabels = { sansu: '算数', kokugo: '国語', rika: '理科', shaka
 const subjectColors = { sansu: '#ef4444', kokugo: '#10b981', rika: '#3b82f6', shakai: '#f59e0b' }
 
 function DeviationChart({ data }) {
-  const [mode, setMode] = useState('four')
+  const [mode, setMode] = useState(null)
 
-  if (!data || data.length < 2) return null
+  if (!data || data.length < 1) return null
 
   // 各ラインのポイントを構築
   const buildLine = (key) => {
@@ -36,11 +36,17 @@ function DeviationChart({ data }) {
   const subjectLines = {}
   subjectKeys.forEach(key => { subjectLines[key] = buildLine(key) })
 
+  const hasSubjects = subjectKeys.some(key => subjectLines[key].length > 0)
+
+  // データがあるモードを自動選択
+  const effectiveMode = mode ||
+    (fourLine.length > 0 ? 'four' : twoLine.length > 0 ? 'two' : hasSubjects ? 'subjects' : 'four')
+
   // モードに応じて表示するラインの値を集める
   let activeValues = []
-  if (mode === 'four') {
+  if (effectiveMode === 'four') {
     activeValues = fourLine.map(p => p.val)
-  } else if (mode === 'two') {
+  } else if (effectiveMode === 'two') {
     activeValues = twoLine.map(p => p.val)
   } else {
     subjectKeys.forEach(key => {
@@ -121,7 +127,7 @@ function DeviationChart({ data }) {
           {MODES.map(m => (
             <button
               key={m.key}
-              className={`chart-mode-tab ${mode === m.key ? 'active' : ''}`}
+              className={`chart-mode-tab ${effectiveMode === m.key ? 'active' : ''}`}
               onClick={() => setMode(m.key)}
             >
               {m.label}
@@ -170,9 +176,9 @@ function DeviationChart({ data }) {
           ))}
 
           {/* Lines based on mode */}
-          {mode === 'four' && renderLine(fourLine, '#3b82f6')}
-          {mode === 'two' && renderLine(twoLine, '#10b981')}
-          {mode === 'subjects' && subjectKeys.map(key => (
+          {effectiveMode === 'four' && renderLine(fourLine, '#3b82f6')}
+          {effectiveMode === 'two' && renderLine(twoLine, '#10b981')}
+          {effectiveMode === 'subjects' && subjectKeys.map(key => (
             <g key={key}>
               {renderLine(subjectLines[key], subjectColors[key], 2)}
             </g>
@@ -182,19 +188,19 @@ function DeviationChart({ data }) {
 
       {/* 凡例 */}
       <div className="chart-legend">
-        {mode === 'four' && fourLine.length > 0 && (
+        {effectiveMode === 'four' && fourLine.length > 0 && (
           <div className="legend-item">
             <span className="legend-color" style={{ background: '#3b82f6' }} />
             <span>4科目</span>
           </div>
         )}
-        {mode === 'two' && twoLine.length > 0 && (
+        {effectiveMode === 'two' && twoLine.length > 0 && (
           <div className="legend-item">
             <span className="legend-color" style={{ background: '#10b981' }} />
             <span>2科目</span>
           </div>
         )}
-        {mode === 'subjects' && subjectKeys.map(key => {
+        {effectiveMode === 'subjects' && subjectKeys.map(key => {
           if (subjectLines[key].length < 1) return null
           return (
             <div key={key} className="legend-item">
