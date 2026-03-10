@@ -289,16 +289,38 @@ export default function ProblemClipList({
   // RENDER
   // ============================================================
 
-  const renderProblemItem = (problem) => {
-    const st = reviewStatusInfo(problem.reviewStatus)
+  // ── プレビュー風の行表示（教科グループ時） ──────────
+  const renderGroupedItem = (problem) => {
     const rate = parseFloat(problem.correctRate) || 0
     const rateClass = problem.correctRate != null
-      ? (rate > 50 ? 'clip-rate-high' : rate >= 20 ? 'clip-rate-mid' : 'clip-rate-low')
+      ? (rate > 50 ? 'clip-g-rate-high' : rate >= 20 ? 'clip-g-rate-mid' : 'clip-g-rate-low')
       : ''
     return (
       <div
+        key={problem.id}
+        className={`clip-g-item ${rateClass}`}
+        onClick={() => setSelectedProblem(problem)}
+        role="button"
+        tabIndex={0}
+      >
+        <span className="clip-g-number">{problem.problemNumber}</span>
+        {showPoints && <span className="clip-g-points">{problem.points != null ? `${problem.points}点` : ''}</span>}
+        <span className="clip-g-rate">{problem.correctRate != null ? `${problem.correctRate}%` : '-'}</span>
+        {problem.partialScore != null && (
+          <span className="clip-g-partial">部分点{problem.partialScore}</span>
+        )}
+        {rate > 50 && <span className="clip-g-warn" title="正答率が高いのに間違えた問題">⚠️</span>}
+      </div>
+    )
+  }
+
+  // ── 通常の行表示 ──────────────────────────────────
+  const renderProblemItem = (problem) => {
+    const st = reviewStatusInfo(problem.reviewStatus)
+    return (
+      <div
         key={problem.id || problem.id}
-        className={`clip-item ${problem.isCorrect ? 'correct' : 'incorrect'} ${subjectGroups ? rateClass : ''}`}
+        className={`clip-item ${problem.isCorrect ? 'correct' : 'incorrect'}`}
         onClick={() => setSelectedProblem(problem)}
         role="button"
         tabIndex={0}
@@ -739,10 +761,11 @@ export default function ProblemClipList({
               {subjectGroups.map(({ subject, problems: grpProblems }) => (
                 <div key={subject} className="clip-subject-group">
                   <h5 className="clip-subject-group-title">
-                    {subject}
-                    <span className="clip-subject-group-count">（{grpProblems.length}問）</span>
+                    {subject}（{grpProblems.length}問）
                   </h5>
-                  {grpProblems.map(renderProblemItem)}
+                  <div className="clip-g-items">
+                    {grpProblems.map(renderGroupedItem)}
+                  </div>
                 </div>
               ))}
             </div>
