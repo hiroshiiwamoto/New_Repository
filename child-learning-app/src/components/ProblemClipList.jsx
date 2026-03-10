@@ -267,6 +267,24 @@ export default function ProblemClipList({
     return numA - numB
   })
 
+  // ── 教科別グループ化（複数教科の場合） ──────────────
+  const subjectGroups = (() => {
+    if (!multiSubject) return null
+    const subjectOrder = ['算数', '国語', '理科', '社会']
+    const grouped = {}
+    for (const p of sortedProblems) {
+      const subj = p.subject || 'その他'
+      if (!grouped[subj]) grouped[subj] = []
+      grouped[subj].push(p)
+    }
+    const sortedSubjects = Object.keys(grouped).sort((a, b) => {
+      const ia = subjectOrder.indexOf(a)
+      const ib = subjectOrder.indexOf(b)
+      return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib)
+    })
+    return sortedSubjects.map(subj => ({ subject: subj, problems: grouped[subj] }))
+  })()
+
   // ============================================================
   // RENDER
   // ============================================================
@@ -712,6 +730,18 @@ export default function ProblemClipList({
           {/* 問題リスト */}
           {sortedProblems.length === 0 ? (
             <p className="clip-empty">まだ問題が記録されていません</p>
+          ) : subjectGroups ? (
+            <div className="clip-list clip-list-grouped">
+              {subjectGroups.map(({ subject, problems: grpProblems }) => (
+                <div key={subject} className="clip-subject-group">
+                  <h5 className="clip-subject-group-title">
+                    {subject}
+                    <span className="clip-subject-group-count">（{grpProblems.length}問）</span>
+                  </h5>
+                  {grpProblems.map(renderProblemItem)}
+                </div>
+              ))}
+            </div>
           ) : (
             <div className="clip-list">
               {sortedProblems.map(renderProblemItem)}
