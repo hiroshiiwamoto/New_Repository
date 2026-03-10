@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { getStorageUsage, deleteOrphanFiles } from '../utils/storageUsage'
+import { getGeminiUsage } from '../utils/scoreOcr'
 import { toast } from '../utils/toast'
 import Loading from './Loading'
 import './SettingsModal.css'
@@ -17,9 +18,11 @@ export default function SettingsModal({ userId, onClose }) {
   const [usage, setUsage] = useState(null)
   const [cleaning, setCleaning] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [geminiUsage, setGeminiUsage] = useState(null)
 
   useEffect(() => {
     loadUsage()
+    setGeminiUsage(getGeminiUsage())
   }, [userId])
 
   const loadUsage = async () => {
@@ -103,6 +106,38 @@ export default function SettingsModal({ userId, onClose }) {
               </div>
             ) : (
               <p className="storage-error">使用量の取得に失敗しました</p>
+            )}
+          </div>
+
+          {/* Gemini API 使用状況 */}
+          <div className="settings-section">
+            <h4 className="settings-section-title">Gemini API 使用状況</h4>
+            {geminiUsage ? (
+              <div className="storage-info">
+                <div className="storage-stat">
+                  <span className="storage-label">今月の使用回数</span>
+                  <span className="storage-value">
+                    {geminiUsage.count} / {geminiUsage.limit}回
+                  </span>
+                </div>
+                <div className="gemini-usage-bar">
+                  <div
+                    className={`gemini-usage-fill ${geminiUsage.isOverLimit ? 'over' : ''}`}
+                    style={{ width: `${Math.min(100, (geminiUsage.count / geminiUsage.limit) * 100)}%` }}
+                  />
+                </div>
+                <div className="storage-stat">
+                  <span className="storage-label">残り</span>
+                  <span className={`storage-value ${geminiUsage.remaining <= 5 ? 'gemini-low' : ''}`}>
+                    {geminiUsage.remaining}回
+                  </span>
+                </div>
+                <p className="gemini-usage-note">
+                  画像からのスコア読み取り・誤答取り込みで使用します。毎月1日にリセットされます。
+                </p>
+              </div>
+            ) : (
+              <p className="storage-clean-msg">使用状況を取得できません</p>
             )}
           </div>
         </div>

@@ -2286,6 +2286,171 @@
   border: 1px solid #fed7aa;
 }
 
+/* ========== OCR プレビュー ========== */
+
+.ocr-preview {
+  margin: 12px 0;
+  padding: 16px;
+  background: #fafbff;
+  border: 1px solid #c7d2fe;
+  border-radius: 12px;
+}
+
+.ocr-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ocr-preview-header h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #1e293b;
+}
+
+.ocr-preview-legend {
+  display: flex;
+  gap: 8px;
+  font-size: 0.72rem;
+}
+
+.ocr-legend-item {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.ocr-legend-item.ocr-rate-high {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+}
+
+.ocr-legend-item.ocr-rate-mid {
+  background: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fcd34d;
+}
+
+.ocr-legend-item.ocr-rate-low {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #86efac;
+}
+
+.ocr-preview-subject {
+  margin-bottom: 12px;
+}
+
+.ocr-subject-title {
+  margin: 0 0 6px 0;
+  font-size: 0.85rem;
+  color: #475569;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.ocr-preview-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ocr-preview-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  border-left: 4px solid transparent;
+}
+
+.ocr-preview-item.ocr-rate-high {
+  background: #fef2f2;
+  border-left-color: #dc2626;
+}
+
+.ocr-preview-item.ocr-rate-mid {
+  background: #fffbeb;
+  border-left-color: #d97706;
+}
+
+.ocr-preview-item.ocr-rate-low {
+  background: #f0fdf4;
+  border-left-color: #16a34a;
+}
+
+.ocr-item-number {
+  font-weight: 600;
+  min-width: 80px;
+  color: #1e293b;
+}
+
+.ocr-item-points {
+  min-width: 36px;
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+.ocr-item-rate {
+  min-width: 48px;
+  font-weight: 600;
+}
+
+.ocr-rate-high .ocr-item-rate { color: #dc2626; }
+.ocr-rate-mid .ocr-item-rate { color: #d97706; }
+.ocr-rate-low .ocr-item-rate { color: #16a34a; }
+
+.ocr-item-partial {
+  font-size: 0.72rem;
+  background: #e0e7ff;
+  color: #4338ca;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.ocr-item-warn {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.ocr-preview-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.ocr-cancel-btn {
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: white;
+  color: #475569;
+  cursor: pointer;
+}
+
+.ocr-confirm-btn {
+  padding: 8px 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+}
+
+.ocr-confirm-btn:hover { background: #1d4ed8; }
+.ocr-confirm-btn:disabled { background: #93c5fd; cursor: not-allowed; }
+
 /* ========== 設問内容別成績表（フォーム） ========== */
 .qb-subject-block {
   margin-bottom: 16px;

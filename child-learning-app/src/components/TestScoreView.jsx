@@ -80,6 +80,7 @@ const initialState = {
   showRangeProblems: false,
   selectedGrade: '4年生',
   ocrImporting: false,
+  ocrPreview: null, // OCR結果プレビュー [{subject, problemNumber, points, correctRate, partialScore}]
 }
 
 function reducer(state, action) {
@@ -460,7 +461,7 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
     dispatch({ type: 'SET_FIELD', field: 'problemsCache', value: merged })
   }
 
-  // 正答率一覧表から誤答を一括取り込み
+  // 正答率一覧表から誤答を一括取り込み（ステップ1: 画像→プレビュー）
   const handleImportWrongAnswers = async (file) => {
     if (!file || !state.selectedScore) return
     dispatch({ type: 'SET_FIELD', field: 'ocrImporting', value: true })
@@ -470,8 +471,23 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
         toast.info('誤答が見つかりませんでした')
         return
       }
+      dispatch({ type: 'SET_FIELD', field: 'ocrPreview', value: wrongAnswers })
+    } catch (err) {
+      console.error('Wrong answer OCR error:', err)
+      toast.error(err.message || '誤答の読み取りに失敗しました')
+    } finally {
+      dispatch({ type: 'SET_FIELD', field: 'ocrImporting', value: false })
+      if (wrongAnswerFileRef.current) wrongAnswerFileRef.current.value = ''
+    }
+  }
+
+  // ステップ2: プレビューから一括登録
+  const handleConfirmOcrImport = async () => {
+    if (!state.ocrPreview || !state.selectedScore) return
+    dispatch({ type: 'SET_FIELD', field: 'ocrImporting', value: true })
+    try {
       let added = 0
-      for (const item of wrongAnswers) {
+      for (const item of state.ocrPreview) {
         const result = await addProblem(user.uid, {
           sourceType: 'test',
           sourceId: state.selectedScore.id,
@@ -486,15 +502,19 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
         })
         if (result.success) added++
       }
-      toast.success(`${added}件の誤答を取り込みました`)
+      toast.success(`${added}件の誤答を登録しました`)
+      dispatch({ type: 'SET_FIELD', field: 'ocrPreview', value: null })
       await reloadProblems()
     } catch (err) {
-      console.error('Wrong answer OCR error:', err)
-      toast.error(err.message || '誤答の読み取りに失敗しました')
+      console.error('OCR import error:', err)
+      toast.error(err.message || '登録に失敗しました')
     } finally {
       dispatch({ type: 'SET_FIELD', field: 'ocrImporting', value: false })
-      if (wrongAnswerFileRef.current) wrongAnswerFileRef.current.value = ''
     }
+  }
+
+  const handleCancelOcrPreview = () => {
+    dispatch({ type: 'SET_FIELD', field: 'ocrPreview', value: null })
   }
 
   // テスト削除（2段階確認: iOS Safari の window.confirm ブロック問題を回避）
@@ -1184,6 +1204,82 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
           {state.ocrImporting ? '読み取り中...' : '📷 正答率表から取り込み'}
         </button>
       </div>
+
+      {/* OCR プレビュー: 教科別・問題順・正答率色分け */}
+      {state.ocrPreview && (
+        <div className="ocr-preview">
+          <div className="ocr-preview-header">
+            <h4>読み取り結果（{state.ocrPreview.length}件）</h4>
+            <div className="ocr-preview-legend">
+              <span className="ocr-legend-item ocr-rate-high">50-100%: 要注意</span>
+              <span className="ocr-legend-item ocr-rate-mid">20-50%</span>
+              <span className="ocr-legend-item ocr-rate-low">20%以下</span>
+            </div>
+          </div>
+          {(() => {
+            const subjectOrder = ['算数', '国語', '理科', '社会']
+            const grouped = {}
+            for (const item of state.ocrPreview) {
+              const subj = item.subject || 'その他'
+              if (!grouped[subj]) grouped[subj] = []
+              grouped[subj].push(item)
+            }
+            // 問題番号順にソート
+            for (const subj of Object.keys(grouped)) {
+              grouped[subj].sort((a, b) => {
+                const na = a.problemNumber || ''
+                const nb = b.problemNumber || ''
+                return na.localeCompare(nb, 'ja', { numeric: true })
+              })
+            }
+            const sortedSubjects = Object.keys(grouped).sort((a, b) => {
+              const ia = subjectOrder.indexOf(a)
+              const ib = subjectOrder.indexOf(b)
+              return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib)
+            })
+            return sortedSubjects.map(subj => (
+              <div key={subj} className="ocr-preview-subject">
+                <h5 className="ocr-subject-title">{subj}（{grouped[subj].length}問）</h5>
+                <div className="ocr-preview-items">
+                  {grouped[subj].map((item, i) => {
+                    const rate = item.correctRate ?? 0
+                    const rateClass = rate > 50 ? 'ocr-rate-high'
+                      : rate >= 20 ? 'ocr-rate-mid'
+                      : 'ocr-rate-low'
+                    return (
+                      <div key={i} className={`ocr-preview-item ${rateClass}`}>
+                        <span className="ocr-item-number">{item.problemNumber}</span>
+                        <span className="ocr-item-points">{item.points}点</span>
+                        <span className="ocr-item-rate">{item.correctRate != null ? `${item.correctRate}%` : '-'}</span>
+                        {item.partialScore != null && (
+                          <span className="ocr-item-partial">部分点{item.partialScore}</span>
+                        )}
+                        {rate > 50 && <span className="ocr-item-warn" title="正答率が高いのに間違えた問題">⚠️</span>}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            ))
+          })()}
+          <div className="ocr-preview-actions">
+            <button
+              className="ocr-cancel-btn"
+              onClick={handleCancelOcrPreview}
+              disabled={state.ocrImporting}
+            >
+              キャンセル
+            </button>
+            <button
+              className="ocr-confirm-btn"
+              onClick={handleConfirmOcrImport}
+              disabled={state.ocrImporting}
+            >
+              {state.ocrImporting ? '登録中...' : `${state.ocrPreview.length}件を登録`}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 問題クリップ */}
       <ProblemClipList
