@@ -76,6 +76,7 @@ const initialState = {
   pendingDeleteId: null,
   confirmMarkCompleted: false,
   showRangeProblems: false,
+  selectedGrade: '4年生',
 }
 
 function reducer(state, action) {
@@ -561,11 +562,12 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
 
   if (!state.selectedScore) {
     const today = getTodayString()
-    const scheduled = scoresList
+    const gradeFiltered = scoresList.filter(s => s.grade === state.selectedGrade)
+    const scheduled = gradeFiltered
       .filter(s => s.status === 'scheduled')
       .sort((a, b) => new Date(a.testDate) - new Date(b.testDate))
 
-    const completed = scoresList
+    const completed = gradeFiltered
       .filter(s => s.status !== 'scheduled')
       .sort((a, b) => new Date(b.testDate) - new Date(a.testDate))
 
@@ -632,6 +634,22 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
             <button className="add-pastpaper-btn" onClick={() => dispatch({ type: 'SET_FIELD', field: 'showAddForm', value: !state.showAddForm })}>
               {state.showAddForm ? '✕ 閉じる' : '+ テスト日程登録'}
             </button>
+          </div>
+        </div>
+
+        {/* 学年選択 */}
+        <div className="dashboard-header">
+          <div className="selection-area">
+            <label>学年:</label>
+            {grades.map((grade) => (
+              <button
+                key={grade}
+                className={`grade-btn ${state.selectedGrade === grade ? 'active' : ''}`}
+                onClick={() => dispatch({ type: 'SET_FIELD', field: 'selectedGrade', value: grade })}
+              >
+                {grade}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -788,7 +806,7 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
           />
         )}
 
-        {scoresList.length === 0 && !state.showAddForm ? (
+        {gradeFiltered.length === 0 && !state.showAddForm ? (
           <EmptyState
             icon="📋"
             message="テストデータがありません"
