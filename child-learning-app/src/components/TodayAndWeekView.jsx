@@ -11,25 +11,9 @@ const priorityStyles = {
   C: { label: 'C', color: '#3b82f6' },
 }
 
-// おすすめ復習の優先度スタイル
-const suggestedPriorityStyles = {
-  high:   { label: '高', color: '#ef4444', bg: '#fef2f2' },
-  medium: { label: '中', color: '#f59e0b', bg: '#fffbeb' },
-  low:    { label: '低', color: '#3b82f6', bg: '#eff6ff' },
-}
-
-// タスクタイプの表示情報
-const taskTypeInfo = {
-  test_prep: { label: 'テスト対策', icon: '📝' },
-  weakness:  { label: '弱点克服',   icon: '💪' },
-  sr_review: { label: '忘却防止',   icon: '🔄' },
-  review:    { label: '復習',       icon: '📖' },
-}
-
-function TodayAndWeekView({ tasks, suggestedTasks = [], suggestedLoading = false, homeworkDone, onToggleTask, onDeleteTask, onEditTask, onToggleHomework, userId }) {
+function TodayAndWeekView({ tasks, homeworkDone, onToggleTask, onDeleteTask, onEditTask, onToggleHomework, userId }) {
   const [expandedSection, setExpandedSection] = useState('today') // 'today', 'homework', 'week'
   const [detailTask, setDetailTask] = useState(null)
-  const [expandedSuggested, setExpandedSuggested] = useState(null) // 展開中のsuggestedTask ID
 
   // 日付フォーマット関数
   function formatDate(date) {
@@ -75,90 +59,6 @@ function TodayAndWeekView({ tasks, suggestedTasks = [], suggestedLoading = false
 
   return (
     <div className="today-week-view">
-      {/* おすすめ復習 */}
-      {(suggestedTasks.length > 0 || suggestedLoading) && (
-        <div className="priority-section suggested-section">
-          <div
-            className="section-header"
-            onClick={() => toggleSection('suggested')}
-          >
-            <h2>
-              おすすめ復習
-              {suggestedTasks.length > 0 && (
-                <span className="task-count">{suggestedTasks.length}件</span>
-              )}
-            </h2>
-            <span className="toggle-icon">{expandedSection === 'suggested' ? '▼' : '▶'}</span>
-          </div>
-
-          {expandedSection === 'suggested' && (
-            <div className="suggested-tasks-list">
-              {suggestedLoading ? (
-                <div className="no-tasks-message">読み込み中...</div>
-              ) : (
-                suggestedTasks.map(st => {
-                  const subjectColor = subjectColors[st.subject] || '#64748b'
-                  const pStyle = suggestedPriorityStyles[st.priority] || suggestedPriorityStyles.low
-                  const typeInfo = taskTypeInfo[st.taskType] || taskTypeInfo.review
-                  const isExpanded = expandedSuggested === st.id
-
-                  return (
-                    <div
-                      key={st.id}
-                      className="suggested-task-card"
-                      style={{
-                        borderLeftColor: subjectColor,
-                      }}
-                      onClick={() => setExpandedSuggested(isExpanded ? null : st.id)}
-                    >
-                      <div className="suggested-task-header">
-                        <span className="suggested-task-subject" style={{ color: subjectColor }}>
-                          {subjectEmojis[st.subject]} {st.subject}
-                        </span>
-                        <span className="suggested-task-type">
-                          {typeInfo.icon} {typeInfo.label}
-                        </span>
-                        <span
-                          className="suggested-priority-badge"
-                          style={{ color: pStyle.color, backgroundColor: pStyle.bg }}
-                        >
-                          {pStyle.label}
-                        </span>
-                      </div>
-                      <div className="suggested-task-unit">{st.unitName}</div>
-                      <div className="suggested-task-reason">{st.reason}</div>
-                      <div className="suggested-task-action">{st.suggestedAction}</div>
-
-                      {/* 展開: 関連する間違い問題 */}
-                      {isExpanded && st.linkedProblems && st.linkedProblems.length > 0 && (
-                        <div className="suggested-task-problems">
-                          <div className="suggested-problems-title">関連する間違い問題:</div>
-                          {st.linkedProblems.map((p, i) => (
-                            <div key={i} className="suggested-problem-item">
-                              <span className="suggested-problem-num">{p.problemNumber}</span>
-                              {p.correctRate != null && (
-                                <span className="suggested-problem-rate">
-                                  正答率{p.correctRate}%
-                                </span>
-                              )}
-                              {p.missType && (
-                                <span className="suggested-problem-miss">
-                                  {p.missType === 'understanding' ? '理解不足' : p.missType === 'careless' ? 'ケアレス' : '未習'}
-                                </span>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )
-                })
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
       {/* 今日の家庭学習 */}
       <div className="priority-section homework-section">
         <div
