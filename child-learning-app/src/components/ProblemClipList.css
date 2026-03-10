@@ -174,9 +174,7 @@
   color: var(--color-gray-600);
 }
 
-/* ── 教科別グループ表示 ── */
-.clip-list-grouped .clip-subject { display: none; }
-
+/* ── 教科別グループ表示（プレビューと同一スタイル） ── */
 .clip-subject-group {
   margin-bottom: 12px;
 }
@@ -186,40 +184,74 @@
 .clip-subject-group-title {
   margin: 0 0 6px 0;
   font-size: 0.85rem;
-  font-weight: 600;
   color: #475569;
   padding-bottom: 4px;
   border-bottom: 1px solid #e2e8f0;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.clip-subject-group-count {
-  font-size: 0.75rem;
-  font-weight: 400;
-  color: #94a3b8;
 }
 
-/* 正答率ベースの色分け（グループ表示時） */
-.clip-list-grouped .clip-item {
-  border-radius: 4px;
-  border-left: 4px solid transparent;
+.clip-g-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
-.clip-list-grouped .clip-item.clip-rate-high {
+
+.clip-g-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  border-left: 4px solid transparent;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+.clip-g-item:hover {
+  filter: brightness(0.96);
+}
+
+.clip-g-item.clip-g-rate-high {
   background: #fef2f2;
   border-left-color: #dc2626;
 }
-.clip-list-grouped .clip-item.clip-rate-mid {
+.clip-g-item.clip-g-rate-mid {
   background: #fffbeb;
   border-left-color: #d97706;
 }
-.clip-list-grouped .clip-item.clip-rate-low {
+.clip-g-item.clip-g-rate-low {
   background: #f0fdf4;
   border-left-color: #16a34a;
 }
-.clip-list-grouped .clip-item.clip-rate-high .clip-rate { color: #dc2626; }
-.clip-list-grouped .clip-item.clip-rate-mid .clip-rate  { color: #d97706; }
-.clip-list-grouped .clip-item.clip-rate-low .clip-rate  { color: #16a34a; }
+
+.clip-g-number {
+  font-weight: 600;
+  min-width: 80px;
+  color: #1e293b;
+}
+.clip-g-points {
+  min-width: 36px;
+  color: #64748b;
+  font-size: 0.78rem;
+}
+.clip-g-rate {
+  min-width: 48px;
+  font-weight: 600;
+}
+.clip-g-rate-high .clip-g-rate { color: #dc2626; }
+.clip-g-rate-mid  .clip-g-rate { color: #d97706; }
+.clip-g-rate-low  .clip-g-rate { color: #16a34a; }
+
+.clip-g-partial {
+  font-size: 0.72rem;
+  background: #e0e7ff;
+  color: #4338ca;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+.clip-g-warn {
+  font-size: 1rem;
+  line-height: 1;
+}
 
 .clip-units {
   display: flex;
