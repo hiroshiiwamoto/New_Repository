@@ -497,6 +497,7 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
           missType: 'understanding',
           correctRate: item.correctRate ?? null,
           points: item.points ?? null,
+          partialScore: item.partialScore ?? null,
           unitIds: [],
           imageUrls: [],
         })
