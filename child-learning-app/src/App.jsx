@@ -29,10 +29,6 @@ import {
 import { subscribeSapixTexts } from './utils/sapixTexts'
 import { subscribeTestScores } from './utils/testScores'
 import { toast } from './utils/toast'
-import { generateDailyTasks } from './utils/dailyTaskEngine'
-import { getMasterUnitStats, getLessonLogs } from './utils/lessonLogs'
-import { getAllProblems } from './utils/problems'
-import { getStaticMasterUnits } from './utils/importMasterUnits'
 
 function App() {
   const [user, setUser] = useState(null)
@@ -48,8 +44,6 @@ function App() {
   const [showTaskForm, setShowTaskForm] = useState(false)
   const [migrated, setMigrated] = useState(false)
   const [homeworkDone, setHomeworkDone] = useState({}) // { hwId: true/false }
-  const [suggestedTasks, setSuggestedTasks] = useState([])
-  const [suggestedLoading, setSuggestedLoading] = useState(false)
 
 
   // Firestore同期: ユーザーがログインしたら、タスクをリアルタイムで取得
@@ -132,38 +126,6 @@ function App() {
       }
     })
   }, [user])
-
-  // おすすめ復習タスクを生成
-  useEffect(() => {
-    if (!user) return
-
-    async function loadSuggestedTasks() {
-      setSuggestedLoading(true)
-      try {
-        const [statsResult, problemsResult, logsResult] = await Promise.all([
-          getMasterUnitStats(user.uid),
-          getAllProblems(user.uid),
-          getLessonLogs(user.uid),
-        ])
-
-        const tasks = generateDailyTasks({
-          unitStats: statsResult.data || {},
-          problems: problemsResult.data || [],
-          testScores,
-          lessonLogs: logsResult.data || [],
-          masterUnits: getStaticMasterUnits(),
-        })
-
-        setSuggestedTasks(tasks)
-      } catch (err) {
-        console.error('Failed to load suggested tasks:', err)
-      } finally {
-        setSuggestedLoading(false)
-      }
-    }
-
-    loadSuggestedTasks()
-  }, [user, testScores])
 
   const toggleHomework = async (hwId) => {
     const updated = { ...homeworkDone, [hwId]: !homeworkDone[hwId] }
@@ -373,8 +335,6 @@ function App() {
             {/* 1. 今日と今週のタスク（最優先） */}
             <TodayAndWeekView
               tasks={tasks}
-              suggestedTasks={suggestedTasks}
-              suggestedLoading={suggestedLoading}
               homeworkDone={homeworkDone}
               onToggleTask={toggleTask}
               onDeleteTask={deleteTask}
