@@ -419,6 +419,7 @@ function App() {
             user={user}
             initialTestId={pendingTestId}
             onConsumeInitialTestId={() => setPendingTestId(null)}
+            sapixTexts={sapixTexts}
           />
         ) : view === 'sapixtext' ? (
           <SapixTextView

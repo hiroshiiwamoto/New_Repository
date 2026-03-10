@@ -1,0 +1,266 @@
+.range-problems-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.range-problems-modal {
+  background: var(--color-white, #fff);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.range-problems-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--color-gray-100, #f3f4f6);
+}
+
+.range-problems-header h3 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1d1d1f;
+  margin: 0;
+}
+
+.range-problems-subtitle {
+  display: block;
+  font-size: 0.8rem;
+  color: #86868b;
+  margin-top: 2px;
+}
+
+.range-problems-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #86868b;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  line-height: 1;
+}
+
+.range-problems-close:hover {
+  background: var(--color-gray-100, #f3f4f6);
+}
+
+.range-problems-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px 24px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.range-problems-loading,
+.range-problems-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #86868b;
+  font-size: 0.9rem;
+}
+
+/* Subject Section */
+.range-subject-section {
+  margin-bottom: 20px;
+}
+
+.range-subject-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1d1d1f;
+  border-bottom: 2px solid var(--color-gray-100, #f3f4f6);
+  margin-bottom: 8px;
+}
+
+.range-subject-count {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #ef4444;
+  background: #fef2f2;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+/* Text Group */
+.range-text-group {
+  margin: 8px 0;
+  padding-left: 4px;
+}
+
+.range-text-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+/* Problem Item */
+.range-problem-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #f9fafb;
+  border-radius: 12px;
+  margin-bottom: 6px;
+}
+
+.range-problem-item.range-done {
+  opacity: 0.5;
+}
+
+.range-problem-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+.range-problem-num {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1d1d1f;
+}
+
+.range-miss-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.range-miss-badge.miss-understanding {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.range-miss-badge.miss-careless {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+.range-miss-badge.miss-unlearned {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.range-done-badge {
+  font-size: 0.75rem;
+  color: #10b981;
+  font-weight: 600;
+}
+
+/* Problem Image */
+.range-problem-image {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+/* Resolve Button */
+.range-resolve-btn {
+  margin-left: auto;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  background: #ecfdf5;
+  color: #059669;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.range-resolve-btn:hover {
+  background: #d1fae5;
+}
+
+/* Resolved Section */
+.range-resolved-section {
+  margin-top: 8px;
+}
+
+.range-resolved-toggle {
+  background: none;
+  border: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #86868b;
+  cursor: pointer;
+  padding: 6px 0;
+}
+
+.range-resolved-toggle:hover {
+  color: #1d1d1f;
+}
+
+.range-text-group.range-resolved {
+  opacity: 0.6;
+}
+
+/* Zoom Overlay */
+.range-zoom-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.range-zoom-image {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+@media (max-width: 480px) {
+  .range-problems-modal {
+    max-height: 90vh;
+    border-radius: 16px;
+  }
+
+  .range-problems-header {
+    padding: 16px 16px 12px;
+  }
+
+  .range-problems-body {
+    padding: 12px 16px 16px;
+  }
+
+  .range-problem-item {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .range-problem-image {
+    width: 48px;
+    height: 48px;
+  }
+}

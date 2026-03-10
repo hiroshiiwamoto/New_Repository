@@ -25,6 +25,7 @@ import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
 import { refreshGoogleAccessToken } from './Auth'
 import { grades } from '../utils/unitsDatabase'
 import EmptyState from './EmptyState'
+import TestRangeProblems from './TestRangeProblems'
 import {
   lookupSapixSchedule,
   getSapixCodesBySubject,
@@ -74,6 +75,7 @@ const initialState = {
   editForm: null,
   pendingDeleteId: null,
   confirmMarkCompleted: false,
+  showRangeProblems: false,
 }
 
 function reducer(state, action) {
@@ -241,7 +243,7 @@ function SapixRangeDisplay({ sapixRange, collapsed }) {
 // メインコンポーネント
 // ════════════════════════════════════════════════════════════════
 
-function TestScoreView({ user, initialTestId, onConsumeInitialTestId }) {
+function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts }) {
   const [state, dispatch] = useReducer(reducer, initialState)
   const { data: scores, reload: reloadScores } = useFirestoreQuery(
     () => user ? getAllTestScores(user.uid) : null,
@@ -1008,6 +1010,29 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId }) {
 
       {/* テスト範囲（折りたたみ） */}
       <SapixRangeDisplay sapixRange={state.selectedScore.sapixRange} collapsed />
+
+      {/* テスト範囲の間違い問題ボタン */}
+      {state.selectedScore.sapixRange && Object.values(state.selectedScore.sapixRange).some(c => c?.length > 0) && sapixTexts?.length > 0 && (
+        <button
+          className="range-problems-open-btn"
+          onClick={() => dispatch({ type: 'SET_FIELD', field: 'showRangeProblems', value: true })}
+        >
+          📝 この範囲の間違い問題を見る
+        </button>
+      )}
+
+      {state.showRangeProblems && (
+        <TestRangeProblems
+          userId={user.uid}
+          sapixRange={state.selectedScore.sapixRange}
+          testName={state.selectedScore.testName}
+          sapixTexts={sapixTexts}
+          onClose={() => dispatch({ type: 'SET_FIELD', field: 'showRangeProblems', value: false })}
+          onResolveProblem={async (problemId) => {
+            await updateProblem(user.uid, problemId, { reviewStatus: 'done' })
+          }}
+        />
+      )}
 
       {/* 科目別PDF紐付けバー */}
       <div className="subject-pdf-bar">
