@@ -309,6 +309,12 @@ export default function ProblemClipList({
         {problem.partialScore != null && (
           <span className="clip-g-partial">部分点{problem.partialScore}</span>
         )}
+        {problem.unitIds?.length > 0 && (
+          <span className="clip-g-unit" title={problem.unitIds.map(id => unitNameMap[id] || id).join('、')}>
+            {unitNameMap[problem.unitIds[0]] || problem.unitIds[0]}
+            {problem.unitIds.length > 1 && ` +${problem.unitIds.length - 1}`}
+          </span>
+        )}
         {rate > 50 && <span className="clip-g-warn" title="正答率が高いのに間違えた問題">⚠️</span>}
       </div>
     )
@@ -418,11 +424,17 @@ export default function ProblemClipList({
               {/* 単元 */}
               <div className="clip-field">
                 <span className="clip-field-label">単元</span>
-                <span className="clip-field-value">
-                  {p.unitIds?.length > 0
-                    ? p.unitIds.map(id => unitNameMap[id] || id).join('、')
-                    : '未設定'}
-                </span>
+                <div className="clip-field-value clip-field-unit-picker">
+                  <UnitTagPicker
+                    subject={multiSubject ? p.subject : subject}
+                    value={p.unitIds || []}
+                    onChange={async (unitIds) => {
+                      await updateProblem(userId, p.id, { unitIds })
+                      setSelectedProblem(prev => prev ? { ...prev, unitIds } : null)
+                      await onReload()
+                    }}
+                  />
+                </div>
               </div>
 
               {/* 正答率（テストのみ） */}
