@@ -178,18 +178,18 @@
 .clip-list-grouped .clip-subject { display: none; }
 
 .clip-subject-group {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 .clip-subject-group:last-child {
   margin-bottom: 0;
 }
 .clip-subject-group-title {
-  margin: 0 0 4px 0;
+  margin: 0 0 6px 0;
   font-size: 0.85rem;
   font-weight: 600;
   color: #475569;
-  padding: 4px 8px;
-  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -199,6 +199,27 @@
   font-weight: 400;
   color: #94a3b8;
 }
+
+/* 正答率ベースの色分け（グループ表示時） */
+.clip-list-grouped .clip-item {
+  border-radius: 4px;
+  border-left: 4px solid transparent;
+}
+.clip-list-grouped .clip-item.clip-rate-high {
+  background: #fef2f2;
+  border-left-color: #dc2626;
+}
+.clip-list-grouped .clip-item.clip-rate-mid {
+  background: #fffbeb;
+  border-left-color: #d97706;
+}
+.clip-list-grouped .clip-item.clip-rate-low {
+  background: #f0fdf4;
+  border-left-color: #16a34a;
+}
+.clip-list-grouped .clip-item.clip-rate-high .clip-rate { color: #dc2626; }
+.clip-list-grouped .clip-item.clip-rate-mid .clip-rate  { color: #d97706; }
+.clip-list-grouped .clip-item.clip-rate-low .clip-rate  { color: #16a34a; }
 
 .clip-units {
   display: flex;
