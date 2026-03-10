@@ -83,6 +83,7 @@ export async function addProblem(userId, problemData) {
       // テストメタデータ
       correctRate: problemData.correctRate ?? null,
       points: problemData.points ?? null,
+      partialScore: problemData.partialScore ?? null,
       createdAt: serverTimestamp(),
     }
     const docRef = await addDoc(ref, doc_)
