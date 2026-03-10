@@ -291,10 +291,14 @@ export default function ProblemClipList({
 
   const renderProblemItem = (problem) => {
     const st = reviewStatusInfo(problem.reviewStatus)
+    const rate = parseFloat(problem.correctRate) || 0
+    const rateClass = problem.correctRate != null
+      ? (rate > 50 ? 'clip-rate-high' : rate >= 20 ? 'clip-rate-mid' : 'clip-rate-low')
+      : ''
     return (
       <div
         key={problem.id || problem.id}
-        className={`clip-item ${problem.isCorrect ? 'correct' : 'incorrect'}`}
+        className={`clip-item ${problem.isCorrect ? 'correct' : 'incorrect'} ${subjectGroups ? rateClass : ''}`}
         onClick={() => setSelectedProblem(problem)}
         role="button"
         tabIndex={0}
