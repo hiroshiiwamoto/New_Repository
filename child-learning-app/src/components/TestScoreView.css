@@ -2218,13 +2218,38 @@
 /* 問題分析プロンプト */
 .test-analysis-prompt {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
   padding: 14px 16px;
   background: #eff6ff;
   border: 1px solid #bfdbfe;
   border-radius: 10px;
   margin: 16px 0;
+  flex-wrap: wrap;
+}
+
+.wrong-answer-import-btn {
+  margin-left: auto;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.wrong-answer-import-btn:hover {
+  background: #1d4ed8;
+}
+
+.wrong-answer-import-btn:disabled {
+  background: #93c5fd;
+  cursor: not-allowed;
 }
 
 .test-analysis-prompt-icon {

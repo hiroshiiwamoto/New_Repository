@@ -11,6 +11,7 @@ import {
 } from '../utils/testScores'
 import { useFirestoreQuery } from '../hooks/useFirestoreQuery'
 import {
+  addProblem,
   updateProblem,
   deleteProblem,
   deleteProblemsBySource,
@@ -26,6 +27,7 @@ import { refreshGoogleAccessToken } from './Auth'
 import { grades } from '../utils/unitsDatabase'
 import EmptyState from './EmptyState'
 import TestRangeProblems from './TestRangeProblems'
+import { extractWrongAnswersFromImage } from '../utils/scoreOcr'
 import {
   lookupSapixSchedule,
   getSapixCodesBySubject,
@@ -77,6 +79,7 @@ const initialState = {
   confirmMarkCompleted: false,
   showRangeProblems: false,
   selectedGrade: '4年生',
+  ocrImporting: false,
 }
 
 function reducer(state, action) {
@@ -253,6 +256,7 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
 
   const subjectFileInputRefs = useRef({})
   const addFileInputRefs = useRef({})
+  const wrongAnswerFileRef = useRef(null)
 
   // scores を直接利用（state にコピーしない → 不要な再レンダーを防止）
   const scoresList = scores || []
@@ -454,6 +458,43 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
     if (!user || !score) return
     const merged = await getProblemsForTestScore(user.uid, score)
     dispatch({ type: 'SET_FIELD', field: 'problemsCache', value: merged })
+  }
+
+  // 正答率一覧表から誤答を一括取り込み
+  const handleImportWrongAnswers = async (file) => {
+    if (!file || !state.selectedScore) return
+    dispatch({ type: 'SET_FIELD', field: 'ocrImporting', value: true })
+    try {
+      const wrongAnswers = await extractWrongAnswersFromImage(file)
+      if (!wrongAnswers || wrongAnswers.length === 0) {
+        toast.info('誤答が見つかりませんでした')
+        return
+      }
+      let added = 0
+      for (const item of wrongAnswers) {
+        const result = await addProblem(user.uid, {
+          sourceType: 'test',
+          sourceId: state.selectedScore.id,
+          subject: item.subject || '',
+          problemNumber: item.problemNumber || '',
+          isCorrect: false,
+          missType: 'understanding',
+          correctRate: item.correctRate ?? null,
+          points: item.points ?? null,
+          unitIds: [],
+          imageUrls: [],
+        })
+        if (result.success) added++
+      }
+      toast.success(`${added}件の誤答を取り込みました`)
+      await reloadProblems()
+    } catch (err) {
+      console.error('Wrong answer OCR error:', err)
+      toast.error(err.message || '誤答の読み取りに失敗しました')
+    } finally {
+      dispatch({ type: 'SET_FIELD', field: 'ocrImporting', value: false })
+      if (wrongAnswerFileRef.current) wrongAnswerFileRef.current.value = ''
+    }
   }
 
   // テスト削除（2段階確認: iOS Safari の window.confirm ブロック問題を回避）
@@ -1121,16 +1162,28 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
         />
       )}
 
-      {/* 問題分析プロンプト: スコア入力済み＆問題クリップ0件 */}
-      {state.selectedScore.fourSubjects?.score != null && state.problemsCache.length === 0 && (
-        <div className="test-analysis-prompt">
-          <span className="test-analysis-prompt-icon">📊</span>
-          <div className="test-analysis-prompt-text">
-            <strong>問題分析をしますか？</strong>
-            <p>間違えた問題を記録すると、弱点分析や復習タスクの自動生成に活用できます。</p>
-          </div>
+      {/* 問題分析: 正答率一覧表から誤答を一括取り込み */}
+      <div className="test-analysis-prompt">
+        <span className="test-analysis-prompt-icon">📊</span>
+        <div className="test-analysis-prompt-text">
+          <strong>問題分析</strong>
+          <p>正答率一覧表の画像から間違えた問題を自動取り込みできます。</p>
         </div>
-      )}
+        <input
+          type="file"
+          accept="image/*"
+          className="hidden-input"
+          ref={wrongAnswerFileRef}
+          onChange={e => handleImportWrongAnswers(e.target.files[0])}
+        />
+        <button
+          className="wrong-answer-import-btn"
+          onClick={() => wrongAnswerFileRef.current?.click()}
+          disabled={state.ocrImporting}
+        >
+          {state.ocrImporting ? '読み取り中...' : '📷 正答率表から取り込み'}
+        </button>
+      </div>
 
       {/* 問題クリップ */}
       <ProblemClipList
