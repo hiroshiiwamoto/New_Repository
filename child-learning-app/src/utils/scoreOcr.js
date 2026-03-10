@@ -188,3 +188,91 @@ export async function extractScoresFromImage(file) {
 
   return JSON.parse(jsonMatch[0])
 }
+
+// ── 正答率一覧表から誤答を抽出 ──────────────────────────────
+
+const WRONG_ANSWERS_PROMPT = `この画像はSAPIXなど塾のテストの「正答率一覧表」です。
+正誤欄が「×」の問題（間違えた問題）をすべて抽出してJSON配列で返してください。
+部分点がある場合（正誤欄に数値や「△」がある場合）も含めてください。
+
+■ 表の構成（よくあるパターン）
+- 科目の見出し（算数、国語、理科、社会など）が左端や上部にある
+- 列: 設問No. | 配点 | 正誤(○/×/数値) | 正答率(%)
+- 正誤が「○」の問題は除外してください
+- 正誤が「×」の問題を抽出してください
+- 正誤欄に数値がある場合は部分点として扱ってください（例: 4 → partialScore: 4）
+
+■ 科目名マッピング
+- 算数/算 数 → "算数"
+- 国語/国 語 → "国語"
+- 理科/理 科 → "理科"
+- 社会/社 会 → "社会"
+
+■ 出力JSON形式
+[
+  {
+    "subject": "算数",
+    "problemNumber": "2-(1)ねん土",
+    "points": 2,
+    "correctRate": 89.5,
+    "partialScore": null
+  },
+  {
+    "subject": "算数",
+    "problemNumber": "7-(2)",
+    "points": 8,
+    "correctRate": 15.6,
+    "partialScore": 4
+  }
+]
+
+- partialScore: 部分点がある場合はその得点（数値）。完全不正解(×)の場合はnull。
+- correctRate: 正答率（小数あり）
+- points: 配点（整数）
+- problemNumber: 設問No.をそのまま文字列で（例: "1-(3)", "3-問五", "2-(1)ねん土"）
+
+JSONのみ返してください。説明文は不要です。`
+
+export async function extractWrongAnswersFromImage(file) {
+  if (!GEMINI_API_KEY) {
+    throw new Error('Gemini APIキーが設定されていません（VITE_GEMINI_API_KEY）')
+  }
+
+  const usage = getGeminiUsage()
+  if (usage.isOverLimit) {
+    throw new Error(`今月のGemini API使用上限（${MONTHLY_LIMIT}回）に達しました。`)
+  }
+
+  const base64 = await fileToBase64(file)
+  const mimeType = file.type || 'image/png'
+
+  const response = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{
+        parts: [
+          { text: WRONG_ANSWERS_PROMPT },
+          { inline_data: { mime_type: mimeType, data: base64 } }
+        ]
+      }]
+    })
+  })
+
+  if (!response.ok) {
+    const err = await response.text()
+    throw new Error(`Gemini API エラー: ${response.status} ${err}`)
+  }
+
+  const data = await response.json()
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+
+  recordApiCall()
+
+  const jsonMatch = text.match(/\[[\s\S]*\]/)
+  if (!jsonMatch) {
+    throw new Error('誤答データを読み取れませんでした')
+  }
+
+  return JSON.parse(jsonMatch[0])
+}
