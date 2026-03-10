@@ -248,9 +248,23 @@
   padding: 1px 6px;
   border-radius: 4px;
 }
+.clip-g-unit {
+  font-size: 0.68rem;
+  background: #f0fdf4;
+  color: #166534;
+  padding: 1px 5px;
+  border-radius: 4px;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .clip-g-warn {
   font-size: 1rem;
   line-height: 1;
+}
+.clip-field-unit-picker {
+  min-width: 0;
 }
 
 .clip-units {
