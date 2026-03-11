@@ -21,6 +21,7 @@ import { MAX_FILE_SIZE, SUBJECTS } from '../utils/constants'
 import { toast } from '../utils/toast'
 import { LABELS, TOAST } from '../utils/messages'
 import ProblemClipList from './ProblemClipList'
+import PdfCropper from './PdfCropper'
 import DriveFilePicker from './DriveFilePicker'
 import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
 import { refreshGoogleAccessToken } from './Auth'
@@ -260,6 +261,7 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
   const subjectFileInputRefs = useRef({})
   const addFileInputRefs = useRef({})
   const wrongAnswerFileRef = useRef(null)
+  const [ocrCropperTarget, setOcrCropperTarget] = useState(null) // OCRプレビューで画像追加中のアイテムindex
 
   // scores を直接利用（state にコピーしない → 不要な再レンダーを防止）
   const scoresList = scores || []
@@ -508,7 +510,7 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
           points: item.points ?? null,
           partialScore: item.partialScore ?? null,
           unitIds: autoUnitIds,
-          imageUrls: [],
+          imageUrls: item.imageUrls || [],
         })
         if (result.success) added++
 
@@ -549,6 +551,49 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
 
   const handleCancelOcrPreview = () => {
     dispatch({ type: 'SET_FIELD', field: 'ocrPreview', value: null })
+  }
+
+  // OCRプレビューアイテムに画像を追加
+  const handleOcrCropComplete = (imageUrl) => {
+    if (ocrCropperTarget == null || !state.ocrPreview) return
+    const updated = state.ocrPreview.map((item, i) =>
+      i === ocrCropperTarget
+        ? { ...item, imageUrls: [...(item.imageUrls || []), imageUrl] }
+        : item
+    )
+    dispatch({ type: 'SET_FIELD', field: 'ocrPreview', value: updated })
+    toast.success('画像を追加しました')
+  }
+
+  const handleOcrImageDelete = (itemIndex, imgIndex) => {
+    if (!state.ocrPreview) return
+    const updated = state.ocrPreview.map((item, i) =>
+      i === itemIndex
+        ? { ...item, imageUrls: (item.imageUrls || []).filter((_, j) => j !== imgIndex) }
+        : item
+    )
+    dispatch({ type: 'SET_FIELD', field: 'ocrPreview', value: updated })
+  }
+
+  const resolveOcrCropperPdf = () => {
+    if (ocrCropperTarget == null || !state.ocrPreview) return null
+    const item = state.ocrPreview[ocrCropperTarget]
+    if (item?.subject) {
+      const pdf = getPdfForSubject(item.subject)
+      if (pdf) {
+        const id = extractDriveFileId(pdf.fileUrl)
+        return id ? { driveFileId: id, fileName: pdf.fileName, id: null } : null
+      }
+    }
+    // fallback: 最初に見つかった科目のPDF
+    for (const subj of SUBJECTS) {
+      const pdf = getPdfForSubject(subj)
+      if (pdf) {
+        const id = extractDriveFileId(pdf.fileUrl)
+        return id ? { driveFileId: id, fileName: pdf.fileName, id: null } : null
+      }
+    }
+    return null
   }
 
   // ステップ3: AI総評を生成
@@ -1267,12 +1312,13 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
           </div>
           {(() => {
             const subjectOrder = ['算数', '国語', '理科', '社会']
+            // 元のインデックスを保持しつつグルーピング
             const grouped = {}
-            for (const item of state.ocrPreview) {
+            state.ocrPreview.forEach((item, origIdx) => {
               const subj = item.subject || 'その他'
               if (!grouped[subj]) grouped[subj] = []
-              grouped[subj].push(item)
-            }
+              grouped[subj].push({ ...item, _origIdx: origIdx })
+            })
             // 問題番号順にソート
             for (const subj of Object.keys(grouped)) {
               grouped[subj].sort((a, b) => {
@@ -1286,24 +1332,51 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
               const ib = subjectOrder.indexOf(b)
               return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib)
             })
+            const hasPdf = SUBJECTS.some(s => getPdfForSubject(s))
             return sortedSubjects.map(subj => (
               <div key={subj} className="ocr-preview-subject">
                 <h5 className="ocr-subject-title">{subj}（{grouped[subj].length}問）</h5>
                 <div className="ocr-preview-items">
-                  {grouped[subj].map((item, i) => {
+                  {grouped[subj].map((item) => {
                     const rate = item.correctRate ?? 0
                     const rateClass = rate > 50 ? 'ocr-rate-high'
                       : rate >= 20 ? 'ocr-rate-mid'
                       : 'ocr-rate-low'
+                    const origIdx = item._origIdx
                     return (
-                      <div key={i} className={`ocr-preview-item ${rateClass}`}>
-                        <span className="ocr-item-number">{item.problemNumber}</span>
-                        <span className="ocr-item-points">{item.points}点</span>
-                        <span className="ocr-item-rate">{item.correctRate != null ? `${parseFloat(item.correctRate).toFixed(1)}%` : '-'}</span>
-                        {item.partialScore != null && (
-                          <span className="ocr-item-partial">部分点{item.partialScore}</span>
+                      <div key={origIdx} className={`ocr-preview-item ${rateClass}`}>
+                        <div className="ocr-item-header">
+                          <span className="ocr-item-number">{item.problemNumber}</span>
+                          <span className="ocr-item-points">{item.points}点</span>
+                          <span className="ocr-item-rate">{item.correctRate != null ? `${parseFloat(item.correctRate).toFixed(1)}%` : '-'}</span>
+                          {item.partialScore != null && (
+                            <span className="ocr-item-partial">部分点{item.partialScore}</span>
+                          )}
+                          {rate > 50 && <span className="ocr-item-warn" title="正答率が高いのに間違えた問題">⚠️</span>}
+                          {item.imageUrls?.length > 0 && <span className="ocr-item-img-badge" title="画像あり">📷{item.imageUrls.length > 1 ? item.imageUrls.length : ''}</span>}
+                          {hasPdf && (
+                            <button
+                              type="button"
+                              className="ocr-item-add-img-btn"
+                              onClick={() => setOcrCropperTarget(origIdx)}
+                              title="画像を追加"
+                            >+📷</button>
+                          )}
+                        </div>
+                        {item.imageUrls?.length > 0 && (
+                          <div className="ocr-item-images">
+                            {item.imageUrls.map((url, imgIdx) => (
+                              <div key={url} className="ocr-item-image">
+                                <img src={url} alt={`問題${item.problemNumber} 画像${imgIdx + 1}`} />
+                                <button
+                                  type="button"
+                                  className="ocr-item-image-delete"
+                                  onClick={() => handleOcrImageDelete(origIdx, imgIdx)}
+                                >&times;</button>
+                              </div>
+                            ))}
+                          </div>
                         )}
-                        {rate > 50 && <span className="ocr-item-warn" title="正答率が高いのに間違えた問題">⚠️</span>}
                       </div>
                     )
                   })}
@@ -1328,6 +1401,46 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
             </button>
           </div>
         </div>
+      )}
+
+      {/* OCRプレビュー用PDFクロッパー */}
+      {ocrCropperTarget != null && (
+        <PdfCropper
+          key={`ocr-crop-${ocrCropperTarget}`}
+          userId={user.uid}
+          attachedPdf={resolveOcrCropperPdf()}
+          onCropComplete={handleOcrCropComplete}
+          onClose={() => setOcrCropperTarget(null)}
+          headerSlot={
+            <div className="clip-cropper-subject-tabs">
+              {SUBJECTS.map(s => {
+                const has = !!getPdfForSubject(s)
+                const targetSubj = state.ocrPreview?.[ocrCropperTarget]?.subject
+                return (
+                  <button
+                    key={s}
+                    className={`clip-cropper-tab ${(targetSubj || '') === s ? 'active' : ''} ${!has ? 'no-pdf' : ''}`}
+                    onClick={() => {
+                      if (has && state.ocrPreview) {
+                        // 対象アイテムの科目を変更してPDF切替
+                        const updated = state.ocrPreview.map((item, i) =>
+                          i === ocrCropperTarget ? { ...item, subject: s } : item
+                        )
+                        dispatch({ type: 'SET_FIELD', field: 'ocrPreview', value: updated })
+                        // force re-render cropper
+                        setOcrCropperTarget(null)
+                        setTimeout(() => setOcrCropperTarget(ocrCropperTarget), 0)
+                      }
+                    }}
+                    disabled={!has}
+                  >
+                    {s}{!has && '（未添付）'}
+                  </button>
+                )
+              })}
+            </div>
+          }
+        />
       )}
 
       {/* AI総評 */}
