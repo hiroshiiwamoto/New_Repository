@@ -360,6 +360,7 @@ export default function ProblemClipList({
           </span>
         )}
         {rate > 50 && <span className="clip-g-warn" title="正答率が高いのに間違えた問題">⚠️</span>}
+        {problem.imageUrls?.length > 0 && <span className="clip-g-has-image" title="画像あり">📷</span>}
       </div>
     )
   }
