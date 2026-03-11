@@ -13,6 +13,7 @@ import {
 } from '../utils/lessonLogs'
 import { subjectEmojis, subjectColors } from '../utils/constants'
 import { getAllProblems, reviewStatusInfo, missTypeLabel } from '../utils/problems'
+import { getAllTestScores } from '../utils/testScores'
 import TextDetailModal from './TextDetailModal'
 import Loading from './Loading'
 import './MasterUnitDashboard.css'
@@ -35,6 +36,7 @@ function MasterUnitDashboard({ sapixTexts = [], userId }) {
   const [drillLogs, setDrillLogs] = useState([])
   const [drillProblems, setDrillProblems] = useState([])
   const [allProblems, setAllProblems] = useState(null) // null = 未ロード
+  const [testNameMap, setTestNameMap] = useState({}) // sourceId → testName
 
   // テキスト詳細モーダル
   const [detailText, setDetailText] = useState(null)
@@ -90,9 +92,18 @@ function MasterUnitDashboard({ sapixTexts = [], userId }) {
       // 全 problems を一度だけ取得（キャッシュ）
       let problems = allProblems
       if (!problems) {
-        const result = await getAllProblems(userId)
-        problems = result.success ? result.data : []
+        const [probResult, scoresResult] = await Promise.all([
+          getAllProblems(userId),
+          getAllTestScores(userId),
+        ])
+        problems = probResult.success ? probResult.data : []
         setAllProblems(problems)
+        // sourceId → testName マップを構築
+        if (scoresResult.success) {
+          const map = {}
+          for (const s of scoresResult.data) map[s.id] = s.testName
+          setTestNameMap(map)
+        }
       }
       // この単元に関連する不正解問題をフィルタ
       const unitProblems = problems.filter(
@@ -576,6 +587,9 @@ function MasterUnitDashboard({ sapixTexts = [], userId }) {
                     return (
                       <div key={problem.id} className="mud-drill-problem-item">
                         <span className="mud-problem-number">第{problem.problemNumber}問</span>
+                        {problem.sourceType === 'test' && testNameMap[problem.sourceId] && (
+                          <span className="mud-problem-source">{testNameMap[problem.sourceId]}</span>
+                        )}
                         {problem.missType && (
                           <span className={`mud-problem-miss-type miss-${problem.missType}`}>
                             {missTypeLabel(problem.missType)}
