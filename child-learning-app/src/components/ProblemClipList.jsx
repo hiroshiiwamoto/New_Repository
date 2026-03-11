@@ -91,7 +91,8 @@ export default function ProblemClipList({
   const [expanded, setExpanded] = useState(defaultExpanded)
   const [selectedProblem, setSelectedProblem] = useState(null) // 詳細表示中の問題
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ ...EMPTY_FORM, subject: subject || '', unitIds: defaultUnitIds })
+  const defaultSubject = subject || (multiSubject && subjects.length > 0 ? subjects[0] : '')
+  const [form, setForm] = useState({ ...EMPTY_FORM, subject: defaultSubject, unitIds: defaultUnitIds })
   const [showCropper, setShowCropper] = useState(false)
   const [creatingTask, setCreatingTask] = useState(false)
   const [taskDueDate, setTaskDueDate] = useState(null) // null=非表示, string=日付選択中
@@ -240,7 +241,7 @@ export default function ProblemClipList({
   }
 
   const resetForm = () => {
-    setForm({ ...EMPTY_FORM, subject: subject || '', unitIds: defaultUnitIds })
+    setForm({ ...EMPTY_FORM, subject: defaultSubject, unitIds: defaultUnitIds })
   }
 
   const hasPdf = pdfInfo || (getSubjectPdf && subjects.some(s => getSubjectPdf(s)))
