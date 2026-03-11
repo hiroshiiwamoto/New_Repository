@@ -489,6 +489,7 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
     dispatch({ type: 'SET_FIELD', field: 'ocrImporting', value: true })
     try {
       let added = 0
+      const lessonLogPromises = []
       for (const item of state.ocrPreview) {
         // 問題番号から設問内容別の分野を参照し unitIds を自動マッピング
         const autoUnitIds = mapProblemToUnitIds(
@@ -510,6 +511,29 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
           imageUrls: [],
         })
         if (result.success) added++
+
+        // unitIds がある誤答は lessonLog を生成して習熟度に反映
+        if (result.success && autoUnitIds.length > 0) {
+          const rate = item.correctRate ?? 0
+          // 正答率50%以上を落とした → yellow(65), それ以外 → red(30)
+          const evalKey = rate >= 50 ? 'yellow' : 'red'
+          lessonLogPromises.push(
+            addLessonLogWithStats(user.uid, {
+              unitIds: autoUnitIds,
+              subject: item.subject || '',
+              sourceType: 'test',
+              sourceId: state.selectedScore.id,
+              sourceName: `${state.selectedScore.testName} ${item.problemNumber}`,
+              date: new Date(),
+              performance: EVALUATION_SCORES[evalKey],
+              evaluationKey: evalKey,
+            })
+          )
+        }
+      }
+      // lessonLogs を並列で保存
+      if (lessonLogPromises.length > 0) {
+        await Promise.all(lessonLogPromises)
       }
       toast.success(`${added}件の誤答を登録しました`)
       dispatch({ type: 'SET_FIELD', field: 'ocrPreview', value: null })
