@@ -2361,12 +2361,17 @@
 
 .ocr-preview-item {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 6px;
   padding: 6px 10px;
   border-radius: 6px;
   font-size: 0.82rem;
   border-left: 4px solid transparent;
+}
+.ocr-item-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .ocr-preview-item.ocr-rate-high {
@@ -2416,6 +2421,59 @@
 .ocr-item-warn {
   font-size: 1rem;
   line-height: 1;
+}
+.ocr-item-img-badge {
+  font-size: 0.75rem;
+  margin-left: auto;
+}
+.ocr-item-add-img-btn {
+  margin-left: auto;
+  padding: 2px 6px;
+  font-size: 0.72rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  line-height: 1.2;
+}
+.ocr-item-add-img-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+.ocr-item-images {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 4px 0;
+}
+.ocr-item-image {
+  position: relative;
+  display: inline-block;
+}
+.ocr-item-image img {
+  max-height: 80px;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+.ocr-item-image-delete {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  border: none;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ocr-item-image-delete:hover {
+  background: #dc2626;
 }
 
 .ocr-preview-actions {

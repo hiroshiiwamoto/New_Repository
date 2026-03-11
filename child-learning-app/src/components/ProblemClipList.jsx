@@ -96,6 +96,7 @@ export default function ProblemClipList({
   const [showCropper, setShowCropper] = useState(false)
   const [creatingTask, setCreatingTask] = useState(false)
   const [taskDueDate, setTaskDueDate] = useState(null) // null=非表示, string=日付選択中
+  const [detailCropper, setDetailCropper] = useState(false) // 詳細モーダルからのPDFクロッパー
 
   const unitNameMap = useMemo(() => {
     const map = {}
@@ -226,6 +227,48 @@ export default function ProblemClipList({
   const handleCropperClose = () => {
     setShowCropper(false)
     setShowForm(true)
+  }
+
+  // ── 詳細モーダルから画像を追加 ──────────────────────────
+  const handleDetailCropComplete = async (imageUrl) => {
+    if (!selectedProblem) return
+    const newUrls = [...(selectedProblem.imageUrls || []), imageUrl]
+    await updateProblem(userId, selectedProblem.id, { imageUrls: newUrls })
+    setSelectedProblem(prev => prev ? { ...prev, imageUrls: newUrls } : null)
+    await onReload()
+    toast.success('画像を追加しました')
+  }
+
+  const handleDetailImageDelete = async (index) => {
+    if (!selectedProblem) return
+    const newUrls = (selectedProblem.imageUrls || []).filter((_, i) => i !== index)
+    await updateProblem(userId, selectedProblem.id, { imageUrls: newUrls })
+    setSelectedProblem(prev => prev ? { ...prev, imageUrls: newUrls } : null)
+    await onReload()
+    toast.success('画像を削除しました')
+  }
+
+  const handleDetailCropperClose = () => {
+    setDetailCropper(false)
+  }
+
+  const resolveDetailPdfInfo = () => {
+    if (!selectedProblem) return null
+    if (typeof detailCropper === 'string' && getSubjectPdf) {
+      const pdf = getSubjectPdf(detailCropper)
+      if (!pdf) return null
+      const id = pdf.driveFileId || extractDriveFileId(pdf.fileUrl)
+      return id ? { driveFileId: id, fileName: pdf.fileName, id: null } : null
+    }
+    if (multiSubject && getSubjectPdf && selectedProblem.subject) {
+      const pdf = getSubjectPdf(selectedProblem.subject)
+      if (pdf) {
+        const id = pdf.driveFileId || extractDriveFileId(pdf.fileUrl)
+        return id ? { driveFileId: id, fileName: pdf.fileName, id: null } : null
+      }
+    }
+    if (!pdfInfo) return null
+    return { driveFileId: pdfInfo.driveFileId, fileName: pdfInfo.fileName, id: null }
   }
 
   // ── PDF情報解決 ───────────────────────────────────────
@@ -401,17 +444,36 @@ export default function ProblemClipList({
 
           <div className="clip-detail-body">
             {/* 画像 */}
-            {p.imageUrls?.length > 0 && (
-              <div className="clip-detail-images">
-                {p.imageUrls.map((url) => (
-                  <div key={url} className="clip-detail-image">
-                    <a href={url} target="_blank" rel="noopener noreferrer">
-                      <img src={url} alt="問題画像" />
-                    </a>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="clip-detail-images">
+              {p.imageUrls?.map((url, i) => (
+                <div key={url} className="clip-detail-image">
+                  <a href={url} target="_blank" rel="noopener noreferrer">
+                    <img src={url} alt="問題画像" />
+                  </a>
+                  <button
+                    type="button"
+                    className="clip-detail-image-delete"
+                    onClick={() => handleDetailImageDelete(i)}
+                    title="画像を削除"
+                  >&times;</button>
+                </div>
+              ))}
+              {hasPdf && (
+                <button
+                  type="button"
+                  className="clip-detail-add-image-btn"
+                  onClick={() => {
+                    if (multiSubject && getSubjectPdf && p.subject) {
+                      setDetailCropper(getSubjectPdf(p.subject) ? p.subject : subjects.find(s => getSubjectPdf(s)) || true)
+                    } else {
+                      setDetailCropper(true)
+                    }
+                  }}
+                >
+                  + 画像を追加
+                </button>
+              )}
+            </div>
 
             <div className="clip-detail-fields">
               {/* 科目 */}
@@ -823,6 +885,36 @@ export default function ProblemClipList({
                       key={s}
                       className={`clip-cropper-tab ${showCropper === s ? 'active' : ''} ${!has ? 'no-pdf' : ''}`}
                       onClick={() => has && setShowCropper(s)}
+                      disabled={!has}
+                    >
+                      {s}{!has && '（未添付）'}
+                    </button>
+                  )
+                })}
+              </div>
+            ) : undefined
+          }
+        />
+      )}
+
+      {/* PDF切り出し（詳細モーダルから画像追加） */}
+      {detailCropper && (
+        <PdfCropper
+          key={typeof detailCropper === 'string' ? `detail-${detailCropper}` : 'detail-crop'}
+          userId={userId}
+          attachedPdf={resolveDetailPdfInfo()}
+          onCropComplete={handleDetailCropComplete}
+          onClose={handleDetailCropperClose}
+          headerSlot={
+            multiSubject && getSubjectPdf ? (
+              <div className="clip-cropper-subject-tabs">
+                {subjects.map(s => {
+                  const has = !!getSubjectPdf(s)
+                  return (
+                    <button
+                      key={s}
+                      className={`clip-cropper-tab ${detailCropper === s ? 'active' : ''} ${!has ? 'no-pdf' : ''}`}
+                      onClick={() => has && setDetailCropper(s)}
                       disabled={!has}
                     >
                       {s}{!has && '（未添付）'}
