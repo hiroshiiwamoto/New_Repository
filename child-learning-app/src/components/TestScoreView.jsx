@@ -489,6 +489,7 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
     dispatch({ type: 'SET_FIELD', field: 'ocrImporting', value: true })
     try {
       let added = 0
+      const lessonLogPromises = []
       for (const item of state.ocrPreview) {
         // 問題番号から設問内容別の分野を参照し unitIds を自動マッピング
         const autoUnitIds = mapProblemToUnitIds(
@@ -510,41 +511,30 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
           imageUrls: [],
         })
         if (result.success) added++
-      }
 
-      // questionBreakdown の分野ごとに1つの lessonLog を生成
-      // 得点率で評価: 80%以上→blue(90), 50-80%→yellow(65), 50%未満→red(30)
-      const breakdown = state.selectedScore.questionBreakdown
-      if (breakdown) {
-        const subjectKeyMap = { '算数': 'sansu', '国語': 'kokugo', '理科': 'rika', '社会': 'shakai' }
-        const lessonLogPromises = []
-        for (const [subjectLabel, bKey] of Object.entries(subjectKeyMap)) {
-          const fields = breakdown[bKey]
-          if (!fields?.length) continue
-          for (const field of fields) {
-            const unitIds = mapProblemToUnitIds(
-              String(field.number), subjectLabel, breakdown
-            )
-            if (unitIds.length === 0) continue
-            const pct = field.totalScore > 0 ? (field.score / field.totalScore) * 100 : 0
-            const evalKey = pct >= 80 ? 'blue' : pct >= 50 ? 'yellow' : 'red'
-            lessonLogPromises.push(
-              addLessonLogWithStats(user.uid, {
-                unitIds,
-                subject: subjectLabel,
-                sourceType: 'test',
-                sourceId: state.selectedScore.id,
-                sourceName: `${state.selectedScore.testName} ${field.name}`,
-                date: new Date(),
-                performance: EVALUATION_SCORES[evalKey],
-                evaluationKey: evalKey,
-              })
-            )
-          }
+        // unitIds がある誤答は lessonLog を生成して習熟度に反映
+        // 正答率が高い問題を落とした → red(30)（みんな解けたのに苦手）
+        // 正答率が低い問題を落とした → yellow(65)（難問なので仕方ない）
+        if (result.success && autoUnitIds.length > 0) {
+          const rate = item.correctRate ?? 0
+          const evalKey = rate >= 50 ? 'red' : 'yellow'
+          lessonLogPromises.push(
+            addLessonLogWithStats(user.uid, {
+              unitIds: autoUnitIds,
+              subject: item.subject || '',
+              sourceType: 'test',
+              sourceId: state.selectedScore.id,
+              sourceName: `${state.selectedScore.testName} ${item.problemNumber}`,
+              date: new Date(),
+              performance: EVALUATION_SCORES[evalKey],
+              evaluationKey: evalKey,
+            })
+          )
         }
-        if (lessonLogPromises.length > 0) {
-          await Promise.all(lessonLogPromises)
-        }
+      }
+      // lessonLogs を並列で保存
+      if (lessonLogPromises.length > 0) {
+        await Promise.all(lessonLogPromises)
       }
       toast.success(`${added}件の誤答を登録しました`)
       dispatch({ type: 'SET_FIELD', field: 'ocrPreview', value: null })
