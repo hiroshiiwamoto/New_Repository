@@ -1299,7 +1299,7 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
                       <div key={i} className={`ocr-preview-item ${rateClass}`}>
                         <span className="ocr-item-number">{item.problemNumber}</span>
                         <span className="ocr-item-points">{item.points}点</span>
-                        <span className="ocr-item-rate">{item.correctRate != null ? `${item.correctRate}%` : '-'}</span>
+                        <span className="ocr-item-rate">{item.correctRate != null ? `${parseFloat(item.correctRate).toFixed(1)}%` : '-'}</span>
                         {item.partialScore != null && (
                           <span className="ocr-item-partial">部分点{item.partialScore}</span>
                         )}

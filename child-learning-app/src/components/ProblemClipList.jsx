@@ -306,7 +306,7 @@ export default function ProblemClipList({
       >
         <span className="clip-g-number">{problem.problemNumber}</span>
         {showPoints && <span className="clip-g-points">{problem.points != null ? `${problem.points}点` : ''}</span>}
-        <span className="clip-g-rate">{problem.correctRate != null ? `${problem.correctRate}%` : '-'}</span>
+        <span className="clip-g-rate">{problem.correctRate != null ? `${parseFloat(problem.correctRate).toFixed(1)}%` : '-'}</span>
         {problem.partialScore != null && (
           <span className="clip-g-partial">部分点{problem.partialScore}</span>
         )}
@@ -347,7 +347,7 @@ export default function ProblemClipList({
           )}
           {showCorrectRate && problem.correctRate != null && (
             <span className={`clip-rate ${parseFloat(problem.correctRate) >= 60 ? 'high' : 'low'}`}>
-              {problem.correctRate}%
+              {parseFloat(problem.correctRate).toFixed(1)}%
             </span>
           )}
           {!problem.isCorrect && problem.correctRate != null && parseFloat(problem.correctRate) >= 50 && (
@@ -442,7 +442,7 @@ export default function ProblemClipList({
               {showCorrectRate && p.correctRate != null && (
                 <div className="clip-field">
                   <span className="clip-field-label">全体正答率</span>
-                  <span className="clip-field-value">{p.correctRate}%</span>
+                  <span className="clip-field-value">{parseFloat(p.correctRate).toFixed(1)}%</span>
                 </div>
               )}
 
