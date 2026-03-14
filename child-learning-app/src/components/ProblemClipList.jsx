@@ -39,6 +39,7 @@ const EMPTY_FORM = {
   imageUrls: [],
   correctRate: '',
   points: '',
+  partialScore: '',
   subject: '',
 }
 
@@ -125,6 +126,7 @@ export default function ProblemClipList({
     }
     if (showCorrectRate) problemData.correctRate = parseFloat(form.correctRate) || 0
     if (showPoints) problemData.points = parseInt(form.points) || null
+    if (showPoints && !form.isCorrect && form.partialScore !== '') problemData.partialScore = parseInt(form.partialScore)
 
     const result = await addProblem(userId, problemData)
     if (result.success) {
@@ -517,6 +519,28 @@ export default function ProblemClipList({
                 </div>
               )}
 
+              {/* 部分点（テストのみ・不正解時） */}
+              {showPoints && !p.isCorrect && (
+                <div className="clip-field">
+                  <span className="clip-field-label">部分点</span>
+                  <span className="clip-field-value">
+                    <input
+                      type="number"
+                      min="0"
+                      className="clip-inline-input"
+                      placeholder="なし"
+                      value={p.partialScore ?? ''}
+                      onChange={async (e) => {
+                        const val = e.target.value === '' ? null : parseInt(e.target.value)
+                        await updateProblem(userId, p.id, { partialScore: val })
+                        setSelectedProblem(prev => prev ? { ...prev, partialScore: val } : null)
+                        await onReload()
+                      }}
+                    />
+                  </span>
+                </div>
+              )}
+
               {/* 難易度（過去問のみ） */}
               {showDifficulty && p.difficulty && (
                 <div className="clip-field">
@@ -674,6 +698,18 @@ export default function ProblemClipList({
                 placeholder="例: 6"
                 value={form.points}
                 onChange={(e) => setForm(prev => ({ ...prev, points: e.target.value }))}
+              />
+            </div>
+          )}
+          {showPoints && !form.isCorrect && (
+            <div className="clip-form-field">
+              <label>部分点</label>
+              <input
+                type="number"
+                min="0"
+                placeholder="なし"
+                value={form.partialScore}
+                onChange={(e) => setForm(prev => ({ ...prev, partialScore: e.target.value }))}
               />
             </div>
           )}
