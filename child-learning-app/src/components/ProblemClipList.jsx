@@ -109,10 +109,6 @@ export default function ProblemClipList({
 
   // ── 問題追加 ──────────────────────────────────────────
   const handleAdd = async () => {
-    if (!form.problemNumber.trim()) {
-      toast.error('問題番号を入力してください')
-      return
-    }
     const problemData = {
       sourceType,
       sourceId,
@@ -667,7 +663,7 @@ export default function ProblemClipList({
 
         <div className="clip-form-row">
           <div className="clip-form-field">
-            <label>問題番号 *</label>
+            <label>問題番号</label>
             <input
               type="text"
               placeholder="例: 1, 2(1), 大問3"
