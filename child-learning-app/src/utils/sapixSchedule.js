@@ -395,6 +395,16 @@ export const SAPIX_SPRING_4_2026 = [
   { date: '2026-04-02', day: '木' },
 ]
 
+// 春期講習カレンダー（αクラス）
+// 各日の授業: [9:00-10:00, 10:00-11:00, 11:00-12:00]
+const SAPIX_SPRING_CALENDAR_4_2026_ALPHA = {
+  '2026-03-28': ['H41-01', 'H42-01', 'H44-01'],  // 算数1, 国語1, 社会1
+  '2026-03-29': ['H41-02', 'H42-02', 'H43-01'],  // 算数2, 国語2, 理科1
+  '2026-03-30': ['H41-03', 'H43-02', 'H44-02'],  // 算数3, 理科2, 社会2
+  '2026-04-01': ['H41-04', 'H42-03', 'H44-03'],  // 算数4, 国語3, 社会3
+  '2026-04-02': ['H41-05', 'H42-04', 'H43-03'],  // 算数5, 国語4, 理科3
+}
+
 // ── 正規表現 ────────────────────────────────────────────────
 // 通常: 41B-02, 430-01 / 季節講習: H41-01, N43-03, F43-02
 const CODE_REGEX = /(\d{2}[A-B]-\d{2}|\d{3}-\d{2}|[HNF]\d{2}-\d{2})/
@@ -494,6 +504,16 @@ export function generateSapixSessions() {
       sessions.push({ date: dates.fri, dNumber: dNum, subject: '社会', textCode: shakaiCode, name: shakaiInfo.name, unitIds: shakaiInfo.unitIds })
     }
   }
+  // 春期講習セッション（αクラス）
+  for (const [date, codes] of Object.entries(SAPIX_SPRING_CALENDAR_4_2026_ALPHA)) {
+    for (const code of codes) {
+      const info = SAPIX_SCHEDULE[code]
+      if (info) {
+        sessions.push({ date, dNumber: '春期', subject: info.subject, textCode: code, name: info.name, unitIds: info.unitIds })
+      }
+    }
+  }
+
   return sessions.sort((a, b) => a.date.localeCompare(b.date))
 }
 
