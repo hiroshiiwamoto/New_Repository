@@ -517,11 +517,13 @@ function GradesView({ user }) {
               <ScoreCard
                 key={score.id}
                 score={score}
+                userId={user.uid}
                 onEdit={handleEditScore}
                 onDelete={handleDeleteConfirm}
                 onDeleteRequest={handleDeleteRequest}
                 onDeleteCancel={handleDeleteCancel}
                 isPendingDelete={pendingDeleteId === score.id}
+                onReload={reloadScores}
               />
             ))}
           </div>

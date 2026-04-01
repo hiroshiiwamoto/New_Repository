@@ -2783,3 +2783,42 @@
 .review-text-content strong {
   color: #c2410c;
 }
+
+.review-toggle-btn {
+  width: 100%;
+  padding: 10px 16px;
+  background: #f0f0ff;
+  color: #4338ca;
+  border: 1px solid #d0d0e8;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+}
+
+.review-toggle-btn:hover {
+  background: #e8e8ff;
+}
+
+.review-regenerate-btn {
+  margin-top: 12px;
+  padding: 6px 14px;
+  background: transparent;
+  color: #6366f1;
+  border: 1px solid #c7c7e8;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.review-regenerate-btn:hover:not(:disabled) {
+  background: #f0f0ff;
+}
+
+.review-regenerate-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
