@@ -19,6 +19,7 @@ import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
 import { refreshGoogleAccessToken } from './Auth'
 import { MAX_FILE_SIZE } from '../utils/constants'
 import { extractScoresFromImage, getGeminiUsage } from '../utils/scoreOcr'
+import DriveFilePicker from './DriveFilePicker'
 
 const scoreFields = { score: '', totalScore: '', average: '', deviation: '', rank: '', totalStudents: '' }
 
@@ -78,6 +79,7 @@ function GradesView({ user }) {
   const [pendingDeleteId, setPendingDeleteId] = useState(null)
   const [uploading, setUploading] = useState(false)
   const [ocrLoading, setOcrLoading] = useState(false)
+  const [showDrivePicker, setShowDrivePicker] = useState(false)
   const fileInputRef = useRef(null)
   const imageInputRef = useRef(null)
 
@@ -166,6 +168,12 @@ function GradesView({ user }) {
     } finally {
       setUploading(false)
     }
+  }
+
+  // Google Driveから成績表PDFを選択
+  const handleDriveSelect = ({ url, name }) => {
+    setScoreForm(prev => ({ ...prev, pdfUrl: url, pdfFileName: name }))
+    setShowDrivePicker(false)
   }
 
   // 画像から成績を自動入力
@@ -424,14 +432,24 @@ function GradesView({ user }) {
                     e.target.value = ''
                   }}
                 />
-                <button
-                  type="button"
-                  className="task-pdf-upload-btn"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                >
-                  {uploading ? LABELS.UPLOADING : LABELS.UPLOAD_NEW}
-                </button>
+                <div className="subject-pdf-slot-buttons">
+                  <button
+                    type="button"
+                    className="pdf-attach-add"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                  >
+                    {uploading ? LABELS.UPLOADING : LABELS.UPLOAD_NEW}
+                  </button>
+                  <button
+                    type="button"
+                    className="pdf-attach-drive"
+                    onClick={() => setShowDrivePicker(true)}
+                    disabled={uploading}
+                  >
+                    {LABELS.DRIVE_SELECT}
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -531,6 +549,12 @@ function GradesView({ user }) {
       </div>
 
       {showForm && renderScoreForm()}
+      {showDrivePicker && (
+        <DriveFilePicker
+          onSelect={handleDriveSelect}
+          onClose={() => setShowDrivePicker(false)}
+        />
+      )}
     </div>
   )
 }
