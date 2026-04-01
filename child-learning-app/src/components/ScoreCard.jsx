@@ -1,6 +1,21 @@
+import { useState } from 'react'
+import { generateTestReview, getGeminiUsage } from '../utils/scoreOcr'
+import { updateTestScore } from '../utils/testScores'
+import { toast } from '../utils/toast'
 import './TestScoreView.css'
 
-function ScoreCard({ score, onEdit, onDelete, onDeleteRequest, onDeleteCancel, isPendingDelete }) {
+function formatReviewHtml(text) {
+  return text
+    .replace(/^## (.+)$/gm, '<h4>$1</h4>')
+    .replace(/^### (.+)$/gm, '<h5>$1</h5>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/gs, '<ul>$&</ul>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n{2,}/g, '<br/><br/>')
+    .replace(/\n/g, '<br/>')
+}
+
+function ScoreCard({ score, userId, onEdit, onDelete, onDeleteRequest, onDeleteCancel, isPendingDelete, onReload }) {
   const rows = [
     { key: 'fourSubjects', genderKey: 'fourSubjectsGender', label: '4科目合計' },
     { key: 'twoSubjects', genderKey: 'twoSubjectsGender', label: '2科目合計' },
@@ -114,6 +129,68 @@ function ScoreCard({ score, onEdit, onDelete, onDeleteRequest, onDeleteCancel, i
           {score.notes && <p className="notes">{score.notes}</p>}
         </div>
       )}
+
+      {/* AI総評 */}
+      <AiReviewSection score={score} userId={userId} onReload={onReload} />
+    </div>
+  )
+}
+
+function AiReviewSection({ score, userId, onReload }) {
+  const [generating, setGenerating] = useState(false)
+  const [showReview, setShowReview] = useState(false)
+
+  const handleGenerate = async () => {
+    setGenerating(true)
+    try {
+      const reviewText = await generateTestReview(score, [])
+      await updateTestScore(userId, score.id, { aiReview: reviewText })
+      if (onReload) await onReload()
+      setShowReview(true)
+    } catch (err) {
+      console.error('Review generation error:', err)
+      toast.error(err.message || '総評の生成に失敗しました')
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  if (score.aiReview) {
+    return (
+      <div className="test-review-section">
+        <button
+          className="review-toggle-btn"
+          onClick={() => setShowReview(!showReview)}
+        >
+          {showReview ? '▼ AI総評を閉じる' : '▶ AI総評を見る'}
+        </button>
+        {showReview && (
+          <div className="review-text-container">
+            <div className="review-text-content" dangerouslySetInnerHTML={{
+              __html: formatReviewHtml(score.aiReview)
+            }} />
+            <button
+              className="review-regenerate-btn"
+              onClick={handleGenerate}
+              disabled={generating || getGeminiUsage().isOverLimit}
+            >
+              {generating ? '再生成中...' : '🔄 再生成'}
+            </button>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="test-review-section">
+      <button
+        className="review-generate-btn"
+        onClick={handleGenerate}
+        disabled={generating || getGeminiUsage().isOverLimit}
+      >
+        {generating ? '総評を生成中...' : '📝 AI総評を生成'}
+      </button>
     </div>
   )
 }

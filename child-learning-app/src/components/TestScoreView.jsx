@@ -28,7 +28,7 @@ import { refreshGoogleAccessToken } from './Auth'
 import { grades } from '../utils/unitsDatabase'
 import EmptyState from './EmptyState'
 import TestRangeProblems from './TestRangeProblems'
-import { extractWrongAnswersFromImage, generateTestReview, mapProblemToUnitIds } from '../utils/scoreOcr'
+import { extractWrongAnswersFromImage, mapProblemToUnitIds } from '../utils/scoreOcr'
 import {
   lookupSapixSchedule,
   getSapixCodesBySubject,
@@ -82,8 +82,6 @@ const initialState = {
   selectedGrade: '4年生',
   ocrImporting: false,
   ocrPreview: null, // OCR結果プレビュー [{subject, problemNumber, points, correctRate, partialScore}]
-  reviewText: null, // AI総評テキスト
-  reviewGenerating: false,
 }
 
 function reducer(state, action) {
@@ -596,20 +594,6 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
     return null
   }
 
-  // ステップ3: AI総評を生成
-  const handleGenerateReview = async () => {
-    if (!state.selectedScore) return
-    dispatch({ type: 'SET_FIELD', field: 'reviewGenerating', value: true })
-    try {
-      const reviewText = await generateTestReview(state.selectedScore, state.problemsCache.filter(p => !p.isCorrect))
-      dispatch({ type: 'SET_FIELD', field: 'reviewText', value: reviewText })
-    } catch (err) {
-      console.error('Review generation error:', err)
-      toast.error(err.message || '総評の生成に失敗しました')
-    } finally {
-      dispatch({ type: 'SET_FIELD', field: 'reviewGenerating', value: false })
-    }
-  }
 
   // テスト削除（2段階確認: iOS Safari の window.confirm ブロック問題を回避）
   const handleDeleteRequest = (scoreId) => {
@@ -1442,31 +1426,6 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
           }
         />
       )}
-
-      {/* AI総評 */}
-      <div className="test-review-section">
-        <button
-          className="review-generate-btn"
-          onClick={handleGenerateReview}
-          disabled={state.reviewGenerating}
-        >
-          {state.reviewGenerating ? '総評を生成中...' : '📝 AI総評を生成'}
-        </button>
-        {state.reviewText && (
-          <div className="review-text-container">
-            <div className="review-text-content" dangerouslySetInnerHTML={{
-              __html: state.reviewText
-                .replace(/^## (.+)$/gm, '<h4>$1</h4>')
-                .replace(/^### (.+)$/gm, '<h5>$1</h5>')
-                .replace(/^- (.+)$/gm, '<li>$1</li>')
-                .replace(/(<li>.*<\/li>\n?)+/gs, '<ul>$&</ul>')
-                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\n{2,}/g, '<br/><br/>')
-                .replace(/\n/g, '<br/>')
-            }} />
-          </div>
-        )}
-      </div>
 
       {/* 問題クリップ */}
       <ProblemClipList
