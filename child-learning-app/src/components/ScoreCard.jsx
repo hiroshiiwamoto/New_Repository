@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { generateTestReview, getGeminiUsage } from '../utils/scoreOcr'
-import { updateTestScore } from '../utils/testScores'
+import { updateTestScore, getProblemsForTestScore } from '../utils/testScores'
 import { toast } from '../utils/toast'
 import './TestScoreView.css'
 
@@ -143,7 +143,9 @@ function AiReviewSection({ score, userId, onReload }) {
   const handleGenerate = async () => {
     setGenerating(true)
     try {
-      const reviewText = await generateTestReview(score, [])
+      const problems = await getProblemsForTestScore(userId, score)
+      const wrongAnswers = problems.filter(p => !p.isCorrect)
+      const reviewText = await generateTestReview(score, wrongAnswers)
       await updateTestScore(userId, score.id, { aiReview: reviewText })
       if (onReload) await onReload()
       setShowReview(true)
