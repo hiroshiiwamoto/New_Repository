@@ -69,6 +69,8 @@ const initialState = {
   selectedScore: null,
   uploadingSubject: null,
   drivePickerSubject: null,
+  uploadingAnswerSheet: null,
+  answerSheetDrivePickerSubject: null,
   problemsCache: [],
   showAddForm: false,
   addForm: { ...EMPTY_ADD_FORM },
@@ -696,6 +698,84 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
   }
 
   // ============================================================
+  // 採点後答案PDF紐付けハンドラ
+  // ============================================================
+
+  function getAnswerSheetPdfs(score) {
+    return score?.answerSheetPdfs || {}
+  }
+
+  function getAnswerSheetPdf(subject) {
+    return getAnswerSheetPdfs(state.selectedScore)[subject] || null
+  }
+
+  const answerSheetFileInputRefs = useRef({})
+
+  const handleUploadAnswerSheetPdf = async (subject, file) => {
+    if (!file) return
+    if (file.type !== 'application/pdf') {
+      toast.error(TOAST.PDF_ONLY)
+      return
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error(TOAST.FILE_TOO_LARGE)
+      return
+    }
+    const hasAccess = await checkDriveAccess()
+    if (!hasAccess) {
+      const token = await refreshGoogleAccessToken()
+      if (!token) {
+        toast.error(TOAST.DRIVE_NOT_CONNECTED)
+        return
+      }
+    }
+    dispatch({ type: 'SET_FIELD', field: 'uploadingAnswerSheet', value: subject })
+    try {
+      const driveResult = await uploadPDFToDrive(file, () => {})
+      const fileUrl = `https://drive.google.com/file/d/${driveResult.driveFileId}/view`
+      await saveAnswerSheetPdf(subject, fileUrl, file.name)
+      toast.success(`${subject}答案：「${file.name}」をアップロードしました`)
+    } catch (e) {
+      toast.error(TOAST.UPLOAD_ERROR + e.message)
+    } finally {
+      dispatch({ type: 'SET_FIELD', field: 'uploadingAnswerSheet', value: null })
+      if (answerSheetFileInputRefs.current[subject]) {
+        answerSheetFileInputRefs.current[subject].value = ''
+      }
+    }
+  }
+
+  const handleAnswerSheetDriveSelect = async ({ url, name }) => {
+    const subject = state.answerSheetDrivePickerSubject
+    if (!subject || !url) return
+    await saveAnswerSheetPdf(subject, url, name)
+    dispatch({ type: 'SET_FIELD', field: 'answerSheetDrivePickerSubject', value: null })
+    toast.success(`${subject}答案：「${name}」を紐付けました`)
+  }
+
+  const saveAnswerSheetPdf = async (subject, fileUrl, fileName) => {
+    const updated = {
+      ...getAnswerSheetPdfs(state.selectedScore),
+      [subject]: { fileUrl, fileName }
+    }
+    const result = await updateTestScore(user.uid, state.selectedScore.id, { answerSheetPdfs: updated })
+    if (result.success) {
+      await reloadScores()
+    } else {
+      toast.error('保存に失敗しました')
+    }
+  }
+
+  const handleDetachAnswerSheetPdf = async (subject) => {
+    const updated = { ...getAnswerSheetPdfs(state.selectedScore) }
+    delete updated[subject]
+    const result = await updateTestScore(user.uid, state.selectedScore.id, { answerSheetPdfs: updated })
+    if (result.success) {
+      await reloadScores()
+    }
+  }
+
+  // ============================================================
   // RENDER - テスト選択リスト
   // ============================================================
 
@@ -1257,6 +1337,75 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
         <DriveFilePicker
           onSelect={handleDrivePickerSelect}
           onClose={() => dispatch({ type: 'SET_FIELD', field: 'drivePickerSubject', value: null })}
+        />
+      )}
+
+      {/* 採点後答案PDF紐付けバー */}
+      <div className="subject-pdf-bar">
+        <span className="subject-pdf-bar-label">科目別PDF（採点後答案）</span>
+        <div className="subject-pdf-slots">
+          {SUBJECTS.map(subject => {
+            const pdf = getAnswerSheetPdf(subject)
+            const isUploading = state.uploadingAnswerSheet === subject
+            return (
+              <div key={subject} className="subject-pdf-slot">
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  className="hidden-input"
+                  ref={el => { answerSheetFileInputRefs.current[subject] = el }}
+                  onChange={e => handleUploadAnswerSheetPdf(subject, e.target.files[0])}
+                />
+                <span className="subject-pdf-slot-name">{subject}</span>
+                {pdf ? (
+                  <div className="subject-pdf-slot-linked">
+                    <a
+                      href={pdf.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="subject-pdf-slot-filename"
+                      title={pdf.fileName}
+                    >
+                      {pdf.fileName}
+                    </a>
+                    <button
+                      className="pdf-attach-change"
+                      onClick={() => answerSheetFileInputRefs.current[subject]?.click()}
+                      disabled={isUploading}
+                    >
+                      {isUploading ? '...' : '変更'}
+                    </button>
+                    <button className="pdf-attach-remove" onClick={() => handleDetachAnswerSheetPdf(subject)}>✕</button>
+                  </div>
+                ) : (
+                  <div className="subject-pdf-slot-buttons">
+                    <button
+                      className="pdf-attach-add"
+                      onClick={() => answerSheetFileInputRefs.current[subject]?.click()}
+                      disabled={isUploading}
+                    >
+                      {isUploading ? LABELS.UPLOADING : LABELS.UPLOAD_NEW}
+                    </button>
+                    <button
+                      className="pdf-attach-drive"
+                      onClick={() => dispatch({ type: 'SET_FIELD', field: 'answerSheetDrivePickerSubject', value: subject })}
+                      disabled={isUploading}
+                    >
+                      {LABELS.DRIVE_SELECT}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* DriveFilePicker（採点後答案） */}
+      {state.answerSheetDrivePickerSubject && (
+        <DriveFilePicker
+          onSelect={handleAnswerSheetDriveSelect}
+          onClose={() => dispatch({ type: 'SET_FIELD', field: 'answerSheetDrivePickerSubject', value: null })}
         />
       )}
 
