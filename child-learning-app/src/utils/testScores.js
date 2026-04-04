@@ -78,6 +78,9 @@ export async function addTestScore(userId, scoreData) {
       // 科目別PDF（問題用紙）
       subjectPdfs: scoreData.subjectPdfs || {},
 
+      // 科目別PDF（採点後答案）
+      answerSheetPdfs: scoreData.answerSheetPdfs || {},
+
       // ライフサイクル状態（'scheduled' | 'completed'）
       status: scoreData.status || 'completed',
 
