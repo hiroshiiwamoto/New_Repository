@@ -4,6 +4,8 @@
 // 各教科の家庭学習優先順位（SAPIXカリキュラム共通）を
 // 授業翌日〜次回授業前日に自動配分する
 
+import { generateSapixSessions } from './sapixSchedule'
+
 // 授業スケジュール（曜日 → 教科リスト）
 // 0=日, 1=月, 2=火, 3=水, 4=木, 5=金, 6=土
 export const CLASS_SCHEDULE = {
@@ -188,6 +190,42 @@ function findLastClassDay(fromDate, classDayOfWeek) {
   return d
 }
 
+// studyCategory からテキスト種別（A/B/null）を判定
+// null = テキスト種別を問わない（理科/社会のように単一テキスト、または基礎トレ等）
+function textTypeForCategory(category) {
+  if (category === 'b-review' || category === 'b-practice' || category === 'b-brain') return 'B'
+  if (category === 'a-review' || category === 'a-exam') return 'A'
+  return null
+}
+
+// 授業日 + 教科 + テキスト種別から SAPIX セッション情報を取得
+// セッション一覧はモジュール初回参照時に1度だけ生成してキャッシュ
+let _sessionsCache = null
+function getSessionsCache() {
+  if (!_sessionsCache) _sessionsCache = generateSapixSessions()
+  return _sessionsCache
+}
+
+function findSession(classDate, subject, textType) {
+  const sessions = getSessionsCache()
+  return sessions.find(s => {
+    if (s.date !== classDate || s.subject !== subject) return false
+    // 算数・国語: A/B テキスト指定があれば textCode の prefix で絞り込み
+    if (textType === 'A') return /^4\dA-/.test(s.textCode)
+    if (textType === 'B') return /^4\dB-/.test(s.textCode)
+    // 理科 (430-XX) / 社会 (440-XX) は textType=null で1セッションのみ
+    return true
+  })
+}
+
+// テキストコードから「第N回」のラベルを生成（例: "41B-09" → "第9回"）
+function lessonLabelFromCode(code) {
+  if (!code) return ''
+  const m = code.match(/-(\d{2})$/)
+  if (!m) return ''
+  return `第${parseInt(m[1], 10)}回`
+}
+
 /**
  * 今週の家庭学習スケジュールを生成
  * @param {Date} today - 基準日（デフォルト: 今日）
@@ -224,6 +262,14 @@ export function generateWeeklyHomework(today = new Date()) {
       if (!templates) continue
 
       for (const template of templates) {
+        // SAPIX カリキュラムから「第N回」「単元名」「テキストコード」を解決
+        const textType = textTypeForCategory(template.studyCategory)
+        const session = findSession(classDayStr, subject, textType)
+        const textCode = session?.textCode || ''
+        const lessonLabel = lessonLabelFromCode(textCode)
+        const unitName = session?.name || ''
+        const unitIds = session?.unitIds || []
+
         for (const offset of template.dayOffsets) {
           const dueDate = addDays(classDate, offset)
           const dueDateStr = formatDate(dueDate)
@@ -238,6 +284,10 @@ export function generateWeeklyHomework(today = new Date()) {
             priority: template.priority,
             classDate: classDayStr,
             isHomework: true,
+            textCode,
+            lessonLabel,
+            unitName,
+            unitIds,
           })
         }
       }

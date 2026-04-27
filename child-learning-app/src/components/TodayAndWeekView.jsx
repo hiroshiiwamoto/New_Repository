@@ -118,7 +118,14 @@ function TodayAndWeekView({ tasks, homeworkDone, onToggleTask, onDeleteTask, onE
                       className="subject-badge"
                       style={{ color: subjectColor }}
                     >{hw.subject}</span>
-                    <span className="task-title">{hw.title}</span>
+                    <span className="task-title">
+                      {hw.title}
+                      {(hw.lessonLabel || hw.unitName) && (
+                        <span className="hw-lesson-info">
+                          {hw.lessonLabel}{hw.lessonLabel && hw.unitName ? ' ' : ''}{hw.unitName}
+                        </span>
+                      )}
+                    </span>
                     {pStyle && (
                       <span
                         className="task-priority-badge"
@@ -183,7 +190,14 @@ function TodayAndWeekView({ tasks, homeworkDone, onToggleTask, onDeleteTask, onE
                               className="week-hw-subject"
                               style={{ color: subjectColor }}
                             >{subjectEmojis[hw.subject]}</span>
-                            <span className="week-hw-title">{hw.title}</span>
+                            <span className="week-hw-title">
+                              {hw.title}
+                              {(hw.lessonLabel || hw.unitName) && (
+                                <span className="hw-lesson-info">
+                                  {hw.lessonLabel}{hw.lessonLabel && hw.unitName ? ' ' : ''}{hw.unitName}
+                                </span>
+                              )}
+                            </span>
                           </div>
                         )
                       })}
