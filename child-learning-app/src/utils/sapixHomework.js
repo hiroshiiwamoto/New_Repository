@@ -190,9 +190,15 @@ function findLastClassDay(fromDate, classDayOfWeek) {
   return d
 }
 
-// studyCategory からテキスト種別（A/B/null）を判定
-// null = テキスト種別を問わない（理科/社会のように単一テキスト、または基礎トレ等）
-function textTypeForCategory(category) {
+// 教科 + studyCategory からテキスト種別を判定
+//   'A' / 'B'    : 算数・国語の A/B テキスト
+//   'SINGLE'     : 理科・社会（テキスト1種類のみ）
+//   null         : 回に紐づかないカテゴリ（基礎トレ・漢字・コアプラス等）
+const NO_LESSON_CATEGORIES = new Set(['basic-training', 'kanji', 'basic-test', 'knowledge'])
+
+function textTypeForCategory(subject, category) {
+  if (NO_LESSON_CATEGORIES.has(category)) return null
+  if (subject === '理科' || subject === '社会') return 'SINGLE'
   if (category === 'b-review' || category === 'b-practice' || category === 'b-brain') return 'B'
   if (category === 'a-review' || category === 'a-exam') return 'A'
   return null
@@ -207,14 +213,14 @@ function getSessionsCache() {
 }
 
 function findSession(classDate, subject, textType) {
+  if (!textType) return null
   const sessions = getSessionsCache()
   return sessions.find(s => {
     if (s.date !== classDate || s.subject !== subject) return false
-    // 算数・国語: A/B テキスト指定があれば textCode の prefix で絞り込み
     if (textType === 'A') return /^4\dA-/.test(s.textCode)
     if (textType === 'B') return /^4\dB-/.test(s.textCode)
-    // 理科 (430-XX) / 社会 (440-XX) は textType=null で1セッションのみ
-    return true
+    if (textType === 'SINGLE') return /^4\d0-/.test(s.textCode)
+    return false
   })
 }
 
@@ -263,7 +269,7 @@ export function generateWeeklyHomework(today = new Date()) {
 
       for (const template of templates) {
         // SAPIX カリキュラムから「第N回」「単元名」「テキストコード」を解決
-        const textType = textTypeForCategory(template.studyCategory)
+        const textType = textTypeForCategory(subject, template.studyCategory)
         const session = findSession(classDayStr, subject, textType)
         const textCode = session?.textCode || ''
         const lessonLabel = lessonLabelFromCode(textCode)
