@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import './TodayAndWeekView.css'
 import { subjectEmojis, subjectColors, weekDayNames } from '../utils/constants'
 import { getHomeworkForDate, getHomeworkByDate } from '../utils/sapixHomework'
@@ -11,31 +11,42 @@ const priorityStyles = {
   C: { label: 'C', color: '#3b82f6' },
 }
 
+// 日付フォーマット関数
+function formatDate(date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+// YYYY-MM-DD をローカルタイムゾーンの Date として安全にパース
+function parseLocalDate(str) {
+  const [y, m, d] = str.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
 function TodayAndWeekView({ tasks, homeworkDone, onToggleTask, onDeleteTask, onEditTask, onToggleHomework, userId }) {
   const [expandedSection, setExpandedSection] = useState('today') // 'today', 'homework', 'week'
   const [detailTask, setDetailTask] = useState(null)
+  const [todayStr, setTodayStr] = useState(() => formatDate(new Date()))
 
-  // 日付フォーマット関数
-  function formatDate(date) {
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
-  }
+  // 日付変化を1分ごとに検知（アプリを開きっぱなしでも翌日に更新される）
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const next = formatDate(new Date())
+      setTodayStr(prev => (prev === next ? prev : next))
+    }, 60 * 1000)
+    return () => clearInterval(interval)
+  }, [])
 
-  // 今日のタスクを取得
-  function getTodayTasks() {
-    const today = formatDate(new Date())
-    return tasks.filter(task => task.dueDate === today)
-  }
+  const todayTasks = useMemo(
+    () => tasks.filter(task => task.dueDate === todayStr),
+    [tasks, todayStr]
+  )
 
-  const todayTasks = getTodayTasks()
+  const todayHomework = useMemo(() => getHomeworkForDate(parseLocalDate(todayStr)), [todayStr])
 
-  // 今日の家庭学習タスク
-  const todayHomework = useMemo(() => getHomeworkForDate(new Date()), [])
-
-  // 今週の家庭学習（7日分）
-  const weekHomework = useMemo(() => getHomeworkByDate(new Date(), 7), [])
+  const weekHomework = useMemo(() => getHomeworkByDate(parseLocalDate(todayStr), 7), [todayStr])
 
   // 家庭学習の完了チェック
   const isHomeworkDone = (hwId) => {
