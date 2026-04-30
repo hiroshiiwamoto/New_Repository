@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { getStaticMasterUnits } from '../utils/importMasterUnits'
 import {
   getLessonLogs,
@@ -51,7 +51,7 @@ function MasterUnitDashboard({ sapixTexts = [], userId }) {
 
   useEffect(() => {
     loadData()
-  }, [])
+  }, [loadData])
 
   // allLogs が変わったら stats を再計算
   useEffect(() => {
@@ -135,7 +135,7 @@ function MasterUnitDashboard({ sapixTexts = [], userId }) {
       })()
     : []
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true)
     try {
       if (!userId) return
@@ -157,7 +157,7 @@ function MasterUnitDashboard({ sapixTexts = [], userId }) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [userId])
 
   // ドリルダウン：単元セルをタップ（同期処理。allLogsから即時フィルタ）
   const handleDrillDown = (unit) => {
