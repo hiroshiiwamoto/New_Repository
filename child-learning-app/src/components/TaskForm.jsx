@@ -45,7 +45,7 @@ function formReducer(state, action) {
   }
 }
 
-function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit, customUnits = [], onAddCustomUnit }) {
+function TaskForm({ onAddTask, onUpdateTask, editingTask, onCancelEdit }) {
   const [form, dispatch] = useReducer(formReducer, initialFormState)
   const fileInputRef = useRef(null)
 

@@ -14,9 +14,8 @@ import {
   addProblem,
   updateProblem,
   deleteProblem,
-  deleteProblemsBySource,
 } from '../utils/problems'
-import { addLessonLogWithStats, deleteLessonLogsBySource, EVALUATION_SCORES } from '../utils/lessonLogs'
+import { addLessonLogWithStats, EVALUATION_SCORES } from '../utils/lessonLogs'
 import { MAX_FILE_SIZE, SUBJECTS } from '../utils/constants'
 import { toast } from '../utils/toast'
 import { LABELS, TOAST } from '../utils/messages'
@@ -368,21 +367,6 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
   // テスト日程の編集
   // ============================================================
 
-  const handleStartEdit = () => {
-    dispatch({
-      type: 'SET_FIELDS',
-      fields: {
-        isEditing: true,
-        editForm: {
-          testName: state.selectedScore.testName || '',
-          testDate: state.selectedScore.testDate || '',
-          grade: state.selectedScore.grade || '4年生',
-          sapixRange: state.selectedScore.sapixRange || {},
-        },
-      },
-    })
-  }
-
   const handleSaveEdit = async () => {
     if (!state.editForm.testName.trim()) {
       toast.error('テスト名を入力してください')
@@ -403,10 +387,6 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
     } else {
       toast.error('更新に失敗しました: ' + result.error)
     }
-  }
-
-  const handleCancelEdit = () => {
-    dispatch({ type: 'SET_FIELDS', fields: { isEditing: false, editForm: null } })
   }
 
   // ============================================================
@@ -606,8 +586,6 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
   }
   const handleDeleteConfirm = async (score) => {
     dispatch({ type: 'SET_FIELD', field: 'pendingDeleteId', value: null })
-    await deleteProblemsBySource(user.uid, 'test', score.id)
-    await deleteLessonLogsBySource(user.uid, 'test', score.id)
     const result = await deleteTestScore(user.uid, score.id)
     if (result.success) {
       toast.success('テストを削除しました')

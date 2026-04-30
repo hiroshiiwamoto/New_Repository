@@ -11,11 +11,9 @@ import {
   addDoc,
   setDoc,
   getDocs,
-  updateDoc,
   deleteDoc,
   query,
   where,
-  orderBy,
   serverTimestamp,
   writeBatch,
 } from 'firebase/firestore'

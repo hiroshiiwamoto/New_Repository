@@ -5,6 +5,8 @@
  * Layer 1（テキスト評価）だけでも動作し、Layer 2/3 のデータが増えるほど精度が上がる。
  */
 
+import { parseLocalDate } from './dateUtils'
+
 // ── 定数 ──────────────────────────────────────
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000
@@ -79,7 +81,7 @@ function calcTestUrgency(unitId, currentScore, testScores) {
   for (const test of testScores) {
     if (test.status !== 'scheduled') continue
     const testDateMs = test.testDate
-      ? new Date(test.testDate + 'T00:00:00').getTime()
+      ? parseLocalDate(test.testDate).getTime()
       : 0
     if (testDateMs <= today) continue
 

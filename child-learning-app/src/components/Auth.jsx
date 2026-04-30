@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { auth, googleProvider } from '../firebase'
 import { signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider } from 'firebase/auth'
 import { toast } from '../utils/toast'
+import { subscribeGeminiUsage } from '../utils/geminiUsage'
 import Loading from './Loading'
 import SettingsModal from './SettingsModal'
 import './Auth.css'
@@ -39,6 +40,8 @@ function Auth({ onAuthChange }) {
       if (!currentUser) {
         _googleAccessToken = null
       }
+      // Gemini API 使用量の Firestore 購読をユーザー切り替えに追従
+      subscribeGeminiUsage(currentUser?.uid || null)
       if (onAuthChange) {
         onAuthChange(currentUser)
       }

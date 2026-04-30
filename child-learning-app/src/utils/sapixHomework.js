@@ -5,6 +5,7 @@
 // 授業翌日〜次回授業前日に自動配分する
 
 import { generateSapixSessions } from './sapixSchedule'
+import { formatDate, parseLocalDate, addDays } from './dateUtils'
 
 // 授業スケジュール（曜日 → 教科リスト）
 // 0=日, 1=月, 2=火, 3=水, 4=木, 5=金, 6=土
@@ -162,32 +163,25 @@ const HOMEWORK_TEMPLATES = {
   ],
 }
 
-// 日付ヘルパー
-function formatDate(date) {
-  const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, '0')
-  const d = String(date.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
-}
-
-function addDays(date, days) {
-  const result = new Date(date)
-  result.setDate(result.getDate() + days)
-  return result
-}
-
 // 指定日の曜日(0-6)を返す
 function getDayOfWeek(date) {
   return date.getDay()
 }
 
-// 直近の授業日（過去方向）を探す
-function findLastClassDay(fromDate, classDayOfWeek) {
-  const d = new Date(fromDate)
-  while (getDayOfWeek(d) !== classDayOfWeek) {
-    d.setDate(d.getDate() - 1)
+// 直近の授業日（過去方向）をカレンダーから探す
+// 実在する通常授業（D-番号）のみを対象とし、テスト日や講習日を誤認しない
+function findLastClassDay(sessions, fromDate, classDayOfWeek) {
+  const fromStr = formatDate(fromDate)
+  const dates = [...new Set(
+    sessions
+      .filter(s => s.dNumber.startsWith('D') && s.date <= fromStr)
+      .map(s => s.date)
+  )].sort()
+  for (let i = dates.length - 1; i >= 0; i--) {
+    const d = parseLocalDate(dates[i])
+    if (getDayOfWeek(d) === classDayOfWeek) return d
   }
-  return d
+  return null
 }
 
 // 教科 + studyCategory からテキスト種別を判定
@@ -205,16 +199,8 @@ function textTypeForCategory(subject, category) {
 }
 
 // 授業日 + 教科 + テキスト種別から SAPIX セッション情報を取得
-// セッション一覧はモジュール初回参照時に1度だけ生成してキャッシュ
-let _sessionsCache = null
-function getSessionsCache() {
-  if (!_sessionsCache) _sessionsCache = generateSapixSessions()
-  return _sessionsCache
-}
-
-function findSession(classDate, subject, textType) {
+function findSession(sessions, classDate, subject, textType) {
   if (!textType) return null
-  const sessions = getSessionsCache()
   return sessions.find(s => {
     if (s.date !== classDate || s.subject !== subject) return false
     if (textType === 'A') return /^4\dA-/.test(s.textCode)
@@ -248,14 +234,52 @@ function lessonLabelFromCode(code) {
  *     isHomework: true,
  *   }]
  */
+// 講習中の家庭学習タスクを生成（春期・夏期）
+// 通常授業（D-番号）と異なり、講習日は毎日連続するため翌日に「テキスト復習」を1件出すのみ。
+// テンプレート定義は持たず、SAPIXセッションから直接タスクを構築する。
+const SEASON_DNUMBERS = new Set(['春期', '夏期'])
+
+function generateSeasonHomework(sessions, today, allTasks) {
+  const todayStr = formatDate(today)
+  const horizonStr = formatDate(addDays(today, 6))
+  for (const s of sessions) {
+    if (!SEASON_DNUMBERS.has(s.dNumber)) continue
+    const classDate = parseLocalDate(s.date)
+    const dueDate = addDays(classDate, 1)
+    const dueDateStr = formatDate(dueDate)
+    if (dueDateStr < todayStr || dueDateStr > horizonStr) continue
+    allTasks.push({
+      id: `hw-${s.subject}-season-review-${dueDateStr}`,
+      subject: s.subject,
+      title: 'テキスト 復習',
+      dueDate: dueDateStr,
+      studyPriority: 1,
+      studyCategory: 'season-review',
+      priority: 'A',
+      classDate: s.date,
+      isHomework: true,
+      textCode: s.textCode,
+      lessonLabel: lessonLabelFromCode(s.textCode),
+      unitName: s.name,
+      unitIds: s.unitIds,
+    })
+  }
+}
+
 export function generateWeeklyHomework(today = new Date()) {
   const allTasks = []
+  // 1回の生成中だけセッション一覧を保持（モジュール越しのキャッシュは持たない）
+  const sessions = generateSapixSessions()
+
+  // 講習期間中の家庭学習（D-番号外のセッションを別ロジックで処理）
+  generateSeasonHomework(sessions, today, allTasks)
 
   for (const [dayStr, subjects] of Object.entries(CLASS_SCHEDULE)) {
     const classDayOfWeek = parseInt(dayStr, 10)
 
     // 直近の授業日を取得
-    const classDate = findLastClassDay(today, classDayOfWeek)
+    const classDate = findLastClassDay(sessions, today, classDayOfWeek)
+    if (!classDate) continue
     const classDayStr = formatDate(classDate)
 
     // この授業日から生成するタスクの期間チェック:
@@ -270,7 +294,7 @@ export function generateWeeklyHomework(today = new Date()) {
       for (const template of templates) {
         // SAPIX カリキュラムから「第N回」「単元名」「テキストコード」を解決
         const textType = textTypeForCategory(subject, template.studyCategory)
-        const session = findSession(classDayStr, subject, textType)
+        const session = findSession(sessions, classDayStr, subject, textType)
         const textCode = session?.textCode || ''
         const lessonLabel = lessonLabelFromCode(textCode)
         const unitName = session?.name || ''

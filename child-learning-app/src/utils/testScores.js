@@ -1,7 +1,8 @@
 // テスト成績管理（Firestore）
 
 import { getTodayString, nowISO } from './dateUtils'
-import { getProblemsBySource } from './problems'
+import { getProblemsBySource, deleteProblemsBySource } from './problems'
+import { deleteLessonLogsBySource } from './lessonLogs'
 import {
   collection,
   addDoc,
@@ -167,13 +168,17 @@ export async function updateTestScore(userId, id, updates) {
 }
 
 /**
- * テスト成績を削除
+ * テスト成績を削除（紐づく problems / lessonLogs も連鎖削除）
  * @param {string} userId - ユーザーID
  * @param {string} id - FirestoreドキュメントID
  * @returns {Promise<object>} 結果
  */
 export async function deleteTestScore(userId, id) {
   try {
+    // 子データを先に削除してから親の testScore を削除する
+    await deleteProblemsBySource(userId, 'test', id)
+    await deleteLessonLogsBySource(userId, 'test', id)
+
     const scoreRef = doc(db, 'users', userId, 'testScores', id)
     await deleteDoc(scoreRef)
 

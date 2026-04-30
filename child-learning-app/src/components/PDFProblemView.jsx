@@ -24,7 +24,7 @@ function PDFProblemView({ user }) {
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [showUploadForm, setShowUploadForm] = useState(false)
-  const [filter, setFilter] = useState({ subject: '', schoolName: '' })
+  const [filter] = useState({ subject: '', schoolName: '' })
   const [storageUsage, setStorageUsage] = useState(null)
   const [driveConnected, setDriveConnected] = useState(false)
   const [uploadMetadata, setUploadMetadata] = useState({
