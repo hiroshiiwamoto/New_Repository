@@ -181,13 +181,21 @@ function getDayOfWeek(date) {
   return date.getDay()
 }
 
-// 直近の授業日（過去方向）を探す
+// 直近の授業日（過去方向）をカレンダーから探す
+// 実在する通常授業（D-番号）のみを対象とし、テスト日や講習日を誤認しない
 function findLastClassDay(fromDate, classDayOfWeek) {
-  const d = new Date(fromDate)
-  while (getDayOfWeek(d) !== classDayOfWeek) {
-    d.setDate(d.getDate() - 1)
+  const sessions = getSessionsCache()
+  const fromStr = formatDate(fromDate)
+  const dates = [...new Set(
+    sessions
+      .filter(s => s.dNumber.startsWith('D') && s.date <= fromStr)
+      .map(s => s.date)
+  )].sort()
+  for (let i = dates.length - 1; i >= 0; i--) {
+    const d = new Date(dates[i] + 'T00:00:00')
+    if (getDayOfWeek(d) === classDayOfWeek) return d
   }
-  return d
+  return null
 }
 
 // 教科 + studyCategory からテキスト種別を判定
@@ -256,6 +264,7 @@ export function generateWeeklyHomework(today = new Date()) {
 
     // 直近の授業日を取得
     const classDate = findLastClassDay(today, classDayOfWeek)
+    if (!classDate) continue
     const classDayStr = formatDate(classDate)
 
     // この授業日から生成するタスクの期間チェック:

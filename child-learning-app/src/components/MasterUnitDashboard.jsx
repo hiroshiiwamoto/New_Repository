@@ -151,7 +151,6 @@ function MasterUnitDashboard({ sapixTexts = [], userId }) {
         console.error('lessonLogs 読み取り失敗:', logsResult.error)
       }
       const logs = logsResult.success ? logsResult.data : []
-      console.log(`lessonLogs: ${logs.length}件取得`)
       setAllLogs(logs)  // stats は useEffect[allLogs] で自動再計算
     } catch (err) {
       console.error('データ取得エラー:', err)
