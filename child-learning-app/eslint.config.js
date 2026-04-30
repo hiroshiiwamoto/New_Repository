@@ -30,7 +30,7 @@ export default [
         { allowConstantExport: true },
       ],
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]', argsIgnorePattern: '^_' }],
-      'react-hooks/exhaustive-deps': 'warn',
+      'react-hooks/exhaustive-deps': ['warn', { additionalHooks: '(useFirestoreQuery)' }],
       'react-hooks/set-state-in-effect': 'warn',
     },
   },

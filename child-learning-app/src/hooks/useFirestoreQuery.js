@@ -11,6 +11,11 @@ export function useFirestoreQuery(queryFn, deps = []) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  // 汎用フックのため、deps は呼び出し側から受け取る設計
+  // （React 公式の useCallback / useMemo / useEffect と同じパターン）。
+  // queryFn は deps が指す値で再生成されることを呼び出し側に期待しているため
+  // queryFn 自体は deps から除外する。呼び出し側の deps 妥当性は eslint
+  // 設定の additionalHooks で別途検査。
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -31,6 +36,7 @@ export function useFirestoreQuery(queryFn, deps = []) {
     } finally {
       setLoading(false)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps)
 
   useEffect(() => {
