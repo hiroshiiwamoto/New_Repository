@@ -20,11 +20,6 @@ export default function SettingsModal({ userId, onClose }) {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [geminiUsage, setGeminiUsage] = useState(null)
 
-  useEffect(() => {
-    loadUsage()
-    setGeminiUsage(getGeminiUsage())
-  }, [userId])
-
   const loadUsage = async () => {
     setLoading(true)
     const result = await getStorageUsage(userId)
@@ -35,6 +30,13 @@ export default function SettingsModal({ userId, onClose }) {
     }
     setLoading(false)
   }
+
+  useEffect(() => {
+    loadUsage()
+    setGeminiUsage(getGeminiUsage())
+    // loadUsage は依存に入れず、userId 変化時のみ再ロードする意図
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId])
 
   const handleCleanup = async () => {
     if (!confirmDelete) {

@@ -22,7 +22,7 @@ export const deleteCustomUnit = (userId, id) =>
 /**
  * カスタム単元IDを生成
  */
-export function generateCustomUnitId(subject, grade, name) {
+export function generateCustomUnitId(subject, grade, _name) {
   const timestamp = Date.now()
   const subjectPrefix = {
     '算数': 'math',

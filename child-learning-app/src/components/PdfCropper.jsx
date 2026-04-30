@@ -663,7 +663,7 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
                 </button>
               </div>
               <span className="pdfcropper-hint">
-                📱 1本指=切出 / 2本指=パン・ピンチ　🖱️ 左=切出 / 中=パン / ホイール=ズーム
+                📱 1本指=切出 / 2本指=パン・ピンチ  🖱️ 左=切出 / 中=パン / ホイール=ズーム
               </span>
             </div>
 

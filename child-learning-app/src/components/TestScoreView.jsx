@@ -367,21 +367,6 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
   // テスト日程の編集
   // ============================================================
 
-  const handleStartEdit = () => {
-    dispatch({
-      type: 'SET_FIELDS',
-      fields: {
-        isEditing: true,
-        editForm: {
-          testName: state.selectedScore.testName || '',
-          testDate: state.selectedScore.testDate || '',
-          grade: state.selectedScore.grade || '4年生',
-          sapixRange: state.selectedScore.sapixRange || {},
-        },
-      },
-    })
-  }
-
   const handleSaveEdit = async () => {
     if (!state.editForm.testName.trim()) {
       toast.error('テスト名を入力してください')
@@ -402,10 +387,6 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
     } else {
       toast.error('更新に失敗しました: ' + result.error)
     }
-  }
-
-  const handleCancelEdit = () => {
-    dispatch({ type: 'SET_FIELDS', fields: { isEditing: false, editForm: null } })
   }
 
   // ============================================================

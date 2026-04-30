@@ -23,8 +23,6 @@ import {
 import {
   getCustomUnits,
   addCustomUnit as addCustomUnitToFirestore,
-  updateCustomUnit as updateCustomUnitInFirestore,
-  deleteCustomUnit as deleteCustomUnitFromFirestore,
 } from './utils/customUnits'
 import { subscribeSapixTexts } from './utils/sapixTexts'
 import { subscribeTestScores } from './utils/testScores'
@@ -247,48 +245,6 @@ function App() {
       return { success: true, data: result.data }
     } else {
       toast.error('カスタム単元の追加に失敗しました: ' + result.error)
-      return { success: false, error: result.error }
-    }
-  }
-
-  const updateCustomUnit = async (id, updates) => {
-    if (!user) {
-      toast.error('カスタム単元を更新するにはログインが必要です')
-      return { success: false }
-    }
-
-    const result = await updateCustomUnitInFirestore(user.uid, id, updates)
-
-    if (result.success) {
-      // カスタム単元リストを更新
-      const updatedCustomUnits = customUnits.map(unit =>
-        unit.id === id
-          ? { ...unit, ...updates }
-          : unit
-      )
-      setCustomUnits(updatedCustomUnits)
-      return { success: true }
-    } else {
-      toast.error('カスタム単元の更新に失敗しました: ' + result.error)
-      return { success: false, error: result.error }
-    }
-  }
-
-  const deleteCustomUnit = async (id) => {
-    if (!user) {
-      toast.error('カスタム単元を削除するにはログインが必要です')
-      return { success: false }
-    }
-
-    const result = await deleteCustomUnitFromFirestore(user.uid, id)
-
-    if (result.success) {
-      // カスタム単元リストから削除
-      const filteredCustomUnits = customUnits.filter(unit => unit.id !== id)
-      setCustomUnits(filteredCustomUnits)
-      return { success: true }
-    } else {
-      toast.error('カスタム単元の削除に失敗しました: ' + result.error)
       return { success: false, error: result.error }
     }
   }
