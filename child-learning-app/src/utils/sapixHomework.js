@@ -5,6 +5,7 @@
 // 授業翌日〜次回授業前日に自動配分する
 
 import { generateSapixSessions } from './sapixSchedule'
+import { formatDate, parseLocalDate, addDays } from './dateUtils'
 
 // 授業スケジュール（曜日 → 教科リスト）
 // 0=日, 1=月, 2=火, 3=水, 4=木, 5=金, 6=土
@@ -162,20 +163,6 @@ const HOMEWORK_TEMPLATES = {
   ],
 }
 
-// 日付ヘルパー
-function formatDate(date) {
-  const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, '0')
-  const d = String(date.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
-}
-
-function addDays(date, days) {
-  const result = new Date(date)
-  result.setDate(result.getDate() + days)
-  return result
-}
-
 // 指定日の曜日(0-6)を返す
 function getDayOfWeek(date) {
   return date.getDay()
@@ -191,7 +178,7 @@ function findLastClassDay(sessions, fromDate, classDayOfWeek) {
       .map(s => s.date)
   )].sort()
   for (let i = dates.length - 1; i >= 0; i--) {
-    const d = new Date(dates[i] + 'T00:00:00')
+    const d = parseLocalDate(dates[i])
     if (getDayOfWeek(d) === classDayOfWeek) return d
   }
   return null

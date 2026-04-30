@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import './TodayAndWeekView.css'
 import { subjectEmojis, subjectColors, weekDayNames } from '../utils/constants'
+import { formatDate, parseLocalDate } from '../utils/dateUtils'
 import { getHomeworkForDate, getHomeworkByDate } from '../utils/sapixHomework'
 import TaskDetailModal from './TaskDetailModal'
 
@@ -9,20 +10,6 @@ const priorityStyles = {
   A: { label: 'A', color: '#ef4444' },
   B: { label: 'B', color: '#f59e0b' },
   C: { label: 'C', color: '#3b82f6' },
-}
-
-// 日付フォーマット関数
-function formatDate(date) {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
-// YYYY-MM-DD をローカルタイムゾーンの Date として安全にパース
-function parseLocalDate(str) {
-  const [y, m, d] = str.split('-').map(Number)
-  return new Date(y, m - 1, d)
 }
 
 function TodayAndWeekView({ tasks, homeworkDone, onToggleTask, onDeleteTask, onEditTask, onToggleHomework, userId }) {
@@ -155,7 +142,7 @@ function TodayAndWeekView({ tasks, homeworkDone, onToggleTask, onDeleteTask, onE
         {expandedSection === 'homework' && (
           <div className="week-homework-grid">
             {Object.entries(weekHomework).map(([dateStr, hwTasks]) => {
-              const d = new Date(dateStr + 'T00:00:00')
+              const d = parseLocalDate(dateStr)
               const dayName = weekDayNames[d.getDay()]
               const isToday = dateStr === formatDate(new Date())
               const doneCount = hwTasks.filter(hw => isHomeworkDone(hw.id)).length

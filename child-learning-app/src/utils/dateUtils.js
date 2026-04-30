@@ -23,6 +23,18 @@ export function formatDate(date) {
 }
 
 /**
+ * YYYY-MM-DD 文字列をローカルタイムゾーンの Date として安全にパース。
+ * new Date('YYYY-MM-DD') は仕様上 UTC 解釈となり JST では前日に
+ * ずれるため、数値コンストラクタを使う実装に統一する。
+ * @param {string} str - YYYY-MM-DD
+ * @returns {Date}
+ */
+export function parseLocalDate(str) {
+  const [y, m, d] = str.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
+/**
  * 日付に指定した日数を加算
  * @param {Date} date - 基準となる日付
  * @param {number} days - 加算する日数
