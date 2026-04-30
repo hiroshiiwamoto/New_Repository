@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import './App.css'
 import './utils/toast.css'
 import Auth from './components/Auth'
@@ -232,6 +232,9 @@ function App() {
     setView('testscore')
   }
 
+  // TestScoreView の useEffect deps に渡すため安定参照にする
+  const consumeInitialTestId = useCallback(() => setPendingTestId(null), [])
+
   const addCustomUnit = async (unitData) => {
     if (!user) {
       toast.error('カスタム単元を追加するにはログインが必要です')
@@ -376,7 +379,7 @@ function App() {
           <TestScoreView
             user={user}
             initialTestId={pendingTestId}
-            onConsumeInitialTestId={() => setPendingTestId(null)}
+            onConsumeInitialTestId={consumeInitialTestId}
             sapixTexts={sapixTexts}
           />
         ) : view === 'sapixtext' ? (
