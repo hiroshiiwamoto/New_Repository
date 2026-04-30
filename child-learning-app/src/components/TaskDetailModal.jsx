@@ -22,7 +22,17 @@ export default function TaskDetailModal({ task, userId, onEdit, onClose }) {
     if (result.success) setProblems(result.data)
   }, [userId, task.id])
 
-  useEffect(() => { loadProblems() }, [loadProblems])
+  // 初回 / userId・task.id 変更時のロード。setState は then 内（非同期）
+  // で行うため set-state-in-effect には該当しない。アンマウント後の更新を
+  // 防ぐため cancel フラグを使う。
+  useEffect(() => {
+    if (!userId || !task.id) return
+    let cancelled = false
+    getProblemsBySource(userId, 'task', task.id).then(result => {
+      if (!cancelled && result.success) setProblems(result.data)
+    })
+    return () => { cancelled = true }
+  }, [userId, task.id])
 
   const unitNameMap = useMemo(() => {
     const map = {}
