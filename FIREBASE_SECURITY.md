@@ -75,7 +75,7 @@ Project Console: https://console.firebase.google.com/project/studyapp-28e08/over
 ## 📁 ファイル構成
 
 ```
-New_Repository/
+alpha-orbit/
 ├── firestore.rules           # Firestoreセキュリティルール
 ├── firestore.indexes.json    # Firestoreインデックス設定
 ├── firebase.json             # Firebase設定ファイル
