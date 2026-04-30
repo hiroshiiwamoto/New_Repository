@@ -1,6 +1,6 @@
 // Google Drive API を使用した PDF 管理ユーティリティ
 
-import { getGoogleAccessToken, refreshGoogleAccessToken } from '../components/Auth'
+import { getGoogleAccessToken, refreshGoogleAccessToken } from './googleAccessToken'
 
 const DRIVE_API = 'https://www.googleapis.com/drive/v3'
 const DRIVE_UPLOAD_API = 'https://www.googleapis.com/upload/drive/v3'

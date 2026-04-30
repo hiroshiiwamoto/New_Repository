@@ -10,7 +10,7 @@ import {
   getStorageUsage,
   checkDriveAccess
 } from '../utils/pdfStorage'
-import { refreshGoogleAccessToken } from './Auth'
+import { refreshGoogleAccessToken } from '../utils/googleAccessToken'
 import { MAX_FILE_SIZE, SUBJECTS } from '../utils/constants'
 import { LABELS, TOAST } from '../utils/messages'
 import { toast } from '../utils/toast'
