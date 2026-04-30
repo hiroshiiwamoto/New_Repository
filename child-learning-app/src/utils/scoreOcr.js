@@ -143,6 +143,88 @@ const REVIEW_PROMPT = `あなたは中学受験専門の塾講師です。以下
 ■ テストデータ:
 `
 
+/**
+ * Gemini API 呼び出しで発生しうる種別を区別するためのエラークラス。
+ * code は機械可読、message は UI にそのまま出せる文言を入れる。
+ */
+export class GeminiError extends Error {
+  constructor(code, message, details = {}) {
+    super(message)
+    this.name = 'GeminiError'
+    this.code = code
+    this.status = details.status
+    this.body = details.body
+    this.cause = details.cause
+  }
+}
+
+/**
+ * Gemini API を呼び出し、テキスト応答を返す共通ヘルパー。
+ * pre-flight チェック（APIキー / 月次上限）と HTTP ステータス分岐、
+ * 使用量記録までを一元化する。エラーは GeminiError で正規化して throw。
+ *
+ * @param {object} body - Gemini API リクエスト body
+ * @returns {Promise<string>} candidates[0].content.parts[0].text
+ */
+async function callGemini(body) {
+  if (!GEMINI_API_KEY) {
+    throw new GeminiError(
+      'NO_API_KEY',
+      'Gemini APIキーが設定されていません（VITE_GEMINI_API_KEY）'
+    )
+  }
+  if (getGeminiUsage().isOverLimit) {
+    throw new GeminiError(
+      'OVER_LIMIT',
+      `今月のGemini API使用上限（${MONTHLY_LIMIT}回）に達しました。来月まで利用できません`
+    )
+  }
+
+  let response
+  try {
+    response = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+  } catch (err) {
+    throw new GeminiError(
+      'NETWORK',
+      '通信エラーが発生しました。ネットワーク接続を確認してください',
+      { cause: err }
+    )
+  }
+
+  if (!response.ok) {
+    const errBody = await response.text().catch(() => '')
+    const status = response.status
+    if (status === 401 || status === 403) {
+      throw new GeminiError('AUTH', 'Gemini APIキーが無効、または権限がありません', { status, body: errBody })
+    }
+    if (status === 429) {
+      throw new GeminiError(
+        'RATE_LIMIT',
+        'Gemini API の呼び出し頻度上限に達しました。少し待ってから再試行してください',
+        { status, body: errBody }
+      )
+    }
+    if (status >= 500) {
+      throw new GeminiError(
+        'TRANSIENT',
+        'Gemini API の一時障害です。しばらくしてから再試行してください',
+        { status, body: errBody }
+      )
+    }
+    throw new GeminiError('UNKNOWN', `Gemini API エラー: ${status}`, { status, body: errBody })
+  }
+
+  // 課金対象として記録（API成功時点でカウント）
+  recordGeminiCall()
+
+  const data = await response.json().catch(() => null)
+  return data?.candidates?.[0]?.content?.parts?.[0]?.text || ''
+}
+
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -156,49 +238,26 @@ function fileToBase64(file) {
 }
 
 export async function extractScoresFromImage(file) {
-  if (!GEMINI_API_KEY) {
-    throw new Error('Gemini APIキーが設定されていません（VITE_GEMINI_API_KEY）')
-  }
-
-  // 使用量上限チェック
-  const usage = getGeminiUsage()
-  if (usage.isOverLimit) {
-    throw new Error(`今月のGemini API使用上限（${MONTHLY_LIMIT}回）に達しました。来月まで画像読み取りは使用できません。`)
-  }
-
   const base64 = await fileToBase64(file)
   const mimeType = file.type || 'image/png'
-
-  const response = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{
-        parts: [
-          { text: PROMPT },
-          { inline_data: { mime_type: mimeType, data: base64 } }
-        ]
-      }]
-    })
+  const text = await callGemini({
+    contents: [{
+      parts: [
+        { text: PROMPT },
+        { inline_data: { mime_type: mimeType, data: base64 } }
+      ]
+    }]
   })
-
-  if (!response.ok) {
-    const err = await response.text()
-    throw new Error(`Gemini API エラー: ${response.status} ${err}`)
-  }
-
-  const data = await response.json()
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
-
-  // API呼び出し成功 → 使用量を記録
-  recordGeminiCall()
 
   const jsonMatch = text.match(/\{[\s\S]*\}/)
   if (!jsonMatch) {
-    throw new Error('成績データを読み取れませんでした')
+    throw new GeminiError('INVALID_FORMAT', '成績データを読み取れませんでした。別の画像で試してください')
   }
-
-  return JSON.parse(jsonMatch[0])
+  try {
+    return JSON.parse(jsonMatch[0])
+  } catch (err) {
+    throw new GeminiError('INVALID_FORMAT', '成績データの解析に失敗しました', { cause: err })
+  }
 }
 
 // ── 正答率一覧表から誤答を抽出 ──────────────────────────────
@@ -246,47 +305,26 @@ const WRONG_ANSWERS_PROMPT = `この画像はSAPIXなど塾のテストの「正
 JSONのみ返してください。説明文は不要です。`
 
 export async function extractWrongAnswersFromImage(file) {
-  if (!GEMINI_API_KEY) {
-    throw new Error('Gemini APIキーが設定されていません（VITE_GEMINI_API_KEY）')
-  }
-
-  const usage = getGeminiUsage()
-  if (usage.isOverLimit) {
-    throw new Error(`今月のGemini API使用上限（${MONTHLY_LIMIT}回）に達しました。`)
-  }
-
   const base64 = await fileToBase64(file)
   const mimeType = file.type || 'image/png'
-
-  const response = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{
-        parts: [
-          { text: WRONG_ANSWERS_PROMPT },
-          { inline_data: { mime_type: mimeType, data: base64 } }
-        ]
-      }]
-    })
+  const text = await callGemini({
+    contents: [{
+      parts: [
+        { text: WRONG_ANSWERS_PROMPT },
+        { inline_data: { mime_type: mimeType, data: base64 } }
+      ]
+    }]
   })
-
-  if (!response.ok) {
-    const err = await response.text()
-    throw new Error(`Gemini API エラー: ${response.status} ${err}`)
-  }
-
-  const data = await response.json()
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
-
-  recordGeminiCall()
 
   const jsonMatch = text.match(/\[[\s\S]*\]/)
   if (!jsonMatch) {
-    throw new Error('誤答データを読み取れませんでした')
+    throw new GeminiError('INVALID_FORMAT', '誤答データを読み取れませんでした。別の画像で試してください')
   }
-
-  return JSON.parse(jsonMatch[0])
+  try {
+    return JSON.parse(jsonMatch[0])
+  } catch (err) {
+    throw new GeminiError('INVALID_FORMAT', '誤答データの解析に失敗しました', { cause: err })
+  }
 }
 
 // ── 総評生成 ──────────────────────────────────────────────
@@ -298,15 +336,6 @@ export async function extractWrongAnswersFromImage(file) {
  * @returns {Promise<string>} マークダウン形式の総評テキスト
  */
 export async function generateTestReview(scoreData, wrongAnswers = []) {
-  if (!GEMINI_API_KEY) {
-    throw new Error('Gemini APIキーが設定されていません（VITE_GEMINI_API_KEY）')
-  }
-
-  const usage = getGeminiUsage()
-  if (usage.isOverLimit) {
-    throw new Error(`今月のGemini API使用上限（${MONTHLY_LIMIT}回）に達しました。`)
-  }
-
   // テストデータを構造化テキストに変換
   const subjectKeys = [
     { key: 'sansu', label: '算数' },
@@ -360,29 +389,13 @@ export async function generateTestReview(scoreData, wrongAnswers = []) {
   }
 
   const prompt = REVIEW_PROMPT + dataText
-
-  const response = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }]
-    })
+  const reviewText = await callGemini({
+    contents: [{ parts: [{ text: prompt }] }]
   })
 
-  if (!response.ok) {
-    const err = await response.text()
-    throw new Error(`Gemini API エラー: ${response.status} ${err}`)
-  }
-
-  const result = await response.json()
-  const reviewText = result.candidates?.[0]?.content?.parts?.[0]?.text || ''
-
-  recordGeminiCall()
-
   if (!reviewText.trim()) {
-    throw new Error('総評を生成できませんでした')
+    throw new GeminiError('EMPTY_RESPONSE', '総評を生成できませんでした。再試行してください')
   }
-
   return reviewText.trim()
 }
 
