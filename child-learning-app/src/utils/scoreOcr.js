@@ -1,10 +1,11 @@
 import { getStaticMasterUnits } from './importMasterUnits'
+import { getCachedGeminiCount, recordGeminiCall } from './geminiUsage'
 
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY
 const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent'
 
 // ── Gemini API 使用量トラッキング ──────────────────
-const USAGE_STORAGE_KEY = 'gemini_api_usage'
+// 集計実体は src/utils/geminiUsage.js (Firestore + onSnapshot キャッシュ)
 const MONTHLY_LIMIT = 50 // 月間上限（回数）
 const WARNING_THRESHOLD = 40 // 警告を出す回数
 
@@ -13,44 +14,16 @@ function getCurrentMonthKey() {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 }
 
-function getUsageData() {
-  try {
-    const raw = localStorage.getItem(USAGE_STORAGE_KEY)
-    if (!raw) return {}
-    return JSON.parse(raw)
-  } catch {
-    return {}
-  }
-}
-
-function saveUsageData(data) {
-  localStorage.setItem(USAGE_STORAGE_KEY, JSON.stringify(data))
-}
-
-function recordApiCall() {
-  const data = getUsageData()
-  const monthKey = getCurrentMonthKey()
-  if (!data[monthKey]) {
-    data[monthKey] = { count: 0, calls: [] }
-  }
-  data[monthKey].count += 1
-  data[monthKey].calls.push(new Date().toISOString())
-  saveUsageData(data)
-  return data[monthKey].count
-}
-
-/** 今月の使用状況を取得 */
+/** 今月の使用状況を取得（同期。未ログイン・未ロード時は count=0） */
 export function getGeminiUsage() {
-  const data = getUsageData()
-  const monthKey = getCurrentMonthKey()
-  const monthly = data[monthKey] || { count: 0, calls: [] }
+  const count = getCachedGeminiCount()
   return {
-    count: monthly.count,
+    count,
     limit: MONTHLY_LIMIT,
-    remaining: Math.max(0, MONTHLY_LIMIT - monthly.count),
-    isWarning: monthly.count >= WARNING_THRESHOLD,
-    isOverLimit: monthly.count >= MONTHLY_LIMIT,
-    month: monthKey,
+    remaining: Math.max(0, MONTHLY_LIMIT - count),
+    isWarning: count >= WARNING_THRESHOLD,
+    isOverLimit: count >= MONTHLY_LIMIT,
+    month: getCurrentMonthKey(),
   }
 }
 
@@ -218,7 +191,7 @@ export async function extractScoresFromImage(file) {
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
 
   // API呼び出し成功 → 使用量を記録
-  recordApiCall()
+  recordGeminiCall()
 
   const jsonMatch = text.match(/\{[\s\S]*\}/)
   if (!jsonMatch) {
@@ -306,7 +279,7 @@ export async function extractWrongAnswersFromImage(file) {
   const data = await response.json()
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
 
-  recordApiCall()
+  recordGeminiCall()
 
   const jsonMatch = text.match(/\[[\s\S]*\]/)
   if (!jsonMatch) {
@@ -404,7 +377,7 @@ export async function generateTestReview(scoreData, wrongAnswers = []) {
   const result = await response.json()
   const reviewText = result.candidates?.[0]?.content?.parts?.[0]?.text || ''
 
-  recordApiCall()
+  recordGeminiCall()
 
   if (!reviewText.trim()) {
     throw new Error('総評を生成できませんでした')

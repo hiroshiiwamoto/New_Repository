@@ -120,6 +120,11 @@ service cloud.firestore {
       match /problems/{problemId} {
         allow read, write: if isAuthenticated() && isOwner(userId);
       }
+
+      // API 使用量集計（Gemini など、月別の呼び出し回数を保持）
+      match /usage/{docId} {
+        allow read, write: if isAuthenticated() && isOwner(userId);
+      }
     }
 
     // その他のすべてのドキュメントへのアクセスを拒否
