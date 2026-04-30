@@ -234,10 +234,45 @@ function lessonLabelFromCode(code) {
  *     isHomework: true,
  *   }]
  */
+// 講習中の家庭学習タスクを生成（春期・夏期）
+// 通常授業（D-番号）と異なり、講習日は毎日連続するため翌日に「テキスト復習」を1件出すのみ。
+// テンプレート定義は持たず、SAPIXセッションから直接タスクを構築する。
+const SEASON_DNUMBERS = new Set(['春期', '夏期'])
+
+function generateSeasonHomework(sessions, today, allTasks) {
+  const todayStr = formatDate(today)
+  const horizonStr = formatDate(addDays(today, 6))
+  for (const s of sessions) {
+    if (!SEASON_DNUMBERS.has(s.dNumber)) continue
+    const classDate = parseLocalDate(s.date)
+    const dueDate = addDays(classDate, 1)
+    const dueDateStr = formatDate(dueDate)
+    if (dueDateStr < todayStr || dueDateStr > horizonStr) continue
+    allTasks.push({
+      id: `hw-${s.subject}-season-review-${dueDateStr}`,
+      subject: s.subject,
+      title: 'テキスト 復習',
+      dueDate: dueDateStr,
+      studyPriority: 1,
+      studyCategory: 'season-review',
+      priority: 'A',
+      classDate: s.date,
+      isHomework: true,
+      textCode: s.textCode,
+      lessonLabel: lessonLabelFromCode(s.textCode),
+      unitName: s.name,
+      unitIds: s.unitIds,
+    })
+  }
+}
+
 export function generateWeeklyHomework(today = new Date()) {
   const allTasks = []
   // 1回の生成中だけセッション一覧を保持（モジュール越しのキャッシュは持たない）
   const sessions = generateSapixSessions()
+
+  // 講習期間中の家庭学習（D-番号外のセッションを別ロジックで処理）
+  generateSeasonHomework(sessions, today, allTasks)
 
   for (const [dayStr, subjects] of Object.entries(CLASS_SCHEDULE)) {
     const classDayOfWeek = parseInt(dayStr, 10)
