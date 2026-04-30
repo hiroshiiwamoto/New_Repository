@@ -14,9 +14,8 @@ import {
   addProblem,
   updateProblem,
   deleteProblem,
-  deleteProblemsBySource,
 } from '../utils/problems'
-import { addLessonLogWithStats, deleteLessonLogsBySource, EVALUATION_SCORES } from '../utils/lessonLogs'
+import { addLessonLogWithStats, EVALUATION_SCORES } from '../utils/lessonLogs'
 import { MAX_FILE_SIZE, SUBJECTS } from '../utils/constants'
 import { toast } from '../utils/toast'
 import { LABELS, TOAST } from '../utils/messages'
@@ -606,8 +605,6 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
   }
   const handleDeleteConfirm = async (score) => {
     dispatch({ type: 'SET_FIELD', field: 'pendingDeleteId', value: null })
-    await deleteProblemsBySource(user.uid, 'test', score.id)
-    await deleteLessonLogsBySource(user.uid, 'test', score.id)
     const result = await deleteTestScore(user.uid, score.id)
     if (result.success) {
       toast.success('テストを削除しました')
