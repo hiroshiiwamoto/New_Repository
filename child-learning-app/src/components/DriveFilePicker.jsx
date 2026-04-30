@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { getGoogleAccessToken, refreshGoogleAccessToken } from './Auth'
+import { getGoogleAccessToken, refreshGoogleAccessToken } from '../utils/googleAccessToken'
 import Loading from './Loading'
 import './DriveFilePicker.css'
 

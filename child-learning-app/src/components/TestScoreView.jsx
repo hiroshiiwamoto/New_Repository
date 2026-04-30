@@ -1,4 +1,4 @@
-import { useReducer, useEffect, useRef, useState } from 'react'
+import { useReducer, useEffect, useRef, useState, useMemo } from 'react'
 import './TestScoreView.css'
 import { getTodayString } from '../utils/dateUtils'
 import {
@@ -23,7 +23,7 @@ import ProblemClipList from './ProblemClipList'
 import PdfCropper from './PdfCropper'
 import DriveFilePicker from './DriveFilePicker'
 import { uploadPDFToDrive, checkDriveAccess } from '../utils/googleDriveStorage'
-import { refreshGoogleAccessToken } from './Auth'
+import { refreshGoogleAccessToken } from '../utils/googleAccessToken'
 import { grades } from '../utils/unitsDatabase'
 import EmptyState from './EmptyState'
 import TestRangeProblems from './TestRangeProblems'
@@ -263,25 +263,30 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
   const [ocrCropperTarget, setOcrCropperTarget] = useState(null) // OCRプレビューで画像追加中のアイテムindex
 
   // scores を直接利用（state にコピーしない → 不要な再レンダーを防止）
-  const scoresList = scores || []
+  // useMemo で安定参照にし、useEffect の deps として使えるようにする
+  const scoresList = useMemo(() => scores || [], [scores])
 
+  // selectedScore.id 変更時に problems を再取得。
+  // getProblemsForTestScore は score.id しか参照しないため、id だけを deps に。
   useEffect(() => {
-    if (!user || !state.selectedScore) return
-    getProblemsForTestScore(user.uid, state.selectedScore).then(merged => {
+    const scoreId = state.selectedScore?.id
+    if (!user || !scoreId) return
+    getProblemsForTestScore(user.uid, { id: scoreId }).then(merged => {
       dispatch({ type: 'SET_FIELD', field: 'problemsCache', value: merged })
     })
   }, [user, state.selectedScore?.id])
 
   // scores が再取得されたら selectedScore を最新に同期
+  // selectedScore を deps に含めるが、JSON 比較で同値時の dispatch をスキップして
+  // 無限再実行を防いでいる。
   useEffect(() => {
     if (!state.selectedScore || !scoresList.length) return
     const updated = scoresList.find(s => s.id === state.selectedScore.id)
     if (!updated) return
-    // 内容が変わった場合のみ更新（不要な再レンダーを防止）
     if (JSON.stringify(updated) !== JSON.stringify(state.selectedScore)) {
       dispatch({ type: 'SET_FIELD', field: 'selectedScore', value: updated })
     }
-  }, [scoresList])
+  }, [scoresList, state.selectedScore])
 
   // initialTestId が渡されたら自動的にそのテストを選択
   useEffect(() => {
@@ -291,9 +296,10 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
       dispatch({ type: 'SET_FIELD', field: 'selectedScore', value: target })
     }
     if (onConsumeInitialTestId) onConsumeInitialTestId()
-  }, [initialTestId, scoresList])
+  }, [initialTestId, scoresList, onConsumeInitialTestId])
 
   // scheduled テスト選択時に editForm を自動初期化（既にある場合はスキップ）
+  // editForm が存在する間は早期 return するため、dispatch による再実行は無害。
   useEffect(() => {
     if (!state.selectedScore || state.selectedScore.status !== 'scheduled') return
     if (state.editForm) return
@@ -309,7 +315,7 @@ function TestScoreView({ user, initialTestId, onConsumeInitialTestId, sapixTexts
         },
       },
     })
-  }, [state.selectedScore?.id])
+  }, [state.selectedScore, state.editForm])
 
   // ============================================================
   // テスト追加（日程登録）

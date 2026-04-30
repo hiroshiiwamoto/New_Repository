@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import * as pdfjsLib from 'pdfjs-dist'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { storage } from '../firebase'
-import { getGoogleAccessToken, refreshGoogleAccessToken } from './Auth'
+import { getGoogleAccessToken, refreshGoogleAccessToken } from '../utils/googleAccessToken'
 import { getAllPDFs } from '../utils/pdfStorage'
 import Loading from './Loading'
 import './PdfCropper.css'
@@ -66,6 +66,8 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
   const resizeStartRef = useRef(null)
 
   // ─── タブ2のリスト読み込み ───
+  // pdfList が空のときだけ読み込む。length を deps に入れることで
+  // ロード完了直後に再実行されるが、早期 return でスキップされるため安全。
   useEffect(() => {
     if (state.activeTab !== 'list' || state.pdfList.length > 0) return
     dispatch({ type: 'SET_FIELD', field: 'pdfListLoading', value: true })
@@ -73,14 +75,16 @@ export default function PdfCropper({ userId, attachedPdf, onCropComplete, onClos
       if (result.success) dispatch({ type: 'SET_FIELD', field: 'pdfList', value: result.data })
       dispatch({ type: 'SET_FIELD', field: 'pdfListLoading', value: false })
     })
-  }, [state.activeTab, userId])
+  }, [state.activeTab, userId, state.pdfList.length])
 
   // ─── タブ1: attachedPdf が指定されたら自動読み込み ───
+  // attachedPdf 切替時にも反応するよう driveFileId / fileName を deps に含める。
+  // pdfDoc が既にある場合は早期 return で再読み込みを防ぐ。
   useEffect(() => {
     if (state.activeTab === 'attached' && attachedPdf?.driveFileId && !state.pdfDoc) {
       loadPdfFromDriveId(attachedPdf.driveFileId, attachedPdf.fileName)
     }
-  }, [state.activeTab])
+  }, [state.activeTab, attachedPdf?.driveFileId, attachedPdf?.fileName, state.pdfDoc])
 
   // ─────────────────────────────────────────
   // PDF読み込みコア

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import './App.css'
 import './utils/toast.css'
 import Auth from './components/Auth'
@@ -30,7 +30,18 @@ import { toast } from './utils/toast'
 
 function App() {
   const [user, setUser] = useState(null)
-  const [tasks, setTasks] = useState([])
+  const [tasks, setTasks] = useState(() => {
+    // 未ログイン時は localStorage の sapixTasks を初期値として復元（マウント時 1 回のみ）
+    const savedTasks = localStorage.getItem('sapixTasks')
+    if (!savedTasks) return []
+    try {
+      return JSON.parse(savedTasks)
+    } catch {
+      console.error('localStorage data corrupted, clearing')
+      localStorage.removeItem('sapixTasks')
+      return []
+    }
+  })
   const [view, setView] = useState('schedule') // schedule, dashboard, pastpaper, testscore, sapixtext, edit
   const [previousView, setPreviousView] = useState('schedule') // Store previous view for returning after edit
   const [editingTask, setEditingTask] = useState(null)
@@ -40,41 +51,32 @@ function App() {
   const taskFormRef = useRef(null)
   const [pendingTestId, setPendingTestId] = useState(null)
   const [showTaskForm, setShowTaskForm] = useState(false)
-  const [migrated, setMigrated] = useState(false)
+  // 移行済みフラグは UI に影響しない単なるガードなので state ではなく ref で持つ
+  // （effect 内 setState による不要な再実行を防ぐ）
+  const migratedRef = useRef(false)
   const [homeworkDone, setHomeworkDone] = useState({}) // { hwId: true/false }
 
 
   // Firestore同期: ユーザーがログインしたら、タスクをリアルタイムで取得
+  // 未ログイン時の初期復元は useState の lazy initializer で処理済み
   useEffect(() => {
-    if (!user) {
-      // ユーザーがログインしていない場合は、localStorageから読み込む
-      const savedTasks = localStorage.getItem('sapixTasks')
-      if (savedTasks) {
-        try {
-          setTasks(JSON.parse(savedTasks))
-        } catch {
-          console.error('localStorage data corrupted, clearing')
-          localStorage.removeItem('sapixTasks')
-        }
-      }
-      return
-    }
+    if (!user) return
 
     // localStorageからFirestoreへの移行（初回のみ）
     // CLEANUP_KEYがある場合はすでにクリーンアップ済みなので移行しない
     const CLEANUP_KEY = 'all_tasks_cleared_20260217'
-    if (!migrated) {
+    if (!migratedRef.current) {
       const hasLocalData = localStorage.getItem('sapixTasks') || localStorage.getItem('targetSchools')
       if (hasLocalData && !localStorage.getItem(CLEANUP_KEY)) {
         // まだクリーンアップ前の場合のみFirestoreへ移行し、移行後はlocalStorageを削除
         migrateLocalStorageToFirestore(user.uid).then(() => {
           localStorage.removeItem('sapixTasks')
-          setMigrated(true)
+          migratedRef.current = true
         })
       } else {
         // クリーンアップ済み、またはローカルデータなし → localStorageのタスクを削除して終了
         localStorage.removeItem('sapixTasks')
-        setMigrated(true)
+        migratedRef.current = true
       }
     }
 
@@ -99,7 +101,7 @@ function App() {
     })
 
     return () => unsubscribe()
-  }, [user, migrated])
+  }, [user])
 
   // SAPIXテキストをリアルタイム購読（カレンダー学習日表示用）
   useEffect(() => {
@@ -229,6 +231,9 @@ function App() {
     setPendingTestId(testId)
     setView('testscore')
   }
+
+  // TestScoreView の useEffect deps に渡すため安定参照にする
+  const consumeInitialTestId = useCallback(() => setPendingTestId(null), [])
 
   const addCustomUnit = async (unitData) => {
     if (!user) {
@@ -374,7 +379,7 @@ function App() {
           <TestScoreView
             user={user}
             initialTestId={pendingTestId}
-            onConsumeInitialTestId={() => setPendingTestId(null)}
+            onConsumeInitialTestId={consumeInitialTestId}
             sapixTexts={sapixTexts}
           />
         ) : view === 'sapixtext' ? (

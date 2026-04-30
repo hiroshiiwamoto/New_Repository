@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import './PDFProblemView.css'
 import {
   uploadPDF,
@@ -10,7 +10,7 @@ import {
   getStorageUsage,
   checkDriveAccess
 } from '../utils/pdfStorage'
-import { refreshGoogleAccessToken } from './Auth'
+import { refreshGoogleAccessToken } from '../utils/googleAccessToken'
 import { MAX_FILE_SIZE, SUBJECTS } from '../utils/constants'
 import { LABELS, TOAST } from '../utils/messages'
 import { toast } from '../utils/toast'
@@ -37,18 +37,37 @@ function PDFProblemView({ user }) {
 
   const fileInputRef = useRef(null)
 
+  const loadPDFs = useCallback(async () => {
+    if (!user) return
+    const result = await getAllPDFs(user.uid, filter)
+    if (result.success) {
+      setPdfs(result.data)
+    }
+  }, [user, filter])
+
+  const loadStatistics = useCallback(async () => {
+    if (!user) return
+    const result = await getPDFStatistics(user.uid)
+    if (result.success) {
+      setStatistics(result.data)
+    }
+  }, [user])
+
+  const loadStorageUsage = useCallback(async () => {
+    if (!user) return
+    const usage = await getStorageUsage(user.uid)
+    if (usage) {
+      setStorageUsage(usage)
+    }
+  }, [user])
+
   useEffect(() => {
     if (!user) return
     loadPDFs()
     loadStatistics()
     loadStorageUsage()
-    checkDriveConnection()
-  }, [user])
-
-  const checkDriveConnection = async () => {
-    const connected = await checkDriveAccess()
-    setDriveConnected(connected)
-  }
+    checkDriveAccess().then(setDriveConnected)
+  }, [user, loadPDFs, loadStatistics, loadStorageUsage])
 
   const handleConnectDrive = async () => {
     const token = await refreshGoogleAccessToken()
@@ -58,27 +77,6 @@ function PDFProblemView({ user }) {
       loadStorageUsage()
     } else {
       toast.error('Google Drive の接続に失敗しました')
-    }
-  }
-
-  const loadPDFs = async () => {
-    const result = await getAllPDFs(user.uid, filter)
-    if (result.success) {
-      setPdfs(result.data)
-    }
-  }
-
-  const loadStatistics = async () => {
-    const result = await getPDFStatistics(user.uid)
-    if (result.success) {
-      setStatistics(result.data)
-    }
-  }
-
-  const loadStorageUsage = async () => {
-    const usage = await getStorageUsage(user.uid)
-    if (usage) {
-      setStorageUsage(usage)
     }
   }
 

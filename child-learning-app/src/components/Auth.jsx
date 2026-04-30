@@ -3,30 +3,10 @@ import { auth, googleProvider } from '../firebase'
 import { signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider } from 'firebase/auth'
 import { toast } from '../utils/toast'
 import { subscribeGeminiUsage } from '../utils/geminiUsage'
+import { setGoogleAccessToken, clearGoogleAccessToken } from '../utils/googleAccessToken'
 import Loading from './Loading'
 import SettingsModal from './SettingsModal'
 import './Auth.css'
-
-// Google Drive アクセストークンを管理
-let _googleAccessToken = null
-
-export function getGoogleAccessToken() {
-  return _googleAccessToken
-}
-
-export async function refreshGoogleAccessToken() {
-  try {
-    const result = await signInWithPopup(auth, googleProvider)
-    const credential = GoogleAuthProvider.credentialFromResult(result)
-    if (credential) {
-      _googleAccessToken = credential.accessToken
-    }
-    return _googleAccessToken
-  } catch (error) {
-    console.error('Error refreshing Google token:', error)
-    return null
-  }
-}
 
 function Auth({ onAuthChange }) {
   const [user, setUser] = useState(null)
@@ -38,7 +18,7 @@ function Auth({ onAuthChange }) {
       setUser(currentUser)
       setLoading(false)
       if (!currentUser) {
-        _googleAccessToken = null
+        clearGoogleAccessToken()
       }
       // Gemini API 使用量の Firestore 購読をユーザー切り替えに追従
       subscribeGeminiUsage(currentUser?.uid || null)
@@ -55,7 +35,7 @@ function Auth({ onAuthChange }) {
       const result = await signInWithPopup(auth, googleProvider)
       const credential = GoogleAuthProvider.credentialFromResult(result)
       if (credential) {
-        _googleAccessToken = credential.accessToken
+        setGoogleAccessToken(credential.accessToken)
       }
     } catch (error) {
       console.error('Error signing in with Google:', error)
@@ -65,7 +45,7 @@ function Auth({ onAuthChange }) {
 
   const handleSignOut = async () => {
     try {
-      _googleAccessToken = null
+      clearGoogleAccessToken()
       await signOut(auth)
     } catch (error) {
       console.error('Error signing out:', error)
