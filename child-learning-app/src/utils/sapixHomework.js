@@ -183,8 +183,7 @@ function getDayOfWeek(date) {
 
 // 直近の授業日（過去方向）をカレンダーから探す
 // 実在する通常授業（D-番号）のみを対象とし、テスト日や講習日を誤認しない
-function findLastClassDay(fromDate, classDayOfWeek) {
-  const sessions = getSessionsCache()
+function findLastClassDay(sessions, fromDate, classDayOfWeek) {
   const fromStr = formatDate(fromDate)
   const dates = [...new Set(
     sessions
@@ -213,16 +212,8 @@ function textTypeForCategory(subject, category) {
 }
 
 // 授業日 + 教科 + テキスト種別から SAPIX セッション情報を取得
-// セッション一覧はモジュール初回参照時に1度だけ生成してキャッシュ
-let _sessionsCache = null
-function getSessionsCache() {
-  if (!_sessionsCache) _sessionsCache = generateSapixSessions()
-  return _sessionsCache
-}
-
-function findSession(classDate, subject, textType) {
+function findSession(sessions, classDate, subject, textType) {
   if (!textType) return null
-  const sessions = getSessionsCache()
   return sessions.find(s => {
     if (s.date !== classDate || s.subject !== subject) return false
     if (textType === 'A') return /^4\dA-/.test(s.textCode)
@@ -258,12 +249,14 @@ function lessonLabelFromCode(code) {
  */
 export function generateWeeklyHomework(today = new Date()) {
   const allTasks = []
+  // 1回の生成中だけセッション一覧を保持（モジュール越しのキャッシュは持たない）
+  const sessions = generateSapixSessions()
 
   for (const [dayStr, subjects] of Object.entries(CLASS_SCHEDULE)) {
     const classDayOfWeek = parseInt(dayStr, 10)
 
     // 直近の授業日を取得
-    const classDate = findLastClassDay(today, classDayOfWeek)
+    const classDate = findLastClassDay(sessions, today, classDayOfWeek)
     if (!classDate) continue
     const classDayStr = formatDate(classDate)
 
@@ -279,7 +272,7 @@ export function generateWeeklyHomework(today = new Date()) {
       for (const template of templates) {
         // SAPIX カリキュラムから「第N回」「単元名」「テキストコード」を解決
         const textType = textTypeForCategory(subject, template.studyCategory)
-        const session = findSession(classDayStr, subject, textType)
+        const session = findSession(sessions, classDayStr, subject, textType)
         const textCode = session?.textCode || ''
         const lessonLabel = lessonLabelFromCode(textCode)
         const unitName = session?.name || ''
